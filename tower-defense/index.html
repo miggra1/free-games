@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>皇城保卫战</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div><span>金币</span><strong id="gold">0</strong></div>
+        <div><span>城门</span><strong id="lives">0</strong></div>
+        <div><span>关卡</span><strong id="level">0 / 0</strong></div>
+        <button id="nextLevel" type="button">开始本关</button>
+      </section>
+
+      <canvas id="game" width="1120" height="640" aria-label="皇城保卫战游戏画布"></canvas>
+
+      <section class="bottombar">
+        <div id="status">先点黄色圆圈建塔，再开始本关</div>
+        <button id="restart" type="button">重新开始</button>
+      </section>
+
+      <section id="buildMenu" class="build-menu hidden" aria-label="建造菜单">
+        <button type="button" data-type="archer">
+          <b>弓箭塔</b>
+          <span>75 金币</span>
+        </button>
+        <button type="button" data-type="barracks">
+          <b>兵营</b>
+          <span>95 金币</span>
+        </button>
+        <button type="button" data-type="mage">
+          <b>魔法塔</b>
+          <span>115 金币</span>
+        </button>
+        <button type="button" data-type="cannon">
+          <b>大炮</b>
+          <span>130 金币</span>
+        </button>
+        <button class="sell-btn hidden" type="button" data-action="sell">
+          <b>售卖</b>
+          <span id="sellValue">返还金币</span>
+        </button>
+      </section>
+    </main>
+
+    <script src="script.js?v=balance-2"></script>
+  </body>
+</html>

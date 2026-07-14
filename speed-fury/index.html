@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>速度与激情</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a href="/free-games/">返回</a>
+        <div>
+          <span>单人赛车</span>
+          <strong>速度与激情</strong>
+        </div>
+        <button id="restartBtn" type="button">重开</button>
+      </header>
+
+      <section class="hud" aria-label="游戏状态">
+        <div><span>分数</span><strong id="score">0</strong></div>
+        <div><span>速度</span><strong><span id="speed">0</span> km/h</strong></div>
+        <div><span>氮气</span><strong id="nitroText">100%</strong></div>
+        <div><span>最佳</span><strong id="best">0</strong></div>
+      </section>
+
+      <section class="stage">
+        <canvas id="game" width="720" height="760" aria-label="速度与激情赛车游戏"></canvas>
+      </section>
+
+      <section class="mobile-controls" aria-label="触屏控制">
+        <button id="leftBtn" type="button">左</button>
+        <button id="brakeBtn" type="button">刹车</button>
+        <button id="nitroBtn" type="button">氮气</button>
+        <button id="rightBtn" type="button">右</button>
+      </section>
+    </main>
+
+    <dialog id="resultDialog" class="result-dialog">
+      <form method="dialog">
+        <span>本局结束</span>
+        <h2>撞车了</h2>
+        <p id="resultText">得分 0</p>
+        <button value="restart" type="submit">再来一局</button>
+      </form>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>

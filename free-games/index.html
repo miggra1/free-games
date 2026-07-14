@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>free小游戏</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="portal">
+      <header class="hero">
+        <div>
+          <strong>free小游戏</strong>
+          <span>赛车、弹弓、射击、格斗、迷宫、塔防、连连看、消消乐、三国文字策略，一点就玩</span>
+        </div>
+        <nav>
+          <a href="#hot">热门游戏</a>
+          <a href="#battle">双人对战</a>
+          <a href="#strategy">策略闯关</a>
+        </nav>
+      </header>
+
+      <section class="banner birds-banner">
+        <div class="banner-copy">
+          <span>今日推荐</span>
+          <h1>愤怒的小鸟</h1>
+          <p>拉开弹弓发射小鸟，撞倒木塔和石块，击中所有小猪。角度、力度和落点都很关键。</p>
+        </div>
+        <div class="birds-cover" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill hill-a"></div>
+          <div class="hill hill-b"></div>
+          <div class="slingshot"></div>
+          <div class="red-bird">
+            <span class="eye"></span>
+            <span class="beak"></span>
+            <span class="brow"></span>
+          </div>
+          <div class="tower tower-left"></div>
+          <div class="tower tower-right"></div>
+          <div class="beam beam-top"></div>
+          <div class="beam beam-low"></div>
+          <div class="pig pig-a"><span></span></div>
+          <div class="pig pig-b"><span></span></div>
+        </div>
+        <a class="play-main" href="/angry-birds/">开始发射</a>
+      </section>
+
+      <section class="game-section" id="hot">
+        <div class="section-title">
+          <h2>热门游戏</h2>
+          <span>每个游戏都有实机截图封面，点开即玩</span>
+        </div>
+
+        <div class="game-grid">
+          <a class="game-card featured speed-card" href="/speed-fury/">
+            <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+            <i>单人赛车</i>
+            <b>速度与激情</b>
+            <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
+          </a>
+          <a class="game-card featured birds-card" href="/angry-birds/">
+            <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
+            <i>弹弓</i>
+            <b>愤怒的小鸟</b>
+            <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
+          </a>
+          <a class="game-card featured" href="/tower-defense/">
+            <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+            <i>塔防</i>
+            <b>皇城突袭塔防</b>
+            <span>十关塔防，弓箭、小兵、魔法、大炮守皇城</span>
+          </a>
+          <a class="game-card featured zhao-card" href="/zhaoyun-adou/">
+            <div class="text-cover" aria-hidden="true">
+              <strong>赵 云</strong>
+              <span>护 阿 斗</span>
+            </div>
+            <i>三国</i>
+            <b>赵云与阿斗</b>
+            <span>文字合成、武将召唤、策略布阵保护阿斗</span>
+          </a>
+          <a class="game-card" href="/racing-game/">
+            <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
+            <i>竞速</i>
+            <b>双人分屏赛车</b>
+            <span>换挡、氮气、撞车、障碍和结算页</span>
+          </a>
+          <a class="game-card" href="/two-player-battle/" id="battle">
+            <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
+            <i>双人</i>
+            <b>双人竞技场</b>
+            <span>半场限制，子弹反弹一次</span>
+          </a>
+          <a class="game-card" href="/frontline-shooter/">
+            <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
+            <i>射击</i>
+            <b>前线守卫战</b>
+            <span>第一人称射击，武器逐关升级</span>
+          </a>
+          <a class="game-card" href="/armored-duel/">
+            <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
+            <i>格斗</i>
+            <b>铠甲动漫格斗</b>
+            <span>四角色选择，技能连招对战</span>
+          </a>
+          <a class="game-card" href="/maze-game/" id="strategy">
+            <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
+            <i>闯关</i>
+            <b>趣味迷宫</b>
+            <span>寻找路线，挑战迷宫</span>
+          </a>
+          <a class="game-card link-card" href="/link-link-game/">
+            <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
+            <i>益智</i>
+            <b>水果连连看</b>
+            <span>相同水果连线消除，最多两次转弯</span>
+          </a>
+          <a class="game-card" href="/match-3-game/">
+            <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
+            <i>消除</i>
+            <b>宝石消消乐</b>
+            <span>关卡目标、掉落动画、四连五连生成道具</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

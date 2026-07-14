@@ -1,0 +1,698 @@
+const canvas = document.querySelector("#game");
+const ctx = canvas.getContext("2d");
+const goldEl = document.querySelector("#gold");
+const livesEl = document.querySelector("#lives");
+const levelEl = document.querySelector("#level");
+const statusEl = document.querySelector("#status");
+const nextLevelBtn = document.querySelector("#nextLevel");
+const restartBtn = document.querySelector("#restart");
+const buildMenu = document.querySelector("#buildMenu");
+const sellValueEl = document.querySelector("#sellValue");
+
+const towerData = {
+  archer: { name: "弓箭塔", cost: 75, range: 165, rate: 0.48, damage: 17, color: "#8bd17c" },
+  barracks: { name: "兵营", cost: 95, range: 115, rate: 3.5, damage: 11, color: "#d9c38a" },
+  mage: { name: "魔法塔", cost: 115, range: 150, rate: 1.05, damage: 46, color: "#8a8cff" },
+  cannon: { name: "大炮", cost: 130, range: 165, rate: 1.35, damage: 52, splash: 86, color: "#e29d57" },
+};
+
+const levels = [
+  { name: "城郊小路", count: 12, hp: 58, speed: 58, reward: 8, interval: 0.72, color: "#d9c38a", layout: 0 },
+  { name: "麦田弯道", count: 15, hp: 78, speed: 64, reward: 9, interval: 0.66, color: "#d8915d", layout: 1 },
+  { name: "北门急袭", count: 18, hp: 104, speed: 72, reward: 10, interval: 0.58, color: "#ca6a60", layout: 2 },
+  { name: "石桥快攻", count: 20, hp: 128, speed: 84, reward: 11, interval: 0.5, color: "#8fb6e8", layout: 3 },
+  { name: "先锋首领", count: 16, hp: 170, speed: 58, reward: 14, interval: 0.62, color: "#a477d9", boss: true, bossHp: 760, layout: 4 },
+  { name: "林地包围", count: 24, hp: 150, speed: 78, reward: 12, interval: 0.46, color: "#74c08a", layout: 5 },
+  { name: "重甲军团", count: 22, hp: 205, speed: 62, reward: 15, interval: 0.54, color: "#c28b5b", layout: 6 },
+  { name: "疾风斥候", count: 26, hp: 185, speed: 88, reward: 14, interval: 0.42, color: "#6aa7d9", layout: 7 },
+  { name: "皇城外墙", count: 24, hp: 260, speed: 68, reward: 18, interval: 0.48, color: "#b96f83", layout: 8 },
+  { name: "魔王压城", count: 20, hp: 330, speed: 58, reward: 24, interval: 0.52, color: "#5b2631", boss: true, bossHp: 2200, layout: 9 },
+];
+
+const levelNames = [
+  "城郊小路",
+  "麦田弯道",
+  "北门急袭",
+  "石桥快攻",
+  "先锋首领",
+  "林地包围",
+  "重甲军团",
+  "疾风斥候",
+  "皇城外墙",
+  "魔王压城",
+];
+
+let game;
+let lastTime = 0;
+let selectedSite = null;
+let selectedTower = null;
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.round(rect.width * scale);
+  canvas.height = Math.round(rect.height * scale);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  canvas.w = rect.width;
+  canvas.h = rect.height;
+  if (game) buildLevel();
+}
+
+function w() {
+  return canvas.w || canvas.clientWidth || 1120;
+}
+
+function h() {
+  return canvas.h || canvas.clientHeight || 640;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function levelName(index) {
+  return levelNames[index] || `第 ${index + 1} 关`;
+}
+
+function makeGame() {
+  game = {
+    gold: 260,
+    lives: 20,
+    levelIndex: 0,
+    levelActive: false,
+    spawning: false,
+    spawnTimer: 0,
+    spawnLeft: 0,
+    state: "playing",
+    enemies: [],
+    towers: [],
+    bullets: [],
+    soldiers: [],
+    effects: [],
+    path: [],
+    sites: [],
+  };
+  buildLevel();
+  statusEl.textContent = "先点黄色圆圈建塔，再开始本关";
+  updateHud();
+}
+
+function buildLevel() {
+  const width = w();
+  const height = h();
+  const layout = 0;
+  const paths = [
+    [[-0.04, 0.45], [0.18, 0.45], [0.18, 0.24], [0.42, 0.24], [0.42, 0.66], [0.7, 0.66], [0.7, 0.36], [1.05, 0.36]],
+    [[-0.04, 0.3], [0.25, 0.3], [0.25, 0.62], [0.52, 0.62], [0.52, 0.25], [0.78, 0.25], [0.78, 0.56], [1.05, 0.56]],
+    [[-0.04, 0.62], [0.16, 0.62], [0.16, 0.42], [0.38, 0.42], [0.38, 0.22], [0.66, 0.22], [0.66, 0.68], [1.05, 0.68]],
+    [[-0.04, 0.5], [0.2, 0.5], [0.34, 0.28], [0.52, 0.5], [0.66, 0.72], [0.82, 0.48], [1.05, 0.48]],
+    [[-0.04, 0.36], [0.14, 0.36], [0.14, 0.72], [0.36, 0.72], [0.36, 0.18], [0.58, 0.18], [0.58, 0.52], [0.82, 0.52], [1.05, 0.34]],
+    [[-0.04, 0.22], [0.2, 0.22], [0.2, 0.5], [0.42, 0.5], [0.42, 0.78], [0.64, 0.78], [0.64, 0.38], [1.05, 0.38]],
+    [[-0.04, 0.7], [0.24, 0.7], [0.24, 0.32], [0.48, 0.32], [0.48, 0.58], [0.72, 0.58], [0.72, 0.28], [1.05, 0.28]],
+    [[-0.04, 0.4], [0.18, 0.4], [0.3, 0.18], [0.48, 0.4], [0.6, 0.62], [0.78, 0.4], [1.05, 0.4]],
+    [[-0.04, 0.28], [0.12, 0.28], [0.12, 0.58], [0.34, 0.58], [0.34, 0.35], [0.56, 0.35], [0.56, 0.72], [0.84, 0.72], [0.84, 0.42], [1.05, 0.42]],
+    [[-0.04, 0.52], [0.18, 0.52], [0.18, 0.22], [0.44, 0.22], [0.44, 0.5], [0.62, 0.5], [0.62, 0.78], [0.82, 0.78], [0.82, 0.34], [1.05, 0.34]],
+  ];
+  const sites = [
+    [[0.12, 0.28], [0.28, 0.38], [0.32, 0.72], [0.5, 0.43], [0.61, 0.78], [0.78, 0.52], [0.85, 0.24]],
+    [[0.12, 0.48], [0.3, 0.18], [0.34, 0.76], [0.48, 0.45], [0.64, 0.16], [0.72, 0.42], [0.88, 0.72]],
+    [[0.1, 0.78], [0.24, 0.52], [0.34, 0.28], [0.52, 0.14], [0.58, 0.44], [0.76, 0.72], [0.86, 0.5]],
+    [[0.14, 0.32], [0.28, 0.64], [0.42, 0.2], [0.52, 0.72], [0.66, 0.42], [0.78, 0.76], [0.9, 0.3]],
+    [[0.08, 0.18], [0.22, 0.82], [0.34, 0.48], [0.48, 0.12], [0.62, 0.34], [0.72, 0.66], [0.9, 0.2]],
+    [[0.12, 0.38], [0.3, 0.68], [0.38, 0.28], [0.52, 0.64], [0.68, 0.24], [0.8, 0.54], [0.9, 0.18]],
+    [[0.12, 0.52], [0.26, 0.18], [0.38, 0.72], [0.54, 0.44], [0.66, 0.7], [0.78, 0.16], [0.9, 0.48]],
+    [[0.1, 0.58], [0.24, 0.24], [0.38, 0.5], [0.5, 0.18], [0.62, 0.72], [0.78, 0.28], [0.9, 0.58]],
+    [[0.1, 0.44], [0.22, 0.72], [0.34, 0.22], [0.48, 0.52], [0.62, 0.2], [0.72, 0.84], [0.9, 0.58]],
+    [[0.1, 0.34], [0.28, 0.68], [0.38, 0.36], [0.52, 0.16], [0.6, 0.66], [0.72, 0.44], [0.9, 0.18]],
+  ];
+  game.path = paths[layout].map(([x, y]) => ({ x: x * width, y: y * height }));
+  game.sites = sites[layout].map(([x, y]) => ({ x: x * width, y: y * height }));
+}
+
+function startLevel() {
+  if (game.state !== "playing" || game.spawning || game.enemies.length) return;
+  if (game.levelIndex >= levels.length) return;
+  const level = levels[game.levelIndex];
+  game.spawning = true;
+  game.levelActive = true;
+  game.spawnLeft = level.boss ? level.count + 1 : level.count;
+  game.spawnTimer = 0;
+  statusEl.textContent = level.boss ? `${level.name}：Boss 来袭！` : `${level.name}：敌军进攻`;
+  statusEl.textContent = level.boss ? `${levelName(game.levelIndex)}：Boss 来袭！` : `${levelName(game.levelIndex)}：敌军进攻`;
+  statusEl.textContent = level.boss ? `${levelName(game.levelIndex)}\uff1aBoss \u6765\u88ad\uff01` : `${levelName(game.levelIndex)}\uff1a\u654c\u519b\u8fdb\u653b`;
+  hideBuildMenu();
+}
+
+function spawnEnemy() {
+  const level = levels[game.levelIndex];
+  const isBoss = level.boss && game.spawnLeft === 1;
+  const start = game.path[0];
+  game.enemies.push({
+    x: start.x,
+    y: start.y,
+    pathIndex: 1,
+    hp: isBoss ? level.bossHp : level.hp,
+    maxHp: isBoss ? level.bossHp : level.hp,
+    speed: isBoss ? 34 : level.speed,
+    reward: isBoss ? 180 : level.reward,
+    radius: isBoss ? 28 : 14,
+    color: isBoss ? "#5b2631" : level.color,
+    boss: isBoss,
+    slow: 0,
+    blockedBy: null,
+  });
+}
+
+function update(delta) {
+  if (game.state !== "playing") {
+    updateEffects(delta);
+    return;
+  }
+
+  if (game.spawning) {
+    const level = levels[game.levelIndex];
+    game.spawnTimer -= delta;
+    if (game.spawnTimer <= 0 && game.spawnLeft > 0) {
+      spawnEnemy();
+      game.spawnLeft -= 1;
+      game.spawnTimer = level.interval;
+    }
+    if (game.spawnLeft <= 0) game.spawning = false;
+  }
+
+  updateEnemies(delta);
+  updateTowers(delta);
+  updateBullets(delta);
+  updateSoldiers(delta);
+  updateEffects(delta);
+
+  if (game.levelActive && !game.spawning && game.enemies.length === 0 && game.levelIndex < levels.length && game.spawnLeft <= 0) {
+    const clearedLevel = game.levelIndex + 1;
+    game.levelIndex += 1;
+    game.levelActive = false;
+    game.gold += 45 + clearedLevel * 12;
+    for (const tower of game.towers) {
+      if (tower.type === "barracks") delete tower.squad;
+    }
+    game.soldiers = [];
+    game.bullets = [];
+    hideBuildMenu();
+    if (game.levelIndex >= levels.length) {
+      game.state = "won";
+      statusEl.textContent = "皇城守住了！";
+    } else {
+      statusEl.textContent = `第 ${clearedLevel} 关完成，防御塔保留，获得过关金币`;
+    }
+  }
+
+  updateHud();
+}
+
+function updateEnemies(delta) {
+  for (const enemy of game.enemies) {
+    enemy.slow = Math.max(0, enemy.slow - delta);
+    if (enemy.blockedBy) {
+      if (enemy.blockedBy.hp <= 0 || distance(enemy, enemy.blockedBy) > enemy.radius + 30) enemy.blockedBy = null;
+      else continue;
+    }
+
+    const target = game.path[enemy.pathIndex];
+    const dx = target.x - enemy.x;
+    const dy = target.y - enemy.y;
+    const len = Math.hypot(dx, dy);
+    const speed = enemy.speed * (enemy.slow > 0 ? 0.55 : 1);
+    if (len < speed * delta) {
+      enemy.x = target.x;
+      enemy.y = target.y;
+      enemy.pathIndex += 1;
+      if (enemy.pathIndex >= game.path.length) {
+        enemy.hp = 0;
+        game.lives -= enemy.boss ? 8 : 1;
+        if (game.lives <= 0) {
+          game.state = "lost";
+          statusEl.textContent = "城门被攻破了";
+        }
+      }
+    } else {
+      enemy.x += (dx / len) * speed * delta;
+      enemy.y += (dy / len) * speed * delta;
+    }
+  }
+
+  game.enemies = game.enemies.filter((enemy) => {
+    if (enemy.hp > 0) return true;
+    if (enemy.pathIndex < game.path.length) {
+      game.gold += enemy.reward;
+      addEffect(enemy.x, enemy.y, enemy.color, enemy.boss ? 28 : 12);
+    }
+    return false;
+  });
+}
+
+function updateTowers(delta) {
+  for (const tower of game.towers) {
+    tower.cooldown -= delta;
+    const data = towerData[tower.type];
+    if (tower.type === "barracks") {
+      updateBarracks(tower, delta);
+      continue;
+    }
+
+    if (tower.cooldown > 0) continue;
+    const target = findTarget(tower.x, tower.y, data.range);
+    if (!target) continue;
+    tower.cooldown = data.rate;
+    game.bullets.push({
+      type: tower.type,
+      x: tower.x,
+      y: tower.y - 18,
+      target,
+      speed: tower.type === "cannon" ? 340 : tower.type === "mage" ? 430 : 540,
+      damage: data.damage,
+      splash: data.splash || 0,
+      color: data.color,
+    });
+  }
+}
+
+function updateBarracks(tower, delta) {
+  if (!tower.squad) {
+    tower.squad = [0, 1, 2].map((i) => ({
+      x: tower.x + (i - 1) * 18,
+      y: tower.y + 42,
+      hp: 88,
+      maxHp: 88,
+      cooldown: 0,
+      homeX: tower.x + (i - 1) * 18,
+      homeY: tower.y + 42,
+      target: null,
+    }));
+    game.soldiers.push(...tower.squad);
+  }
+
+  for (const soldier of tower.squad) {
+    if (soldier.hp <= 0) {
+      soldier.hp += 22 * delta;
+      soldier.x = soldier.homeX;
+      soldier.y = soldier.homeY;
+    }
+  }
+}
+
+function updateSoldiers(delta) {
+  for (const soldier of game.soldiers) {
+    if (soldier.hp <= 0) continue;
+    soldier.cooldown = Math.max(0, soldier.cooldown - delta);
+    let target = soldier.target && soldier.target.hp > 0 ? soldier.target : null;
+    if (!target || distance(soldier, target) > 92) {
+      target = nearestEnemy(soldier.x, soldier.y, 100);
+      soldier.target = target;
+    }
+
+    if (target) {
+      const d = distance(soldier, target);
+      if (d > target.radius + 20) {
+        moveToward(soldier, target.x, target.y, 86 * delta);
+      } else {
+        target.blockedBy = soldier;
+        if (soldier.cooldown <= 0) {
+          target.hp -= towerData.barracks.damage;
+          soldier.hp -= target.boss ? 16 : 6;
+          soldier.cooldown = 0.55;
+          addEffect(target.x, target.y, "#f0c86a", 4);
+        }
+      }
+    } else {
+      moveToward(soldier, soldier.homeX, soldier.homeY, 62 * delta);
+    }
+  }
+}
+
+function updateBullets(delta) {
+  for (const bullet of game.bullets) {
+    if (!bullet.target || bullet.target.hp <= 0) {
+      bullet.dead = true;
+      continue;
+    }
+    const speed = bullet.speed * delta;
+    const dx = bullet.target.x - bullet.x;
+    const dy = bullet.target.y - bullet.y;
+    const len = Math.hypot(dx, dy);
+    if (len <= speed) {
+      hitBullet(bullet);
+      bullet.dead = true;
+    } else {
+      bullet.x += (dx / len) * speed;
+      bullet.y += (dy / len) * speed;
+    }
+  }
+  game.bullets = game.bullets.filter((bullet) => !bullet.dead);
+}
+
+function hitBullet(bullet) {
+  if (bullet.splash) {
+    for (const enemy of game.enemies) {
+      if (distance(enemy, bullet.target) <= bullet.splash) enemy.hp -= bullet.damage;
+    }
+    addEffect(bullet.target.x, bullet.target.y, bullet.color, 18);
+    return;
+  }
+
+  bullet.target.hp -= bullet.damage;
+  if (bullet.type === "mage") bullet.target.slow = 1.35;
+  addEffect(bullet.target.x, bullet.target.y, bullet.color, 8);
+}
+
+function updateEffects(delta) {
+  for (const effect of game.effects) {
+    effect.life -= delta;
+    effect.radius += delta * 48;
+  }
+  game.effects = game.effects.filter((effect) => effect.life > 0);
+}
+
+function findTarget(x, y, range) {
+  return game.enemies
+    .filter((enemy) => enemy.hp > 0 && distance({ x, y }, enemy) <= range)
+    .sort((a, b) => b.pathIndex - a.pathIndex || b.x - a.x)[0];
+}
+
+function nearestEnemy(x, y, range) {
+  return game.enemies
+    .filter((enemy) => enemy.hp > 0 && distance({ x, y }, enemy) <= range)
+    .sort((a, b) => distance({ x, y }, a) - distance({ x, y }, b))[0];
+}
+
+function distance(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function moveToward(unit, x, y, amount) {
+  const dx = x - unit.x;
+  const dy = y - unit.y;
+  const len = Math.hypot(dx, dy);
+  if (len <= amount || len === 0) {
+    unit.x = x;
+    unit.y = y;
+  } else {
+    unit.x += (dx / len) * amount;
+    unit.y += (dy / len) * amount;
+  }
+}
+
+function addEffect(x, y, color, radius) {
+  game.effects.push({ x, y, color, radius, life: 0.35 });
+}
+
+function updateHud() {
+  goldEl.textContent = game.gold;
+  livesEl.textContent = game.lives;
+  levelEl.textContent = `${Math.min(game.levelIndex + 1, levels.length)} / ${levels.length}`;
+  nextLevelBtn.textContent = game.levelActive ? "关卡进行中" : game.levelIndex === 0 ? "开始本关" : "开始下一关";
+  nextLevelBtn.disabled = game.state !== "playing" || game.spawning || game.enemies.length > 0 || game.levelIndex >= levels.length || game.levelActive;
+  updateBuildMenuState();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, w(), h());
+  drawMap();
+  drawSites();
+  drawTowers();
+  drawEnemies();
+  drawSoldiers();
+  drawBullets();
+  drawEffects();
+  drawOverlay();
+}
+
+function drawMap() {
+  const width = w();
+  const height = h();
+  ctx.fillStyle = "#395c3b";
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < 80; i += 1) {
+    ctx.fillStyle = i % 2 ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.045)";
+    ctx.fillRect((i * 73) % width, (i * 41) % height, 26, 10);
+  }
+
+  ctx.strokeStyle = "#9a7549";
+  ctx.lineWidth = 46;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  game.path.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
+  ctx.stroke();
+
+  ctx.strokeStyle = "#caa06a";
+  ctx.lineWidth = 34;
+  ctx.beginPath();
+  game.path.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x, point.y);
+    else ctx.lineTo(point.x, point.y);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = "#6b3740";
+  ctx.fillRect(width - 54, height * 0.36 - 48, 56, 96);
+  ctx.fillStyle = "#d9c38a";
+  ctx.fillRect(width - 45, height * 0.36 - 36, 22, 72);
+}
+
+function drawSites() {
+  for (const site of game.sites) {
+    const occupied = game.towers.some((tower) => tower.site === site);
+    ctx.fillStyle = occupied ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.18)";
+    ctx.beginPath();
+    ctx.arc(site.x, site.y, 31, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = occupied ? "rgba(0,0,0,0.28)" : "#f0c86a";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+}
+
+function drawTowers() {
+  for (const tower of game.towers) {
+    const data = towerData[tower.type];
+    ctx.fillStyle = "rgba(0,0,0,0.22)";
+    ctx.beginPath();
+    ctx.ellipse(tower.x, tower.y + 16, 28, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = data.color;
+    ctx.fillRect(tower.x - 18, tower.y - 28, 36, 48);
+    ctx.fillStyle = "#252a31";
+    ctx.fillRect(tower.x - 24, tower.y + 12, 48, 14);
+
+    if (tower.type === "archer") drawIconBow(tower.x, tower.y - 10);
+    if (tower.type === "mage") drawIconOrb(tower.x, tower.y - 12, data.color);
+    if (tower.type === "cannon") drawIconCannon(tower.x, tower.y - 7);
+    if (tower.type === "barracks") drawIconBanner(tower.x, tower.y - 8);
+  }
+}
+
+function drawEnemies() {
+  for (const enemy of game.enemies) {
+    ctx.fillStyle = "rgba(0,0,0,0.22)";
+    ctx.beginPath();
+    ctx.ellipse(enemy.x, enemy.y + enemy.radius * 0.65, enemy.radius * 1.15, enemy.radius * 0.42, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = enemy.color;
+    ctx.beginPath();
+    ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = enemy.boss ? "#f0c86a" : "#1b1f24";
+    ctx.fillRect(enemy.x - enemy.radius * 0.55, enemy.y - enemy.radius * 0.2, enemy.radius * 1.1, enemy.radius * 0.28);
+
+    ctx.fillStyle = "#171717";
+    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 12, enemy.radius * 2, 5);
+    ctx.fillStyle = enemy.boss ? "#f0c86a" : "#5cc887";
+    ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 12, enemy.radius * 2 * clamp(enemy.hp / enemy.maxHp, 0, 1), 5);
+  }
+}
+
+function drawSoldiers() {
+  for (const soldier of game.soldiers) {
+    if (soldier.hp <= 0) continue;
+    ctx.fillStyle = "#d9c38a";
+    ctx.beginPath();
+    ctx.arc(soldier.x, soldier.y, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#5d4933";
+    ctx.fillRect(soldier.x - 3, soldier.y - 16, 6, 14);
+  }
+}
+
+function drawBullets() {
+  for (const bullet of game.bullets) {
+    ctx.fillStyle = bullet.color;
+    ctx.beginPath();
+    ctx.arc(bullet.x, bullet.y, bullet.type === "cannon" ? 8 : 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawEffects() {
+  for (const effect of game.effects) {
+    ctx.globalAlpha = clamp(effect.life * 2.5, 0, 1);
+    ctx.strokeStyle = effect.color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawOverlay() {
+  if (game.state === "playing") return;
+  ctx.fillStyle = "rgba(10,12,16,0.58)";
+  ctx.fillRect(0, 0, w(), h());
+  ctx.fillStyle = "#f6f1e6";
+  ctx.font = "900 42px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(game.state === "won" ? "皇城守住了" : "城门被攻破", w() / 2, h() * 0.42);
+  ctx.font = "16px Microsoft YaHei, Arial";
+  ctx.fillStyle = "#d8dce0";
+  ctx.fillText("点击重新开始再来一局", w() / 2, h() * 0.5);
+}
+
+function drawIconBow(x, y) {
+  ctx.strokeStyle = "#252a31";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(x, y, 14, -1.1, 1.1);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y - 13);
+  ctx.lineTo(x + 6, y + 13);
+  ctx.stroke();
+}
+
+function drawIconOrb(x, y, color) {
+  ctx.fillStyle = "#f6f1e6";
+  ctx.beginPath();
+  ctx.arc(x, y, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+function drawIconCannon(x, y) {
+  ctx.fillStyle = "#252a31";
+  ctx.fillRect(x - 5, y - 12, 26, 12);
+  ctx.beginPath();
+  ctx.arc(x - 4, y + 8, 9, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawIconBanner(x, y) {
+  ctx.fillStyle = "#252a31";
+  ctx.fillRect(x - 2, y - 19, 4, 34);
+  ctx.fillStyle = "#f0c86a";
+  ctx.fillRect(x + 2, y - 18, 18, 13);
+}
+
+function canvasPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+}
+
+function showBuildMenu(site) {
+  selectedSite = site;
+  selectedTower = game.towers.find((tower) => tower.site === site) || null;
+  const isOccupied = Boolean(selectedTower);
+  buildMenu.querySelectorAll("button[data-type]").forEach((button) => {
+    button.classList.toggle("hidden", isOccupied);
+  });
+  const sellButton = buildMenu.querySelector("button[data-action='sell']");
+  sellButton.classList.toggle("hidden", !isOccupied);
+  if (selectedTower) {
+    const refund = sellValue(selectedTower);
+    sellValueEl.textContent = `返还 ${refund} 金币`;
+  }
+  updateBuildMenuState();
+  buildMenu.classList.remove("hidden");
+  buildMenu.style.left = `${site.x + canvas.offsetLeft}px`;
+  buildMenu.style.top = `${site.y + canvas.offsetTop}px`;
+}
+
+function hideBuildMenu() {
+  selectedSite = null;
+  selectedTower = null;
+  buildMenu.classList.add("hidden");
+}
+
+function sellValue(tower) {
+  return Math.floor(towerData[tower.type].cost * 0.7);
+}
+
+function updateBuildMenuState() {
+  buildMenu.querySelectorAll("button[data-type]").forEach((button) => {
+    const data = towerData[button.dataset.type];
+    button.disabled = !data || game.gold < data.cost;
+  });
+}
+
+canvas.addEventListener("click", (event) => {
+  if (game.state !== "playing") return;
+  const point = canvasPoint(event);
+  const site = game.sites.find((item) => distance(point, item) <= 34);
+  if (!site) {
+    hideBuildMenu();
+    return;
+  }
+  showBuildMenu(site);
+});
+
+buildMenu.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-type]");
+  const sellButton = event.target.closest("button[data-action='sell']");
+  if (sellButton && selectedTower) {
+    sellTower(selectedTower);
+    hideBuildMenu();
+    return;
+  }
+  if (!button || !selectedSite || selectedTower) return;
+  const type = button.dataset.type;
+  const data = towerData[type];
+  if (game.gold < data.cost) {
+    statusEl.textContent = "金币不足";
+    return;
+  }
+  game.gold -= data.cost;
+  game.towers.push({ type, x: selectedSite.x, y: selectedSite.y, site: selectedSite, cooldown: 0 });
+  statusEl.textContent = `建造了${data.name}`;
+  hideBuildMenu();
+  updateHud();
+});
+
+function sellTower(tower) {
+  game.gold += sellValue(tower);
+  game.towers = game.towers.filter((item) => item !== tower);
+  if (tower.squad) {
+    game.soldiers = game.soldiers.filter((soldier) => !tower.squad.includes(soldier));
+  }
+  statusEl.textContent = `售卖了${towerData[tower.type].name}`;
+  updateHud();
+}
+
+nextLevelBtn.addEventListener("click", startLevel);
+restartBtn.addEventListener("click", makeGame);
+window.addEventListener("resize", resizeCanvas);
+
+function frame(now) {
+  const delta = Math.min(0.033, (now - lastTime) / 1000 || 0);
+  lastTime = now;
+  update(delta);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+resizeCanvas();
+makeGame();
+requestAnimationFrame(frame);
