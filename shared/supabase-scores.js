@@ -2,34 +2,40 @@
   const SUPABASE_URL = "https://etaedrixhwtcfykczram.supabase.co";
   const SUPABASE_KEY = "sb_publishable_F3CdHW5XABUrO-Fc4TAeVA_UVpnYen3";
   const TABLE = "game_scores";
-  const ENDPOINT = `${SUPABASE_URL}/rest/v1/${TABLE}`;
+  const SDK_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 
-  const baseHeaders = {
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`,
-  };
+  let clientPromise = null;
 
   function cleanName(name) {
     const value = String(name || "").trim();
     return value.slice(0, 24) || "匿名玩家";
   }
 
-  async function request(path, options = {}) {
-    const response = await fetch(`${ENDPOINT}${path}`, {
-      ...options,
-      headers: {
-        ...baseHeaders,
-        ...(options.headers || {}),
-      },
+  function loadSupabaseSdk() {
+    if (window.supabase?.createClient) return Promise.resolve(window.supabase);
+
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${SDK_URL}"]`);
+      if (existing) {
+        existing.addEventListener("load", () => resolve(window.supabase), { once: true });
+        existing.addEventListener("error", reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = SDK_URL;
+      script.async = true;
+      script.onload = () => resolve(window.supabase);
+      script.onerror = reject;
+      document.head.appendChild(script);
     });
+  }
 
-    if (!response.ok) {
-      const message = await response.text().catch(() => "");
-      throw new Error(`Supabase ${response.status}: ${message}`);
+  async function getClient() {
+    if (!clientPromise) {
+      clientPromise = loadSupabaseSdk().then((sdk) => sdk.createClient(SUPABASE_URL, SUPABASE_KEY));
     }
-
-    if (response.status === 204) return null;
-    return response.json().catch(() => null);
+    return clientPromise;
   }
 
   async function saveScore(score) {
@@ -47,30 +53,31 @@
     };
 
     try {
-      await request("", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify(payload),
-      });
+      const client = await getClient();
+      const { error } = await client.from(TABLE).insert(payload);
+      if (error) throw error;
       return true;
     } catch (error) {
-      console.warn("Score sync failed. Run the Supabase table SQL first.", error);
+      console.warn("Score sync failed. Check Supabase policies and API key.", error);
       return false;
     }
   }
 
   async function getBestScore(gameKey) {
     if (!gameKey) return null;
-    const key = encodeURIComponent(String(gameKey));
-    const query = `?game_key=eq.${key}&select=*&order=score.desc,created_at.desc&limit=1`;
     try {
-      const rows = await request(query, {
-        headers: { Accept: "application/json" },
-      });
-      return Array.isArray(rows) ? rows[0] || null : null;
+      const client = await getClient();
+      const { data, error } = await client
+        .from(TABLE)
+        .select("*")
+        .eq("game_key", String(gameKey))
+        .order("score", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data || null;
     } catch (error) {
       console.warn("Best score sync failed. Local score will be used.", error);
       return null;
