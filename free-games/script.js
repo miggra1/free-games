@@ -1,6 +1,7 @@
 const searchInput = document.querySelector("#gameSearch");
 const filterButtons = document.querySelectorAll("[data-filter]");
 const cards = document.querySelectorAll("[data-game-card]");
+const gridCards = document.querySelectorAll(".game-grid [data-game-card]");
 const resultCount = document.querySelector("#resultCount");
 
 let activeFilter = "all";
@@ -20,7 +21,7 @@ function updateCards() {
     const matchesSearch = !query || title.includes(query) || tags.includes(query);
     const show = matchesFilter && matchesSearch;
     card.classList.toggle("hidden", !show);
-    if (show) visible += 1;
+    if (show && Array.from(gridCards).includes(card)) visible += 1;
   }
 
   resultCount.textContent = `${visible} 款游戏`;
