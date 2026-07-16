@@ -93,6 +93,7 @@ let game;
 let lastTime = 0;
 let pointer = null;
 let drag = null;
+let sellZone = { x: 0, y: 0, width: 0, height: 0 };
 
 function resizeCanvas() {
   const rect = canvas.getBoundingClientRect();
@@ -147,6 +148,12 @@ function layoutBoard() {
     }
   }
   game.benchY = height - 78;
+  sellZone = {
+    x: width - 186,
+    y: height - 116,
+    width: 148,
+    height: 72,
+  };
 }
 
 function makePiece(kind, level = 1) {
@@ -253,14 +260,28 @@ function updateUnits(delta) {
   const fighters = game.units.filter((u) => u.type === "troop" || u.type === "hero");
   for (const unit of fighters) {
     unit.cooldown = Math.max(0, unit.cooldown - delta);
+    if (isChargingUnit(unit)) unit.chargeTime = (unit.chargeTime || 0) + delta;
     const data = getCombatData(unit);
-    if (unit.kind === "骑" || unit.kind === "马超") unit.x += delta * 8;
-    const target = nearestEnemy(unit.x, unit.y, data.range);
+    const attackX = unitAttackX(unit);
+    const target = nearestEnemy(attackX, unit.y, data.range);
     if (target && unit.cooldown <= 0) {
       unit.cooldown = Math.max(0.12, data.rate - unit.level * 0.025);
-      game.projectiles.push({ x: unit.x, y: unit.y, target, damage: data.damage, color: data.color, splash: data.splash || 0 });
+      game.projectiles.push({ x: attackX, y: unit.y, target, damage: data.damage, color: data.color, splash: data.splash || 0 });
     }
   }
+}
+
+function isChargingUnit(unit) {
+  return unit.kind === "骑" || unit.kind === "马超";
+}
+
+function unitAttackX(unit) {
+  return unit.x + (isChargingUnit(unit) ? 12 : 0);
+}
+
+function unitDrawX(unit) {
+  if (!isChargingUnit(unit)) return unit.x;
+  return unit.x + Math.sin((unit.chargeTime || 0) * 8) * 10 + 10;
 }
 
 function getCombatData(unit) {
@@ -380,14 +401,24 @@ function screenPoint(event) {
 }
 
 function hitUnit(x, y) {
-  return [...game.bench, ...game.units].reverse().find((u) => Math.hypot(u.x - x, u.y - y) < 30);
+  const benchHit = [...game.bench].reverse().find((u) => Math.hypot(u.x - x, u.y - y) < 30);
+  if (benchHit) return benchHit;
+  return [...game.units].reverse().find((u) => Math.hypot(unitDrawX(u) - x, u.y - y) < 34);
 }
 
 function hitCell(x, y) {
   return game.board.find((cell) => x >= cell.x && x <= cell.x + cell.size && y >= cell.y && y <= cell.y + cell.size);
 }
 
+function hitSellZone(x, y) {
+  return x >= sellZone.x && x <= sellZone.x + sellZone.width && y >= sellZone.y && y <= sellZone.y + sellZone.height;
+}
+
 function placeUnit(unit, x, y) {
+  if (hitSellZone(x, y)) {
+    sellUnit(unit);
+    return;
+  }
   const cell = hitCell(x, y);
   if (!cell) return;
   const existing = game.units.find((u) => u.cell === cell);
@@ -403,6 +434,22 @@ function placeUnit(unit, x, y) {
   unit.y = cell.y + cell.size / 2;
   game.units.push(unit);
   tryActivateHeroes();
+}
+
+function sellUnit(unit) {
+  if (!unit || game.state === "ended") return;
+  const refund = sellValue(unit);
+  removeLoose(unit);
+  game.food += refund;
+  addEffect(unit.x || sellZone.x + sellZone.width / 2, unit.y || sellZone.y + sellZone.height / 2, "#f0c86a", 22);
+  statusEl.textContent = `出售 ${unit.kind}，返还 ${refund} 馒头。`;
+  updateHud();
+}
+
+function sellValue(unit) {
+  if (unit.type === "hero") return Math.max(6, 6 * unit.level);
+  if (unit.type === "troop") return Math.max(2, 2 * unit.level);
+  return 1;
 }
 
 function canMerge(a, b) {
@@ -492,6 +539,7 @@ function draw() {
   drawProjectiles();
   drawEffects();
   drawHintText();
+  drawSellZone();
   if (drag) drawTextBlock(drag.unit, pointer.x, pointer.y, 30);
 }
 
@@ -541,9 +589,27 @@ function drawUnits() {
     if (!drag || drag.unit !== unit) drawTextBlock(unit, unit.x, unit.y, 25);
   }
   for (const unit of game.units) {
-    if (!drag || drag.unit !== unit) drawTextBlock(unit, unit.x, unit.y, unit.type === "hero" ? 32 : 28);
-    if (unit.type === "troop" || unit.type === "hero") drawHp(unit.x, unit.y + 30, unit.hp / unit.maxHp, unit.type === "hero" ? 58 : 42);
+    const drawX = unitDrawX(unit);
+    if (!drag || drag.unit !== unit) drawTextBlock(unit, drawX, unit.y, unit.type === "hero" ? 32 : 28);
+    if (unit.type === "troop" || unit.type === "hero") drawHp(drawX, unit.y + 30, unit.hp / unit.maxHp, unit.type === "hero" ? 58 : 42);
   }
+}
+
+function drawSellZone() {
+  const active = drag && pointer && hitSellZone(pointer.x, pointer.y);
+  ctx.fillStyle = active ? "rgba(240,200,106,.25)" : "rgba(0,0,0,.32)";
+  ctx.fillRect(sellZone.x, sellZone.y, sellZone.width, sellZone.height);
+  ctx.strokeStyle = active ? "#f0c86a" : "rgba(240,200,106,.45)";
+  ctx.lineWidth = active ? 4 : 2;
+  ctx.strokeRect(sellZone.x, sellZone.y, sellZone.width, sellZone.height);
+  ctx.fillStyle = active ? "#fff5d6" : "#f0c86a";
+  ctx.font = "900 19px Microsoft YaHei";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("出售", sellZone.x + sellZone.width / 2, sellZone.y + 26);
+  ctx.fillStyle = "rgba(247,241,229,.76)";
+  ctx.font = "700 12px Microsoft YaHei";
+  ctx.fillText("拖入返馒头", sellZone.x + sellZone.width / 2, sellZone.y + 50);
 }
 
 function drawEnemies() {
