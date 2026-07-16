@@ -6,6 +6,7 @@ const myHpEl = document.querySelector("#myHp");
 const enemyHpEl = document.querySelector("#enemyHp");
 const summonBtn = document.querySelector("#summon");
 const startWaveBtn = document.querySelector("#startWave");
+const speedToggleBtn = document.querySelector("#speedToggle");
 const restartBtn = document.querySelector("#restart");
 const statusEl = document.querySelector("#status");
 const overlay = document.querySelector("#overlay");
@@ -124,6 +125,7 @@ function newGame() {
     effects: [],
     board: [],
     bench: [],
+    speed: 1,
     adou: { x: 0, y: 0, t: 0 },
     enemyAdou: { x: 0, y: 0, t: 0 },
     spawnLeft: 0,
@@ -527,6 +529,8 @@ function updateHud() {
   enemyHpEl.textContent = `最高 ${Math.max(game.bestWave, game.wave - 1)}`;
   summonBtn.disabled = game.food < 3 || game.state === "ended" || game.bench.length >= 14;
   startWaveBtn.disabled = game.state !== "build";
+  speedToggleBtn.textContent = `${game.speed}x`;
+  speedToggleBtn.setAttribute("aria-pressed", String(game.speed === 2));
 }
 
 function draw() {
@@ -673,9 +677,15 @@ function drawHp(x, y, ratio, width) {
 function frame(now) {
   const delta = Math.min(0.033, (now - lastTime) / 1000 || 0);
   lastTime = now;
-  update(delta);
+  update(delta * game.speed);
   draw();
   requestAnimationFrame(frame);
+}
+
+function toggleSpeed() {
+  game.speed = game.speed === 2 ? 1 : 2;
+  statusEl.textContent = game.speed === 2 ? "二倍速已开启。" : "已切回一倍速。";
+  updateHud();
 }
 
 canvas.addEventListener("pointerdown", (event) => {
@@ -695,6 +705,7 @@ canvas.addEventListener("pointerup", (event) => {
 });
 summonBtn.addEventListener("click", summon);
 startWaveBtn.addEventListener("click", startWave);
+speedToggleBtn.addEventListener("click", toggleSpeed);
 restartBtn.addEventListener("click", newGame);
 window.addEventListener("resize", resizeCanvas);
 

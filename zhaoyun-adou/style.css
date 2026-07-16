@@ -43,7 +43,7 @@ body {
 
 .hud {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto auto;
   gap: 10px;
   padding: 10px;
 }
@@ -73,6 +73,14 @@ button {
 }
 
 button:disabled { opacity: .45; cursor: not-allowed; }
+
+#speedToggle {
+  min-width: 62px;
+}
+
+#speedToggle[aria-pressed="true"] {
+  background: #69d08c;
+}
 
 .game-wrap {
   position: relative;
