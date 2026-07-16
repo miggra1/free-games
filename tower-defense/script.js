@@ -100,7 +100,7 @@ function makeGame() {
 function buildLevel() {
   const width = w();
   const height = h();
-  const layout = 0;
+  const layout = levels[game.levelIndex]?.layout || 0;
   const paths = [
     [[-0.04, 0.45], [0.18, 0.45], [0.18, 0.24], [0.42, 0.24], [0.42, 0.66], [0.7, 0.66], [0.7, 0.36], [1.05, 0.36]],
     [[-0.04, 0.3], [0.25, 0.3], [0.25, 0.62], [0.52, 0.62], [0.52, 0.25], [0.78, 0.25], [0.78, 0.56], [1.05, 0.56]],
@@ -126,7 +126,18 @@ function buildLevel() {
     [[0.1, 0.34], [0.28, 0.68], [0.38, 0.36], [0.52, 0.16], [0.6, 0.66], [0.72, 0.44], [0.9, 0.18]],
   ];
   game.path = paths[layout].map(([x, y]) => ({ x: x * width, y: y * height }));
-  game.sites = sites[layout].map(([x, y]) => ({ x: x * width, y: y * height }));
+  game.sites = sites[layout].map(([x, y], index) => ({ id: index, x: x * width, y: y * height }));
+  for (const tower of game.towers || []) {
+    const site = game.sites.find((item) => item.id === tower.siteId);
+    if (!site) continue;
+    tower.site = site;
+    tower.x = site.x;
+    tower.y = site.y;
+    if (tower.type === "barracks") {
+      delete tower.squad;
+      tower.rally = null;
+    }
+  }
 }
 
 function startLevel() {
@@ -160,6 +171,10 @@ function spawnEnemy() {
     boss: isBoss,
     slow: 0,
     blockedBy: null,
+    blockedTime: 0,
+    stuckTime: 0,
+    lastX: start.x,
+    lastY: start.y,
   });
 }
 
@@ -189,6 +204,7 @@ function update(delta) {
   if (game.levelActive && !game.spawning && game.enemies.length === 0 && game.levelIndex < levels.length && game.spawnLeft <= 0) {
     const clearedLevel = game.levelIndex + 1;
     game.levelIndex += 1;
+    buildLevel();
     game.levelActive = false;
     game.gold += 45 + clearedLevel * 12;
     for (const tower of game.towers) {
@@ -212,16 +228,28 @@ function updateEnemies(delta) {
   for (const enemy of game.enemies) {
     enemy.slow = Math.max(0, enemy.slow - delta);
     if (enemy.blockedBy) {
-      if (enemy.blockedBy.hp <= 0 || distance(enemy, enemy.blockedBy) > enemy.radius + 30) enemy.blockedBy = null;
-      else continue;
+      enemy.blockedTime = (enemy.blockedTime || 0) + delta;
+      const guardGone = enemy.blockedBy.hp <= 0 || enemy.blockedBy.target !== enemy;
+      const tooFar = distance(enemy, enemy.blockedBy) > enemy.radius + 34;
+      if (guardGone || tooFar || enemy.blockedTime > 4.5) {
+        enemy.blockedBy = null;
+        enemy.blockedTime = 0;
+      } else {
+        enemy.blockedBy.hp -= delta * (enemy.boss ? 9 : 4);
+        continue;
+      }
     }
 
     const target = game.path[enemy.pathIndex];
+    if (!target) {
+      enemy.hp = 0;
+      continue;
+    }
     const dx = target.x - enemy.x;
     const dy = target.y - enemy.y;
     const len = Math.hypot(dx, dy);
     const speed = enemy.speed * (enemy.slow > 0 ? 0.55 : 1);
-    if (len < speed * delta) {
+    if (len < 0.001 || len < speed * delta) {
       enemy.x = target.x;
       enemy.y = target.y;
       enemy.pathIndex += 1;
@@ -236,6 +264,16 @@ function updateEnemies(delta) {
     } else {
       enemy.x += (dx / len) * speed * delta;
       enemy.y += (dy / len) * speed * delta;
+    }
+
+    if (Math.hypot(enemy.x - enemy.lastX, enemy.y - enemy.lastY) < 0.4) enemy.stuckTime += delta;
+    else enemy.stuckTime = 0;
+    enemy.lastX = enemy.x;
+    enemy.lastY = enemy.y;
+    if (enemy.stuckTime > 3) {
+      enemy.blockedBy = null;
+      enemy.stuckTime = 0;
+      enemy.pathIndex = Math.min(enemy.pathIndex + 1, game.path.length - 1);
     }
   }
 
@@ -277,14 +315,15 @@ function updateTowers(delta) {
 
 function updateBarracks(tower, delta) {
   if (!tower.squad) {
+    tower.rally = findBarracksRally(tower);
     tower.squad = [0, 1, 2].map((i) => ({
-      x: tower.x + (i - 1) * 18,
-      y: tower.y + 42,
+      x: tower.rally.x + tower.rally.nx * (i - 1) * 18,
+      y: tower.rally.y + tower.rally.ny * (i - 1) * 18,
       hp: 88,
       maxHp: 88,
       cooldown: 0,
-      homeX: tower.x + (i - 1) * 18,
-      homeY: tower.y + 42,
+      homeX: tower.rally.x + tower.rally.nx * (i - 1) * 18,
+      homeY: tower.rally.y + tower.rally.ny * (i - 1) * 18,
       target: null,
     }));
     game.soldiers.push(...tower.squad);
@@ -304,8 +343,8 @@ function updateSoldiers(delta) {
     if (soldier.hp <= 0) continue;
     soldier.cooldown = Math.max(0, soldier.cooldown - delta);
     let target = soldier.target && soldier.target.hp > 0 ? soldier.target : null;
-    if (!target || distance(soldier, target) > 92) {
-      target = nearestEnemy(soldier.x, soldier.y, 100);
+    if (!target || distance(soldier, target) > 118) {
+      target = nearestEnemy(soldier.homeX, soldier.homeY, 128) || nearestEnemy(soldier.x, soldier.y, 92);
       soldier.target = target;
     }
 
@@ -315,6 +354,7 @@ function updateSoldiers(delta) {
         moveToward(soldier, target.x, target.y, 86 * delta);
       } else {
         target.blockedBy = soldier;
+        target.blockedTime = 0;
         if (soldier.cooldown <= 0) {
           target.hp -= towerData.barracks.damage;
           soldier.hp -= target.boss ? 16 : 6;
@@ -326,6 +366,36 @@ function updateSoldiers(delta) {
       moveToward(soldier, soldier.homeX, soldier.homeY, 62 * delta);
     }
   }
+}
+
+function findBarracksRally(tower) {
+  const point = closestPointOnPath(tower.x, tower.y);
+  return {
+    x: point.x,
+    y: point.y,
+    nx: point.nx,
+    ny: point.ny,
+  };
+}
+
+function closestPointOnPath(x, y) {
+  let best = { x: game.path[0].x, y: game.path[0].y, nx: 0, ny: 1, distance: Infinity };
+  for (let i = 0; i < game.path.length - 1; i += 1) {
+    const a = game.path[i];
+    const b = game.path[i + 1];
+    const vx = b.x - a.x;
+    const vy = b.y - a.y;
+    const lenSq = vx * vx + vy * vy || 1;
+    const t = clamp(((x - a.x) * vx + (y - a.y) * vy) / lenSq, 0, 1);
+    const px = a.x + vx * t;
+    const py = a.y + vy * t;
+    const dist = Math.hypot(px - x, py - y);
+    if (dist < best.distance) {
+      const len = Math.sqrt(lenSq);
+      best = { x: px, y: py, nx: -vy / len, ny: vx / len, distance: dist };
+    }
+  }
+  return best;
 }
 
 function updateBullets(delta) {
@@ -400,6 +470,35 @@ function moveToward(unit, x, y, amount) {
   }
 }
 
+function roundRect(x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+}
+
+function shadeColor(hex, amount) {
+  const value = Number.parseInt(hex.slice(1), 16);
+  const r = clamp((value >> 16) + amount, 0, 255);
+  const g = clamp(((value >> 8) & 255) + amount, 0, 255);
+  const b = clamp((value & 255) + amount, 0, 255);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function lighten(hex, amount) {
+  return shadeColor(hex, amount);
+}
+
+function darken(hex, amount) {
+  return shadeColor(hex, -amount);
+}
+
 function addEffect(x, y, color, radius) {
   game.effects.push({ x, y, color, radius, life: 0.35 });
 }
@@ -428,43 +527,63 @@ function draw() {
 function drawMap() {
   const width = w();
   const height = h();
-  ctx.fillStyle = "#395c3b";
+  const grass = ctx.createLinearGradient(0, 0, width, height);
+  grass.addColorStop(0, "#466b3d");
+  grass.addColorStop(0.45, "#315938");
+  grass.addColorStop(1, "#243d2a");
+  ctx.fillStyle = grass;
   ctx.fillRect(0, 0, width, height);
 
-  for (let i = 0; i < 80; i += 1) {
-    ctx.fillStyle = i % 2 ? "rgba(255,255,255,0.035)" : "rgba(0,0,0,0.045)";
-    ctx.fillRect((i * 73) % width, (i * 41) % height, 26, 10);
+  for (let i = 0; i < 120; i += 1) {
+    ctx.fillStyle = i % 2 ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.055)";
+    ctx.fillRect((i * 73) % width, (i * 41) % height, 34, 8);
   }
 
-  ctx.strokeStyle = "#9a7549";
-  ctx.lineWidth = 46;
+  drawPathStroke("#60472d", 62);
+  drawPathStroke("#9d7447", 50);
+  drawPathStroke("#caa06a", 36);
+  drawPathStroke("rgba(255,232,170,.28)", 6, 10);
+  drawCastleGate(width, height);
+}
+
+function drawPathStroke(color, lineWidth, dash = 0) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
+  ctx.setLineDash(dash ? [dash, dash * 1.5] : []);
   ctx.beginPath();
   game.path.forEach((point, index) => {
     if (index === 0) ctx.moveTo(point.x, point.y);
     else ctx.lineTo(point.x, point.y);
   });
   ctx.stroke();
+  ctx.setLineDash([]);
+}
 
-  ctx.strokeStyle = "#caa06a";
-  ctx.lineWidth = 34;
+function drawCastleGate(width, height) {
+  const y = game.path[game.path.length - 1]?.y || height * 0.4;
+  ctx.fillStyle = "rgba(0,0,0,.34)";
   ctx.beginPath();
-  game.path.forEach((point, index) => {
-    if (index === 0) ctx.moveTo(point.x, point.y);
-    else ctx.lineTo(point.x, point.y);
-  });
-  ctx.stroke();
-
-  ctx.fillStyle = "#6b3740";
-  ctx.fillRect(width - 54, height * 0.36 - 48, 56, 96);
-  ctx.fillStyle = "#d9c38a";
-  ctx.fillRect(width - 45, height * 0.36 - 36, 22, 72);
+  ctx.ellipse(width - 28, y + 54, 76, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const wall = ctx.createLinearGradient(width - 96, y - 84, width, y + 84);
+  wall.addColorStop(0, "#9e8370");
+  wall.addColorStop(0.5, "#6e5144");
+  wall.addColorStop(1, "#3e2d2a");
+  ctx.fillStyle = wall;
+  roundRect(width - 86, y - 78, 100, 156, 8);
+  ctx.fill();
+  ctx.fillStyle = "#2b1715";
+  roundRect(width - 52, y - 42, 40, 84, 8);
+  ctx.fill();
+  ctx.fillStyle = "#c3aa87";
+  for (let i = 0; i < 4; i += 1) ctx.fillRect(width - 82 + i * 26, y - 90, 16, 24);
 }
 
 function drawSites() {
   for (const site of game.sites) {
-    const occupied = game.towers.some((tower) => tower.site === site);
+    const occupied = game.towers.some((tower) => tower.siteId === site.id);
     ctx.fillStyle = occupied ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.18)";
     ctx.beginPath();
     ctx.arc(site.x, site.y, 31, 0, Math.PI * 2);
@@ -480,12 +599,25 @@ function drawTowers() {
     const data = towerData[tower.type];
     ctx.fillStyle = "rgba(0,0,0,0.22)";
     ctx.beginPath();
-    ctx.ellipse(tower.x, tower.y + 16, 28, 10, 0, 0, Math.PI * 2);
+    ctx.ellipse(tower.x, tower.y + 18, 34, 12, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = data.color;
-    ctx.fillRect(tower.x - 18, tower.y - 28, 36, 48);
-    ctx.fillStyle = "#252a31";
-    ctx.fillRect(tower.x - 24, tower.y + 12, 48, 14);
+
+    const body = ctx.createLinearGradient(tower.x - 26, tower.y - 36, tower.x + 24, tower.y + 28);
+    body.addColorStop(0, lighten(data.color, 28));
+    body.addColorStop(0.45, data.color);
+    body.addColorStop(1, darken(data.color, 44));
+    ctx.fillStyle = body;
+    roundRect(tower.x - 22, tower.y - 34, 44, 58, 6);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,.42)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = "#2b3038";
+    roundRect(tower.x - 29, tower.y + 10, 58, 18, 5);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.16)";
+    ctx.fillRect(tower.x - 14, tower.y - 25, 8, 38);
 
     if (tower.type === "archer") drawIconBow(tower.x, tower.y - 10);
     if (tower.type === "mage") drawIconOrb(tower.x, tower.y - 12, data.color);
@@ -500,12 +632,25 @@ function drawEnemies() {
     ctx.beginPath();
     ctx.ellipse(enemy.x, enemy.y + enemy.radius * 0.65, enemy.radius * 1.15, enemy.radius * 0.42, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = enemy.color;
+
+    const body = ctx.createRadialGradient(enemy.x - enemy.radius * 0.35, enemy.y - enemy.radius * 0.4, 2, enemy.x, enemy.y, enemy.radius * 1.25);
+    body.addColorStop(0, lighten(enemy.color, 48));
+    body.addColorStop(0.45, enemy.color);
+    body.addColorStop(1, darken(enemy.color, 48));
+    ctx.fillStyle = body;
     ctx.beginPath();
     ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = enemy.boss ? "#f0c86a" : "#1b1f24";
-    ctx.fillRect(enemy.x - enemy.radius * 0.55, enemy.y - enemy.radius * 0.2, enemy.radius * 1.1, enemy.radius * 0.28);
+    ctx.strokeStyle = enemy.boss ? "#f0c86a" : "rgba(0,0,0,.45)";
+    ctx.lineWidth = enemy.boss ? 4 : 2;
+    ctx.stroke();
+    ctx.fillStyle = enemy.boss ? "#f0c86a" : "#20242b";
+    roundRect(enemy.x - enemy.radius * 0.62, enemy.y - enemy.radius * 0.18, enemy.radius * 1.24, enemy.radius * 0.3, 3);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,.28)";
+    ctx.beginPath();
+    ctx.arc(enemy.x - enemy.radius * 0.32, enemy.y - enemy.radius * 0.36, enemy.radius * 0.22, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.fillStyle = "#171717";
     ctx.fillRect(enemy.x - enemy.radius, enemy.y - enemy.radius - 12, enemy.radius * 2, 5);
@@ -517,12 +662,24 @@ function drawEnemies() {
 function drawSoldiers() {
   for (const soldier of game.soldiers) {
     if (soldier.hp <= 0) continue;
-    ctx.fillStyle = "#d9c38a";
+    ctx.fillStyle = "rgba(0,0,0,.24)";
     ctx.beginPath();
-    ctx.arc(soldier.x, soldier.y, 9, 0, Math.PI * 2);
+    ctx.ellipse(soldier.x, soldier.y + 8, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "#5d4933";
-    ctx.fillRect(soldier.x - 3, soldier.y - 16, 6, 14);
+    const armor = ctx.createLinearGradient(soldier.x - 8, soldier.y - 12, soldier.x + 8, soldier.y + 10);
+    armor.addColorStop(0, "#fff0b2");
+    armor.addColorStop(0.5, "#d9c38a");
+    armor.addColorStop(1, "#7e6845");
+    ctx.fillStyle = armor;
+    ctx.beginPath();
+    ctx.arc(soldier.x, soldier.y - 3, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#5d4933";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(soldier.x + 7, soldier.y - 5);
+    ctx.lineTo(soldier.x + 14, soldier.y - 17);
+    ctx.stroke();
   }
 }
 
@@ -604,7 +761,7 @@ function canvasPoint(event) {
 
 function showBuildMenu(site) {
   selectedSite = site;
-  selectedTower = game.towers.find((tower) => tower.site === site) || null;
+  selectedTower = game.towers.find((tower) => tower.siteId === site.id) || null;
   const isOccupied = Boolean(selectedTower);
   buildMenu.querySelectorAll("button[data-type]").forEach((button) => {
     button.classList.toggle("hidden", isOccupied);
@@ -665,7 +822,7 @@ buildMenu.addEventListener("click", (event) => {
     return;
   }
   game.gold -= data.cost;
-  game.towers.push({ type, x: selectedSite.x, y: selectedSite.y, site: selectedSite, cooldown: 0 });
+  game.towers.push({ type, x: selectedSite.x, y: selectedSite.y, site: selectedSite, siteId: selectedSite.id, cooldown: 0 });
   statusEl.textContent = `建造了${data.name}`;
   hideBuildMenu();
   updateHud();
