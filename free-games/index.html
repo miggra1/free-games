@@ -9,120 +9,117 @@
   <body>
     <main class="portal">
       <header class="hero">
-        <div>
+        <div class="brand-block">
           <strong>free小游戏</strong>
-          <span>赛车、弹弓、射击、格斗、迷宫、塔防、连连看、消消乐、黄金矿工、三国文字策略，一点就玩</span>
+          <span>打开就玩，适合电脑和本地双人同屏的小游戏大厅</span>
         </div>
-        <nav>
-          <a href="#hot">热门游戏</a>
-          <a href="#battle">双人对战</a>
-          <a href="#strategy">策略闯关</a>
+        <label class="search-box">
+          <span>搜索</span>
+          <input id="gameSearch" type="search" placeholder="搜索赛车、塔防、黄金矿工..." autocomplete="off" />
+        </label>
+        <nav class="category-tabs" aria-label="游戏分类">
+          <button class="active" type="button" data-filter="all">全部</button>
+          <button type="button" data-filter="duo">双人</button>
+          <button type="button" data-filter="action">动作</button>
+          <button type="button" data-filter="strategy">策略</button>
+          <button type="button" data-filter="puzzle">益智</button>
+          <button type="button" data-filter="racing">赛车</button>
         </nav>
       </header>
 
-      <section class="banner birds-banner">
-        <div class="banner-copy">
-          <span>今日推荐</span>
-          <h1>愤怒的小鸟</h1>
-          <p>拉开弹弓发射小鸟，撞倒木塔和石块，击中所有小猪。角度、力度和落点都很关键。</p>
-        </div>
-        <div class="birds-cover" aria-hidden="true">
-          <div class="sun"></div>
-          <div class="hill hill-a"></div>
-          <div class="hill hill-b"></div>
-          <div class="slingshot"></div>
-          <div class="red-bird">
-            <span class="eye"></span>
-            <span class="beak"></span>
-            <span class="brow"></span>
+      <section class="spotlight" aria-label="今日推荐">
+        <a class="spotlight-main" href="/gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
+          <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
+          <div>
+            <i>双人合作</i>
+            <h1>双人黄金矿工</h1>
+            <p>两名矿工同时放钩，抢金块、钻石和神秘袋，合作达标自动过关。</p>
           </div>
-          <div class="tower tower-left"></div>
-          <div class="tower tower-right"></div>
-          <div class="beam beam-top"></div>
-          <div class="beam beam-low"></div>
-          <div class="pig pig-a"><span></span></div>
-          <div class="pig pig-b"><span></span></div>
-        </div>
-        <a class="play-main" href="/angry-birds/">开始发射</a>
+        </a>
+        <a class="spotlight-side" href="/tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+          <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+          <div><i>策略塔防</i><b>皇城突袭塔防</b></div>
+        </a>
+        <a class="spotlight-side" href="/speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情">
+          <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+          <div><i>单人竞速</i><b>速度与激情</b></div>
+        </a>
       </section>
 
       <section class="game-section" id="hot">
         <div class="section-title">
-          <h2>热门游戏</h2>
-          <span>每个游戏都有实机截图封面，点开即玩</span>
+          <h2>游戏大厅</h2>
+          <span id="resultCount">11 款游戏</span>
         </div>
 
         <div class="game-grid">
-          <a class="game-card featured speed-card" href="/speed-fury/">
-            <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
-            <i>单人赛车</i>
-            <b>速度与激情</b>
-            <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
-          </a>
-          <a class="game-card featured birds-card" href="/angry-birds/">
-            <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
-            <i>弹弓</i>
-            <b>愤怒的小鸟</b>
-            <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
-          </a>
-          <a class="game-card featured" href="/tower-defense/">
-            <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
-            <i>塔防</i>
-            <b>皇城突袭塔防</b>
-            <span>十关塔防，弓箭、小兵、魔法、大炮守皇城</span>
-          </a>
-          <a class="game-card featured zhao-card" href="/zhaoyun-adou/">
-            <div class="text-cover" aria-hidden="true">
-              <strong>赵 云</strong>
-              <span>护 阿 斗</span>
-            </div>
-            <i>三国</i>
-            <b>赵云与阿斗</b>
-            <span>文字合成、武将召唤、策略布阵保护阿斗</span>
-          </a>
-          <a class="game-card featured" href="/gold-miner-duo/">
+          <a class="game-card featured" href="/gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
             <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
             <i>双人</i>
             <b>双人黄金矿工</b>
             <span>两名矿工同时放钩，抓金块钻石，合作冲关</span>
           </a>
-          <a class="game-card" href="/racing-game/">
+          <a class="game-card featured" href="/tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+            <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+            <i>塔防</i>
+            <b>皇城突袭塔防</b>
+            <span>每关重新布防，防御工事可升级，守住皇城</span>
+          </a>
+          <a class="game-card featured" href="/zhaoyun-adou/" data-game-card data-tags="strategy" data-title="赵云与阿斗 三国 文字 合成">
+            <img src="covers/zhaoyun-adou.png" alt="赵云与阿斗游戏截图" />
+            <i>三国</i>
+            <b>赵云与阿斗</b>
+            <span>文字合成、武将召唤、策略布阵保护阿斗</span>
+          </a>
+          <a class="game-card featured speed-card" href="/speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
+            <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+            <i>单人赛车</i>
+            <b>速度与激情</b>
+            <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
+          </a>
+          <a class="game-card" href="/angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟 弹弓">
+            <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
+            <i>弹弓</i>
+            <b>愤怒的小鸟</b>
+            <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
+          </a>
+          <a class="game-card" href="/racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车">
             <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
             <i>竞速</i>
             <b>双人分屏赛车</b>
             <span>换挡、氮气、撞车、障碍和结算页</span>
           </a>
-          <a class="game-card" href="/two-player-battle/" id="battle">
+          <a class="game-card" href="/two-player-battle/" data-game-card data-tags="duo action" data-title="双人竞技场">
             <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
             <i>双人</i>
             <b>双人竞技场</b>
             <span>半场限制，子弹反弹一次</span>
           </a>
-          <a class="game-card" href="/frontline-shooter/">
+          <a class="game-card" href="/frontline-shooter/" data-game-card data-tags="action" data-title="前线守卫战 射击">
             <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
             <i>射击</i>
             <b>前线守卫战</b>
             <span>第一人称射击，武器逐关升级</span>
           </a>
-          <a class="game-card" href="/armored-duel/">
+          <a class="game-card" href="/armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗">
             <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
             <i>格斗</i>
             <b>铠甲动漫格斗</b>
             <span>四角色选择，技能连招对战</span>
           </a>
-          <a class="game-card" href="/maze-game/" id="strategy">
+          <a class="game-card" href="/maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫">
             <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
             <i>闯关</i>
             <b>趣味迷宫</b>
             <span>寻找路线，挑战迷宫</span>
           </a>
-          <a class="game-card link-card" href="/link-link-game/">
+          <a class="game-card link-card" href="/link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看">
             <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
             <i>益智</i>
             <b>水果连连看</b>
             <span>相同水果连线消除，最多两次转弯</span>
           </a>
-          <a class="game-card" href="/match-3-game/">
+          <a class="game-card" href="/match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐">
             <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
             <i>消除</i>
             <b>宝石消消乐</b>
@@ -131,5 +128,7 @@
         </div>
       </section>
     </main>
+
+    <script src="script.js?v=portal-filter-1"></script>
   </body>
 </html>
