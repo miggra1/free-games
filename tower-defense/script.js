@@ -8,6 +8,7 @@ const nextLevelBtn = document.querySelector("#nextLevel");
 const restartBtn = document.querySelector("#restart");
 const buildMenu = document.querySelector("#buildMenu");
 const sellValueEl = document.querySelector("#sellValue");
+const upgradeValueEl = document.querySelector("#upgradeValue");
 
 const towerData = {
   archer: { name: "弓箭塔", cost: 75, range: 165, rate: 0.48, damage: 17, color: "#8bd17c" },
@@ -74,9 +75,13 @@ function levelName(index) {
   return levelNames[index] || `第 ${index + 1} 关`;
 }
 
+function levelBudget(index) {
+  return 245 + index * 42 + (levels[index]?.boss ? 55 : 0);
+}
+
 function makeGame() {
   game = {
-    gold: 260,
+    gold: levelBudget(0),
     lives: 20,
     levelIndex: 0,
     levelActive: false,
@@ -125,8 +130,9 @@ function buildLevel() {
     [[0.1, 0.44], [0.22, 0.72], [0.34, 0.22], [0.48, 0.52], [0.62, 0.2], [0.72, 0.84], [0.9, 0.58]],
     [[0.1, 0.34], [0.28, 0.68], [0.38, 0.36], [0.52, 0.16], [0.6, 0.66], [0.72, 0.44], [0.9, 0.18]],
   ];
+  const siteCount = Math.min(sites[layout].length, 5 + Math.floor(game.levelIndex / 2) + (levels[game.levelIndex]?.boss ? 1 : 0));
   game.path = paths[layout].map(([x, y]) => ({ x: x * width, y: y * height }));
-  game.sites = sites[layout].map(([x, y], index) => ({ id: index, x: x * width, y: y * height }));
+  game.sites = sites[layout].slice(0, siteCount).map(([x, y], index) => ({ id: index, x: x * width, y: y * height }));
   for (const tower of game.towers || []) {
     const site = game.sites.find((item) => item.id === tower.siteId);
     if (!site) continue;
@@ -204,12 +210,9 @@ function update(delta) {
   if (game.levelActive && !game.spawning && game.enemies.length === 0 && game.levelIndex < levels.length && game.spawnLeft <= 0) {
     const clearedLevel = game.levelIndex + 1;
     game.levelIndex += 1;
-    buildLevel();
     game.levelActive = false;
-    game.gold += 45 + clearedLevel * 12;
-    for (const tower of game.towers) {
-      if (tower.type === "barracks") delete tower.squad;
-    }
+    game.gold = levelBudget(game.levelIndex);
+    game.towers = [];
     game.soldiers = [];
     game.bullets = [];
     hideBuildMenu();
@@ -217,7 +220,8 @@ function update(delta) {
       game.state = "won";
       statusEl.textContent = "皇城守住了！";
     } else {
-      statusEl.textContent = `第 ${clearedLevel} 关完成，防御塔保留，获得过关金币`;
+      buildLevel();
+      statusEl.textContent = `第 ${clearedLevel} 关完成。下一关重新建造防御工事，预算和塔位已更新。`;
     }
   }
 
@@ -290,7 +294,7 @@ function updateEnemies(delta) {
 function updateTowers(delta) {
   for (const tower of game.towers) {
     tower.cooldown -= delta;
-    const data = towerData[tower.type];
+    const data = towerStats(tower);
     if (tower.type === "barracks") {
       updateBarracks(tower, delta);
       continue;
@@ -314,13 +318,16 @@ function updateTowers(delta) {
 }
 
 function updateBarracks(tower, delta) {
+  const stats = towerStats(tower);
   if (!tower.squad) {
     tower.rally = findBarracksRally(tower);
     tower.squad = [0, 1, 2].map((i) => ({
       x: tower.rally.x + tower.rally.nx * (i - 1) * 18,
       y: tower.rally.y + tower.rally.ny * (i - 1) * 18,
-      hp: 88,
-      maxHp: 88,
+      hp: stats.soldierHp,
+      maxHp: stats.soldierHp,
+      damage: stats.damage,
+      level: tower.level || 1,
       cooldown: 0,
       homeX: tower.rally.x + tower.rally.nx * (i - 1) * 18,
       homeY: tower.rally.y + tower.rally.ny * (i - 1) * 18,
@@ -331,7 +338,8 @@ function updateBarracks(tower, delta) {
 
   for (const soldier of tower.squad) {
     if (soldier.hp <= 0) {
-      soldier.hp += 22 * delta;
+      soldier.hp += (22 + (soldier.level || 1) * 5) * delta;
+      soldier.hp = Math.min(soldier.hp, soldier.maxHp);
       soldier.x = soldier.homeX;
       soldier.y = soldier.homeY;
     }
@@ -356,7 +364,7 @@ function updateSoldiers(delta) {
         target.blockedBy = soldier;
         target.blockedTime = 0;
         if (soldier.cooldown <= 0) {
-          target.hp -= towerData.barracks.damage;
+          target.hp -= soldier.damage || towerData.barracks.damage;
           soldier.hp -= target.boss ? 16 : 6;
           soldier.cooldown = 0.55;
           addEffect(target.x, target.y, "#f0c86a", 4);
@@ -376,6 +384,24 @@ function findBarracksRally(tower) {
     nx: point.nx,
     ny: point.ny,
   };
+}
+
+function towerStats(tower) {
+  const base = towerData[tower.type];
+  const level = tower.level || 1;
+  return {
+    ...base,
+    range: Math.round(base.range * (1 + (level - 1) * 0.16)),
+    damage: Math.round(base.damage * (1 + (level - 1) * 0.42)),
+    rate: Math.max(0.18, base.rate * (1 - (level - 1) * 0.1)),
+    splash: base.splash ? Math.round(base.splash * (1 + (level - 1) * 0.08)) : 0,
+    soldierHp: Math.round(88 * (1 + (level - 1) * 0.38)),
+  };
+}
+
+function upgradeCost(tower) {
+  if (!tower || (tower.level || 1) >= 3) return 0;
+  return Math.round(towerData[tower.type].cost * (0.68 + (tower.level || 1) * 0.42));
 }
 
 function closestPointOnPath(x, y) {
@@ -618,6 +644,11 @@ function drawTowers() {
     ctx.fill();
     ctx.fillStyle = "rgba(255,255,255,.16)";
     ctx.fillRect(tower.x - 14, tower.y - 25, 8, 38);
+    ctx.fillStyle = "#fff6d7";
+    ctx.font = "900 12px Microsoft YaHei";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`Lv${tower.level || 1}`, tower.x, tower.y + 19);
 
     if (tower.type === "archer") drawIconBow(tower.x, tower.y - 10);
     if (tower.type === "mage") drawIconOrb(tower.x, tower.y - 12, data.color);
@@ -767,10 +798,15 @@ function showBuildMenu(site) {
     button.classList.toggle("hidden", isOccupied);
   });
   const sellButton = buildMenu.querySelector("button[data-action='sell']");
+  const upgradeButton = buildMenu.querySelector("button[data-action='upgrade']");
   sellButton.classList.toggle("hidden", !isOccupied);
+  upgradeButton.classList.toggle("hidden", !isOccupied);
   if (selectedTower) {
     const refund = sellValue(selectedTower);
     sellValueEl.textContent = `返还 ${refund} 金币`;
+    const cost = upgradeCost(selectedTower);
+    upgradeButton.disabled = cost <= 0 || game.gold < cost;
+    upgradeValueEl.textContent = cost <= 0 ? "已满级" : `${cost} 金币升 Lv${(selectedTower.level || 1) + 1}`;
   }
   updateBuildMenuState();
   buildMenu.classList.remove("hidden");
@@ -785,7 +821,16 @@ function hideBuildMenu() {
 }
 
 function sellValue(tower) {
-  return Math.floor(towerData[tower.type].cost * 0.7);
+  const spent = towerData[tower.type].cost + towerUpgradeSpent(tower);
+  return Math.floor(spent * 0.7);
+}
+
+function towerUpgradeSpent(tower) {
+  let spent = 0;
+  for (let level = 1; level < (tower.level || 1); level += 1) {
+    spent += Math.round(towerData[tower.type].cost * (0.68 + level * 0.42));
+  }
+  return spent;
 }
 
 function updateBuildMenuState() {
@@ -809,6 +854,12 @@ canvas.addEventListener("click", (event) => {
 buildMenu.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-type]");
   const sellButton = event.target.closest("button[data-action='sell']");
+  const upgradeButton = event.target.closest("button[data-action='upgrade']");
+  if (upgradeButton && selectedTower) {
+    upgradeTower(selectedTower);
+    showBuildMenu(selectedTower.site);
+    return;
+  }
   if (sellButton && selectedTower) {
     sellTower(selectedTower);
     hideBuildMenu();
@@ -822,7 +873,7 @@ buildMenu.addEventListener("click", (event) => {
     return;
   }
   game.gold -= data.cost;
-  game.towers.push({ type, x: selectedSite.x, y: selectedSite.y, site: selectedSite, siteId: selectedSite.id, cooldown: 0 });
+  game.towers.push({ type, level: 1, x: selectedSite.x, y: selectedSite.y, site: selectedSite, siteId: selectedSite.id, cooldown: 0 });
   statusEl.textContent = `建造了${data.name}`;
   hideBuildMenu();
   updateHud();
@@ -835,6 +886,23 @@ function sellTower(tower) {
     game.soldiers = game.soldiers.filter((soldier) => !tower.squad.includes(soldier));
   }
   statusEl.textContent = `售卖了${towerData[tower.type].name}`;
+  updateHud();
+}
+
+function upgradeTower(tower) {
+  const cost = upgradeCost(tower);
+  if (!cost || game.gold < cost) {
+    statusEl.textContent = cost ? "金币不足" : "防御工事已满级";
+    return;
+  }
+  game.gold -= cost;
+  tower.level = (tower.level || 1) + 1;
+  tower.cooldown = 0;
+  if (tower.type === "barracks") {
+    if (tower.squad) game.soldiers = game.soldiers.filter((soldier) => !tower.squad.includes(soldier));
+    delete tower.squad;
+  }
+  statusEl.textContent = `${towerData[tower.type].name} 升到 Lv${tower.level}`;
   updateHud();
 }
 

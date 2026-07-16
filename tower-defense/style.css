@@ -157,6 +157,15 @@ button:disabled {
   color: #ffb8b1;
 }
 
+.build-menu .upgrade-btn {
+  background: rgba(92, 200, 135, 0.2);
+  border-color: rgba(92, 200, 135, 0.72);
+}
+
+.build-menu .upgrade-btn span {
+  color: #a9f0c1;
+}
+
 @media (max-width: 780px) {
   body {
     overflow: auto;
