@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>双人黄金矿工</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hud">
+        <div>
+          <span>关卡</span>
+          <strong id="level">1</strong>
+        </div>
+        <div>
+          <span>目标</span>
+          <strong id="target">0</strong>
+        </div>
+        <div>
+          <span>时间</span>
+          <strong id="time">60</strong>
+        </div>
+        <div>
+          <span>总金币</span>
+          <strong id="totalScore">0</strong>
+        </div>
+        <button id="restart" type="button">重开</button>
+      </section>
+
+      <section class="arena">
+        <canvas id="game" width="1200" height="720" aria-label="双人黄金矿工游戏画布"></canvas>
+        <div id="overlay" class="overlay hidden">
+          <div>
+            <span id="overlayMeta">第 1 关</span>
+            <h1 id="overlayTitle">开始挖矿</h1>
+            <p id="overlayText">P1 按 S，P2 按 ↓。抓够目标金币进入下一关。</p>
+            <button id="overlayAction" type="button">开始</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="footer">
+        <div>
+          <b>玩家 1</b>
+          <span>A/D 调整节奏，S 放钩</span>
+          <strong id="p1Score">0</strong>
+        </div>
+        <div>
+          <b>玩家 2</b>
+          <span>←/→ 调整节奏，↓ 放钩</span>
+          <strong id="p2Score">0</strong>
+        </div>
+        <div>
+          <b>矿物</b>
+          <span>大金块重但值钱，钻石轻且高分，炸弹会炸开周围矿物</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js?v=duo-1"></script>
+  </body>
+</html>
