@@ -429,12 +429,32 @@ function placeUnit(unit, x, y) {
     mergeInto(existing, unit);
     return;
   }
-  if (existing) return;
+  if (existing) {
+    if (unit.cell) swapUnits(unit, existing);
+    else statusEl.textContent = "这个格子已经有人了，先换个空格或卖掉一个单位。";
+    return;
+  }
   removeLoose(unit);
+  moveUnitToCell(unit, cell);
+  game.units.push(unit);
+  tryActivateHeroes();
+}
+
+function moveUnitToCell(unit, cell) {
   unit.cell = cell;
   unit.x = cell.x + cell.size / 2;
   unit.y = cell.y + cell.size / 2;
-  game.units.push(unit);
+}
+
+function swapUnits(unit, target) {
+  if (!unit.cell || !target.cell || unit === target) return;
+  const fromCell = unit.cell;
+  const toCell = target.cell;
+  moveUnitToCell(unit, toCell);
+  moveUnitToCell(target, fromCell);
+  addEffect(unit.x, unit.y, "#70d6ff", 18);
+  addEffect(target.x, target.y, "#f0c86a", 18);
+  statusEl.textContent = `${unit.kind} 与 ${target.kind} 交换位置。`;
   tryActivateHeroes();
 }
 
