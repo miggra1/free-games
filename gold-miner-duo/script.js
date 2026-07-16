@@ -14,6 +14,8 @@ const overlayText = document.querySelector("#overlayText");
 const overlayAction = document.querySelector("#overlayAction");
 
 const keys = new Set();
+const hookMinAngle = 0.05;
+const hookMaxAngle = Math.PI - 0.05;
 const itemTypes = {
   goldLarge: { label: "大金块", value: 650, weight: 2.9, radius: 34, color: "#d99a24", shine: "#ffe28a" },
   goldMedium: { label: "金块", value: 360, weight: 1.7, radius: 25, color: "#e2ae36", shine: "#fff0a8" },
@@ -70,7 +72,7 @@ function makePlayer(name, color, key, side) {
     y: 0,
     score: 0,
     hook: {
-      angle: side < 0 ? 0.65 : Math.PI - 0.65,
+      angle: side < 0 ? hookMinAngle : hookMaxAngle,
       direction: side,
       length: 58,
       state: "swing",
@@ -139,7 +141,7 @@ function resetHook(player) {
   player.hook.length = 58;
   player.hook.state = "swing";
   player.hook.grabbed = null;
-  player.hook.angle = player.side < 0 ? 0.65 : Math.PI - 0.65;
+  player.hook.angle = player.side < 0 ? hookMinAngle : hookMaxAngle;
   player.hook.direction = player.side;
 }
 
@@ -152,7 +154,8 @@ function update(delta) {
   game.time = Math.max(0, game.time - delta);
   for (const player of game.players) updatePlayer(player, delta);
   updateParticles(delta);
-  if (game.time <= 0) finishLevel();
+  if (totalScore() >= game.target) finishLevel(true);
+  else if (game.time <= 0) finishLevel(false);
   updateHud();
 }
 
@@ -163,10 +166,8 @@ function updatePlayer(player, delta) {
     const steerRight = player.name === "P1" ? keys.has("d") : keys.has("arrowright");
     const steer = (steerRight ? 1 : 0) - (steerLeft ? 1 : 0);
     hook.angle += (hook.direction * 1.25 + steer * 1.2) * delta;
-    const min = player.side < 0 ? 0.18 : Math.PI * 0.52;
-    const max = player.side < 0 ? Math.PI * 0.48 : Math.PI - 0.18;
-    if (hook.angle < min || hook.angle > max) {
-      hook.angle = clamp(hook.angle, min, max);
+    if (hook.angle < hookMinAngle || hook.angle > hookMaxAngle) {
+      hook.angle = clamp(hook.angle, hookMinAngle, hookMaxAngle);
       hook.direction *= -1;
     }
     return;
@@ -233,11 +234,11 @@ function explode(x, y, player) {
   popText(value > 0 ? `爆破 +${value}` : "爆破", x, y, "#ffb05c");
 }
 
-function finishLevel() {
+function finishLevel(passedByScore = false) {
   const total = totalScore();
   if (total >= game.target) {
     game.state = "between";
-    showOverlay("过关", `第 ${game.level} 关完成`, `总金币 ${total} / ${game.target}。下一关目标更高，矿层更复杂。`, "下一关");
+    showOverlay("过关", `第 ${game.level} 关完成`, `${passedByScore ? "目标达成，自动结算。" : "时间结束，目标达成。"}总金币 ${total} / ${game.target}。`, "下一关");
   } else {
     game.state = "ended";
     showOverlay("挑战失败", `第 ${game.level} 关`, `总金币 ${total} / ${game.target}，差一点。重新开挖吧。`, "重开");
