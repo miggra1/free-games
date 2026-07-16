@@ -50,6 +50,7 @@ let cheatTyped = "";
 let cheatTypedAt = 0;
 let tileBrightness = 76;
 let hintPair = null;
+let remoteBestRecord = null;
 
 function newGame() {
   const total = rows * cols;
@@ -88,6 +89,7 @@ function newGame() {
   updateHud();
   syncCheatInputs();
   renderBestRecord();
+  loadRemoteBestRecord();
 }
 
 function shuffleArray(array) {
@@ -305,11 +307,15 @@ function updateHud() {
 }
 
 function currentResultRecord() {
+  const won = game.left <= 0;
+  const used = Math.max(0, game.startTime - Math.ceil(game.time));
+  const score = Math.max(0, (won ? 100000 : 0) + game.bestCombo * 500 + (game.startTime - used) * 80 - game.left * 1200);
   return {
-    won: game.left <= 0,
-    used: Math.max(0, game.startTime - Math.ceil(game.time)),
+    won,
+    used,
     left: game.left,
     bestCombo: game.bestCombo,
+    score,
     savedAt: new Date().toLocaleString(),
   };
 }
@@ -337,6 +343,11 @@ function isBetterRecord(next, current) {
 
 function formatBestRecord(record) {
   if (!record) return "--";
+  if ("time_used" in record || "best_combo" in record) {
+    const combo = record.best_combo ?? 0;
+    if (record.won) return `${record.time_used ?? 0}s / ${combo}`;
+    return `${text.tiles}${record.remaining ?? 0} / ${combo}`;
+  }
   if (record.won) return `${record.used}s / ${record.bestCombo}`;
   return `${text.tiles}${record.left} / ${record.bestCombo}`;
 }
@@ -347,10 +358,34 @@ function updateBestRecord() {
   game.isNewBest = isBetterRecord(next, current);
   if (game.isNewBest) writeBestRecord(next);
   renderBestRecord();
+  saveRemoteRecord(next);
 }
 
 function renderBestRecord() {
-  bestRecordEl.textContent = formatBestRecord(readBestRecord());
+  bestRecordEl.textContent = formatBestRecord(remoteBestRecord || readBestRecord());
+}
+
+async function loadRemoteBestRecord() {
+  if (!window.FreeGamesScores) return;
+  const record = await window.FreeGamesScores.getBestScore("link-link-game");
+  if (!record) return;
+  remoteBestRecord = record;
+  renderBestRecord();
+}
+
+async function saveRemoteRecord(record) {
+  if (!window.FreeGamesScores) return;
+  const saved = await window.FreeGamesScores.saveScore({
+    game_key: "link-link-game",
+    score: record.score,
+    level: 1,
+    won: record.won,
+    time_used: record.used,
+    remaining: record.left,
+    best_combo: record.bestCombo,
+    detail: record,
+  });
+  if (saved) loadRemoteBestRecord();
 }
 
 function showResultModal() {
@@ -359,7 +394,7 @@ function showResultModal() {
   resultTimeEl.textContent = `${text.usedTime} ${used}s`;
   resultLeftEl.textContent = `${text.tiles} ${game.left}`;
   resultComboEl.textContent = `${text.bestCombo} ${game.bestCombo}`;
-  resultBestEl.textContent = game.isNewBest ? text.newBest : `${text.bestRecord} ${formatBestRecord(readBestRecord())}`;
+  resultBestEl.textContent = game.isNewBest ? text.newBest : `${text.bestRecord} ${formatBestRecord(remoteBestRecord || readBestRecord())}`;
   resultModalEl.classList.remove("hidden");
 }
 

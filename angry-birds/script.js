@@ -356,6 +356,23 @@ function knockPig(pig) {
   World.remove(engine.world, pig);
 }
 
+async function saveAngryBirdsScore(won) {
+  if (!window.FreeGamesScores) return;
+  const alivePigs = pigs.filter((pig) => pig.plugin.alive).length;
+  await window.FreeGamesScores.saveScore({
+    game_key: "angry-birds",
+    score,
+    level: currentLevel + 1,
+    won,
+    remaining: alivePigs,
+    detail: {
+      levelName: levels[currentLevel].name,
+      birdsLeft,
+      pigsLeft: alivePigs,
+    },
+  });
+}
+
 function endGame(won) {
   ended = true;
   statusText = won ? text.win : text.lose;
@@ -369,6 +386,7 @@ function endGame(won) {
   resultActionEl.value = won ? (last ? "restart" : "next") : "retry";
   resultActionEl.textContent = won ? (last ? text.restart : text.next) : text.retry;
   if (!resultDialog.open) resultDialog.showModal();
+  saveAngryBirdsScore(won);
 }
 
 function burst(x, y, color, amount) {
