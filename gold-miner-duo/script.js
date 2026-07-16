@@ -285,20 +285,80 @@ function draw() {
 }
 
 function drawBackground() {
-  const sky = ctx.createLinearGradient(0, 0, 0, h());
-  sky.addColorStop(0, "#284d68");
-  sky.addColorStop(0.29, "#517e91");
-  sky.addColorStop(0.3, "#6f4b2d");
-  sky.addColorStop(1, "#1a120d");
+  const sky = ctx.createLinearGradient(0, 0, 0, h() * 0.32);
+  sky.addColorStop(0, "#1f4967");
+  sky.addColorStop(1, "#7798a0");
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w(), h());
 
-  ctx.fillStyle = "#6e4a2b";
-  ctx.fillRect(0, h() * 0.3, w(), 18);
-  ctx.fillStyle = "rgba(255,255,255,.16)";
-  for (let i = 0; i < 18; i += 1) {
-    ctx.fillRect(i * 90 - 20, h() * 0.32 + (i % 5) * 26, 46, 4);
+  const hill = ctx.createLinearGradient(0, h() * 0.2, 0, h() * 0.38);
+  hill.addColorStop(0, "#7f6a3d");
+  hill.addColorStop(1, "#44301f");
+  ctx.fillStyle = hill;
+  ctx.beginPath();
+  ctx.moveTo(0, h() * 0.28);
+  for (let x = 0; x <= w(); x += 90) {
+    ctx.lineTo(x, h() * (0.24 + Math.sin(x * 0.018) * 0.025));
   }
+  ctx.lineTo(w(), h() * 0.35);
+  ctx.lineTo(0, h() * 0.35);
+  ctx.closePath();
+  ctx.fill();
+
+  const dirt = ctx.createLinearGradient(0, h() * 0.3, 0, h());
+  dirt.addColorStop(0, "#7a4d2b");
+  dirt.addColorStop(0.36, "#4d2e1d");
+  dirt.addColorStop(0.72, "#2a1a12");
+  dirt.addColorStop(1, "#120c08");
+  ctx.fillStyle = dirt;
+  ctx.fillRect(0, h() * 0.3, w(), h() * 0.7);
+
+  ctx.fillStyle = "rgba(255, 226, 158, .08)";
+  for (let i = 0; i < 26; i += 1) {
+    const y = h() * 0.36 + (i % 8) * 44;
+    ctx.fillRect(i * 58 - 28, y, 38 + (i % 4) * 18, 4);
+  }
+
+  drawMineSupports();
+
+  const vignette = ctx.createRadialGradient(w() * 0.5, h() * 0.48, h() * 0.15, w() * 0.5, h() * 0.5, h() * 0.78);
+  vignette.addColorStop(0, "rgba(255,255,255,0)");
+  vignette.addColorStop(1, "rgba(0,0,0,.42)");
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, w(), h());
+}
+
+function drawMineSupports() {
+  const top = h() * 0.3;
+  ctx.save();
+  ctx.lineCap = "round";
+  for (let x = 78; x < w(); x += 210) {
+    drawWoodBeam(x, top + 18, x, h() - 34, 18);
+    drawWoodBeam(x - 45, top + 26, x + 45, top + 26, 18);
+  }
+  drawWoodBeam(0, top + 8, w(), top + 8, 22);
+  ctx.restore();
+}
+
+function drawWoodBeam(x1, y1, x2, y2, width) {
+  ctx.strokeStyle = "#2f1a0d";
+  ctx.lineWidth = width + 5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.strokeStyle = "#7a4522";
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255, 210, 130, .22)";
+  ctx.lineWidth = Math.max(2, width * 0.18);
+  ctx.beginPath();
+  ctx.moveTo(x1 - 1, y1 - 3);
+  ctx.lineTo(x2 - 1, y2 - 3);
+  ctx.stroke();
 }
 
 function drawItems() {
@@ -314,21 +374,43 @@ function drawItems() {
 }
 
 function drawOre(item) {
-  ctx.fillStyle = item.color;
+  ctx.shadowColor = "rgba(0,0,0,.38)";
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 7;
+  const body = ctx.createRadialGradient(-item.radius * 0.4, -item.radius * 0.36, 2, 0, 0, item.radius * 1.28);
+  body.addColorStop(0, item.shine);
+  body.addColorStop(0.28, item.color);
+  body.addColorStop(1, shadeColor(item.color, -42));
+  ctx.fillStyle = body;
   ctx.beginPath();
   ctx.ellipse(0, 0, item.radius * 1.18, item.radius * 0.86, -0.2, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowColor = "transparent";
+
+  ctx.strokeStyle = "rgba(0,0,0,.36)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
   ctx.fillStyle = item.shine;
   ctx.beginPath();
   ctx.ellipse(-item.radius * 0.32, -item.radius * 0.24, item.radius * 0.34, item.radius * 0.18, -0.4, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,.24)";
-  ctx.lineWidth = 3;
+
+  ctx.strokeStyle = "rgba(255,255,255,.22)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(-item.radius * 0.08, -item.radius * 0.08, item.radius * 0.88, item.radius * 0.58, -0.2, Math.PI * 1.08, Math.PI * 1.78);
   ctx.stroke();
 }
 
 function drawDiamond(item) {
-  ctx.fillStyle = item.color;
+  ctx.shadowColor = "rgba(104, 221, 255, .55)";
+  ctx.shadowBlur = 16;
+  const gem = ctx.createLinearGradient(-item.radius, -item.radius, item.radius, item.radius);
+  gem.addColorStop(0, "#f7ffff");
+  gem.addColorStop(0.35, item.color);
+  gem.addColorStop(1, "#246d96");
+  ctx.fillStyle = gem;
   ctx.beginPath();
   ctx.moveTo(0, -item.radius);
   ctx.lineTo(item.radius * 1.1, -2);
@@ -336,53 +418,152 @@ function drawDiamond(item) {
   ctx.lineTo(-item.radius * 1.1, -2);
   ctx.closePath();
   ctx.fill();
+  ctx.shadowColor = "transparent";
   ctx.strokeStyle = item.shine;
   ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,.7)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -item.radius);
+  ctx.lineTo(0, item.radius);
+  ctx.moveTo(-item.radius * 1.1, -2);
+  ctx.lineTo(item.radius * 1.1, -2);
   ctx.stroke();
 }
 
 function drawBomb(item) {
-  ctx.fillStyle = item.color;
+  ctx.shadowColor = "rgba(0,0,0,.48)";
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 6;
+  const bomb = ctx.createRadialGradient(-item.radius * 0.45, -item.radius * 0.45, 2, 0, 0, item.radius * 1.18);
+  bomb.addColorStop(0, "#747a84");
+  bomb.addColorStop(0.35, item.color);
+  bomb.addColorStop(1, "#0b0c0f");
+  ctx.fillStyle = bomb;
   ctx.beginPath();
   ctx.arc(0, 0, item.radius, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowColor = "transparent";
   ctx.strokeStyle = item.shine;
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(item.radius * 0.4, -item.radius * 0.6);
   ctx.quadraticCurveTo(item.radius, -item.radius * 1.4, item.radius * 0.45, -item.radius * 1.75);
   ctx.stroke();
+  ctx.fillStyle = "#ffdd75";
+  ctx.beginPath();
+  ctx.arc(item.radius * 0.5, -item.radius * 1.75, 4, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawPlayer(player) {
   const tip = hookTip(player);
-  ctx.strokeStyle = "#2f1d10";
-  ctx.lineWidth = 5;
+  ctx.strokeStyle = "rgba(0,0,0,.38)";
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(player.x + 3, player.y + 15);
+  ctx.lineTo(tip.x + 3, tip.y + 3);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#d8b06a";
+  ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.moveTo(player.x, player.y + 12);
   ctx.lineTo(tip.x, tip.y);
   ctx.stroke();
 
-  ctx.strokeStyle = player.color;
+  ctx.strokeStyle = "#392012";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.arc(tip.x, tip.y, 12, player.hook.angle + 0.5, player.hook.angle + Math.PI * 1.5);
   ctx.stroke();
+  ctx.strokeStyle = player.color;
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
 
-  ctx.fillStyle = "#5a371c";
-  ctx.fillRect(player.x - 42, player.y - 22, 84, 32);
-  ctx.fillStyle = player.color;
-  ctx.beginPath();
-  ctx.arc(player.x, player.y - 28, 23, 0, Math.PI * 2);
+  drawMiner(player);
+}
+
+function drawMiner(player) {
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  ctx.shadowColor = "rgba(0,0,0,.34)";
+  ctx.shadowBlur = 14;
+  ctx.shadowOffsetY = 7;
+  const cart = ctx.createLinearGradient(-52, -18, 52, 18);
+  cart.addColorStop(0, "#3c2414");
+  cart.addColorStop(0.5, "#7a4a24");
+  cart.addColorStop(1, "#2c190e");
+  ctx.fillStyle = cart;
+  roundRect(-54, -16, 108, 34, 8);
   ctx.fill();
+  ctx.shadowColor = "transparent";
+  ctx.strokeStyle = "rgba(255, 220, 150, .28)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "#1a120d";
+  ctx.beginPath();
+  ctx.arc(-30, 24, 10, 0, Math.PI * 2);
+  ctx.arc(30, 24, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  const face = ctx.createRadialGradient(-7, -42, 4, 0, -34, 28);
+  face.addColorStop(0, "#ffe0ac");
+  face.addColorStop(1, "#b87845");
+  ctx.fillStyle = face;
+  ctx.beginPath();
+  ctx.arc(0, -34, 22, 0, Math.PI * 2);
+  ctx.fill();
+
+  const helmet = ctx.createLinearGradient(-24, -62, 24, -34);
+  helmet.addColorStop(0, shadeColor(player.color, -22));
+  helmet.addColorStop(0.45, player.color);
+  helmet.addColorStop(1, shadeColor(player.color, -40));
+  ctx.fillStyle = helmet;
+  ctx.beginPath();
+  ctx.arc(0, -42, 25, Math.PI, Math.PI * 2);
+  ctx.lineTo(30, -40);
+  ctx.lineTo(-30, -40);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#fff7d1";
+  ctx.beginPath();
+  ctx.arc(0, -48, 7, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.fillStyle = "#241308";
   ctx.font = "900 15px Microsoft YaHei";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(player.name, player.x, player.y - 28);
+  ctx.fillText(player.name, 0, -31);
   ctx.fillStyle = "#fff2c0";
   ctx.font = "800 13px Microsoft YaHei";
-  ctx.fillText(player.key, player.x, player.y + 25);
+  ctx.fillText(player.key, 0, 35);
+  ctx.restore();
+}
+
+function roundRect(x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+}
+
+function shadeColor(hex, amount) {
+  const value = Number.parseInt(hex.slice(1), 16);
+  const r = clamp((value >> 16) + amount, 0, 255);
+  const g = clamp(((value >> 8) & 255) + amount, 0, 255);
+  const b = clamp((value & 255) + amount, 0, 255);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
 function burst(x, y, color, count) {
