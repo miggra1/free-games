@@ -13,12 +13,21 @@
         <div id="tip" class="tip">点一下，篮球往上跳</div>
       </section>
       <section class="controls">
-        <span>鼠标 / 触摸点击跳球</span>
-        <span>单人刷分，左右穿篮筐</span>
+        <span>60 秒限时挑战</span>
+        <span>连续进球会提速</span>
         <span>R 重开</span>
       </section>
     </main>
+    <dialog id="resultDialog" class="result-dialog">
+      <form method="dialog">
+        <span class="result-kicker">本局结束</span>
+        <h2>烈火篮球</h2>
+        <div class="result-score" id="resultScore">0</div>
+        <p id="resultMeta">最高 0 · 连击 0</p>
+        <button value="restart" type="submit">再来一局</button>
+      </form>
+    </dialog>
     <script src="/shared/supabase-scores.js?v=supabase-1"></script>
-    <script src="script.js?v=supabase-2"></script>
+    <script src="script.js?v=timed-1"></script>
   </body>
 </html>

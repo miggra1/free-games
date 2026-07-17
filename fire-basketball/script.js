@@ -1,16 +1,23 @@
 const canvas = document.querySelector("#game");
 const ctx = canvas.getContext("2d");
 const tip = document.querySelector("#tip");
+const resultDialog = document.querySelector("#resultDialog");
+const resultScoreEl = document.querySelector("#resultScore");
+const resultMetaEl = document.querySelector("#resultMeta");
 
 const W = 430;
 const H = 760;
 const GAME_KEY = "fire-basketball";
 const BEST_KEY = "fire-basketball-best";
+const ROUND_SECONDS = 60;
 
 const state = {
   score: 0,
   best: Number(localStorage.getItem(BEST_KEY) || 0),
   combo: 0,
+  maxCombo: 0,
+  timeLeft: ROUND_SECONDS,
+  ended: false,
   side: "left",
   hoopY: 390,
   fire: 0,
@@ -50,9 +57,12 @@ async function saveFireBasketballScore(scoreValue) {
     score: finalScore,
     won: true,
     level: 1,
-    best_combo: state.combo,
+    time_used: ROUND_SECONDS,
+    remaining: Math.ceil(state.timeLeft),
+    best_combo: state.maxCombo,
     detail: {
       combo: state.combo,
+      maxCombo: state.maxCombo,
       side: state.side,
       fire: Number(state.fire.toFixed(2)),
     },
@@ -60,8 +70,12 @@ async function saveFireBasketballScore(scoreValue) {
 }
 
 function reset() {
+  if (resultDialog?.open) resultDialog.close("reset");
   state.score = 0;
   state.combo = 0;
+  state.maxCombo = 0;
+  state.timeLeft = ROUND_SECONDS;
+  state.ended = false;
   state.side = "left";
   state.hoopY = 395;
   state.fire = 0;
@@ -74,17 +88,23 @@ function reset() {
   state.particles = [];
   state.ripples = [];
   spawnBall();
-  tip.textContent = "点一下，篮球往上跳";
+  tip.textContent = "60 秒挑战，点一下起跳";
+}
+
+function difficulty() {
+  const elapsed = ROUND_SECONDS - state.timeLeft;
+  return clamp(1 + state.score * 0.035 + elapsed * 0.006, 1, 1.7);
 }
 
 function spawnBall() {
   const dir = state.side === "left" ? -1 : 1;
+  const level = difficulty();
   state.ball = {
     x: W / 2,
     y: H * 0.64,
     px: W / 2,
     py: H * 0.64,
-    vx: dir * 2.65,
+    vx: dir * 2.65 * level,
     vy: -3.2,
     r: 18,
     spin: 0,
@@ -108,13 +128,15 @@ function hoopRimX(hoop) {
 }
 
 function flap() {
+  if (state.ended) return;
   if (!state.ball || state.ball.dead) spawnBall();
   const b = state.ball;
   b.vy = -6.15;
   b.vx += (state.side === "left" ? -0.18 : 0.18);
-  b.vx = clamp(b.vx, -4.2, 4.2);
+  const maxSpeed = 4.2 + (difficulty() - 1) * 1.15;
+  b.vx = clamp(b.vx, -maxSpeed, maxSpeed);
   state.ripples.push({ x: b.x, y: b.y, r: 10, life: 0.18 });
-  tip.textContent = "连续点击控高度，穿过篮筐";
+  tip.textContent = "控高度，抢时间，穿过篮筐";
 }
 
 canvas.addEventListener("pointerdown", (event) => {
@@ -133,20 +155,37 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+resultDialog?.addEventListener("close", () => {
+  if (resultDialog.returnValue === "restart") reset();
+});
+
 function update(delta) {
   state.shake = Math.max(0, state.shake - delta * 4);
   state.netSwing = Math.max(0, state.netSwing - delta * 2.8);
   state.fire = Math.max(0, state.fire - delta * 0.18);
   state.messageLife = Math.max(0, state.messageLife - delta);
 
+  if (state.ended) {
+    updateEffects(delta);
+    return;
+  }
+
+  state.timeLeft = Math.max(0, state.timeLeft - delta);
+  if (state.timeLeft <= 0) {
+    endRound();
+    updateEffects(delta);
+    return;
+  }
+
   const b = state.ball;
   if (!b) return;
 
   const dir = state.side === "left" ? -1 : 1;
+  const level = difficulty();
   b.px = b.x;
   b.py = b.y;
-  b.vx += (dir * 2.85 - b.vx) * 0.015;
-  b.vy += 0.23;
+  b.vx += (dir * 2.85 * level - b.vx) * 0.015;
+  b.vy += 0.23 + (level - 1) * 0.045;
   b.x += b.vx;
   b.y += b.vy;
   b.spin += b.vx * 0.045;
@@ -176,7 +215,7 @@ function update(delta) {
 }
 
 function miss() {
-  saveFireBasketballScore(state.score);
+  if (state.ended) return;
   state.combo = 0;
   state.fire = 0;
   state.shake = Math.max(state.shake, 0.25);
@@ -198,6 +237,7 @@ function checkScore() {
   state.score += add;
   setBestScore(state.score);
   state.combo += 1;
+  state.maxCombo = Math.max(state.maxCombo, state.combo);
   state.fire = Math.min(1, state.fire + (perfect ? 0.5 : 0.27));
   state.shake = perfect ? 0.65 : 0.36;
   showMessage(perfect ? `完美 x${Math.max(2, state.combo)}` : `命中 +1`, 1.05);
@@ -208,12 +248,26 @@ function checkScore() {
   b.scored = true;
   state.side = state.side === "left" ? "right" : "left";
   state.hoopY = 210 + Math.random() * 390;
-  b.vx = state.side === "left" ? -2.9 : 2.9;
-  b.vy = -4.4;
+  const level = difficulty();
+  b.vx = (state.side === "left" ? -2.9 : 2.9) * level;
+  b.vy = -4.4 - Math.min(0.7, (level - 1) * 0.5);
   b.x = clamp(b.x, 70, W - 70);
   b.px = b.x;
   b.py = b.y;
   b.scored = false;
+}
+
+function endRound() {
+  if (state.ended) return;
+  state.ended = true;
+  state.combo = 0;
+  state.fire = 0;
+  state.shake = Math.max(state.shake, 0.45);
+  showMessage("时间到", 1);
+  saveFireBasketballScore(state.score);
+  resultScoreEl.textContent = String(state.score);
+  resultMetaEl.textContent = `最高 ${state.best} · 最高连击 ${state.maxCombo}`;
+  if (resultDialog && !resultDialog.open) resultDialog.showModal();
 }
 
 function collideBackboard() {
@@ -498,6 +552,13 @@ function drawHud() {
   ctx.fillStyle = "#ffffff";
   ctx.font = "800 12px Microsoft YaHei";
   ctx.fillText("烈火篮球", W / 2, 61);
+
+  const seconds = Math.ceil(state.timeLeft);
+  ctx.fillStyle = seconds <= 10 ? "#ff4c58" : "#ffc247";
+  roundRect(W / 2 - 42, 82, 84, 30, 15, true);
+  ctx.fillStyle = seconds <= 10 ? "#fff" : "#18120a";
+  ctx.font = "900 16px Microsoft YaHei";
+  ctx.fillText(`${seconds}s`, W / 2, 102);
 }
 
 function drawAvatar(x, y, color, text) {

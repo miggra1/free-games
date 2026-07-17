@@ -99,6 +99,72 @@ canvas {
   font-weight: 800;
 }
 
+.result-dialog {
+  width: min(88vw, 360px);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+  padding: 0;
+  color: var(--text);
+  background: #141922;
+  box-shadow: 0 28px 90px rgba(0,0,0,.62);
+}
+
+.result-dialog::backdrop {
+  background: rgba(4, 6, 10, .7);
+}
+
+.result-dialog form {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.result-kicker {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.result-dialog h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 24px;
+}
+
+.result-score {
+  color: var(--red);
+  font-size: 56px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.result-dialog p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.result-dialog button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  color: #1a0d0e;
+  background: var(--gold);
+  font: 900 15px "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.result-dialog button:hover {
+  filter: brightness(1.06);
+}
+
+.result-dialog button:focus-visible {
+  outline: 3px solid rgba(255,255,255,.85);
+  outline-offset: 3px;
+}
+
 @media (max-height: 720px) {
   .controls { display: none; }
   .shell { padding: 0; }
