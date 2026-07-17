@@ -38,6 +38,7 @@ const mat = {
   alienDark: toon(0x2e6945),
   alienBelly: toon(0xd9ff8f),
   boss: toon(0xff5e67),
+  white: toon(0xf7fdff),
   eye: new THREE.MeshStandardMaterial({ color: 0xf7fdff, emissive: 0x79eaff, emissiveIntensity: 0.55, roughness: 0.35 }),
   portal: new THREE.MeshStandardMaterial({ color: 0x68ddff, emissive: 0x1dbfff, emissiveIntensity: 1.4, transparent: true, opacity: 0.55 }),
   blast: new THREE.MeshStandardMaterial({ color: 0x68ddff, emissive: 0x20cbff, emissiveIntensity: 1.9 }),
@@ -59,6 +60,7 @@ const player = {
   actionTime: 0,
   actionDuration: 0,
   punchStep: 0,
+  facing: -1,
   moveSpeed: 0,
   animTime: 0,
   group: null,
@@ -87,7 +89,7 @@ function init() {
   createStage();
   player.group = createHero();
   player.group.position.set(-4, 0, 0);
-  player.group.rotation.y = -Math.PI / 2;
+  player.group.rotation.y = Math.PI - 0.28;
   scene.add(player.group);
   resize();
   startWave();
@@ -211,6 +213,19 @@ function createHero() {
   root.add(face);
   addFace(face);
 
+  const leftEar = outlined(new THREE.SphereGeometry(0.09, 12, 8), mat.skin, 1.04);
+  const rightEar = outlined(new THREE.SphereGeometry(0.09, 12, 8), mat.skin, 1.04);
+  leftEar.scale.set(0.75, 1, 0.55);
+  rightEar.scale.set(0.75, 1, 0.55);
+  leftEar.position.set(-0.46, 1.97, -0.06);
+  rightEar.position.set(0.46, 1.97, -0.06);
+  root.add(leftEar, rightEar);
+
+  const badge = outlined(new THREE.BoxGeometry(0.18, 0.18, 0.035), mat.glove, 1.04);
+  badge.rotation.z = Math.PI / 4;
+  badge.position.set(0.16, 1.25, -0.34);
+  root.add(badge);
+
   const leftArm = makeArm(-0.42, 1.42, 0, -1);
   const rightArm = makeArm(0.42, 1.42, 0, 1);
   root.add(leftArm.joint, rightArm.joint);
@@ -223,20 +238,30 @@ function createHero() {
   shadow.position.y = 0.015;
   root.add(shadow);
 
-  root.userData.parts = { body, belly, neck, head, hair, face, leftArm, rightArm, leftLeg, rightLeg };
+  root.userData.parts = { body, belly, neck, head, hair, face, leftEar, rightEar, badge, leftArm, rightArm, leftLeg, rightLeg };
   return root;
 }
 
 function addFace(face) {
   const eyeGeo = new THREE.SphereGeometry(0.055, 12, 8);
   const mouthGeo = new THREE.BoxGeometry(0.2, 0.035, 0.025);
+  const browGeo = new THREE.BoxGeometry(0.16, 0.03, 0.024);
   const leftEye = new THREE.Mesh(eyeGeo, blackMat);
   const rightEye = new THREE.Mesh(eyeGeo, blackMat);
   leftEye.position.set(-0.16, 0.07, 0);
   rightEye.position.set(0.16, 0.07, 0);
+  const leftBrow = new THREE.Mesh(browGeo, blackMat);
+  const rightBrow = new THREE.Mesh(browGeo, blackMat);
+  leftBrow.position.set(-0.16, 0.2, 0);
+  rightBrow.position.set(0.16, 0.2, 0);
+  leftBrow.rotation.z = -0.18;
+  rightBrow.rotation.z = 0.18;
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), mat.skin);
+  nose.scale.set(0.75, 0.8, 0.5);
+  nose.position.set(0, -0.02, -0.015);
   const mouth = new THREE.Mesh(mouthGeo, blackMat);
   mouth.position.set(0, -0.12, 0);
-  face.add(leftEye, rightEye, mouth);
+  face.add(leftEye, rightEye, leftBrow, rightBrow, nose, mouth);
 }
 
 function makeArm(x, y, z, side) {
@@ -288,7 +313,12 @@ function createAlien(boss = false) {
   const rightEye = new THREE.Mesh(eyeGeo, mat.eye);
   leftEye.position.set(-0.16 * scale, 0.04 * scale, 0);
   rightEye.position.set(0.16 * scale, 0.04 * scale, 0);
-  face.add(leftEye, rightEye);
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.28 * scale, 0.04 * scale, 0.03 * scale), blackMat);
+  mouth.position.set(0, -0.18 * scale, 0);
+  const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04 * scale, 0.1 * scale, 3), mat.white);
+  tooth.rotation.z = Math.PI;
+  tooth.position.set(0.08 * scale, -0.23 * scale, 0.01 * scale);
+  face.add(leftEye, rightEye, mouth, tooth);
 
   const leftArm = makeAlienArm(-0.45 * scale, 1.12 * scale, scale, -1);
   const rightArm = makeAlienArm(0.45 * scale, 1.12 * scale, scale, 1);
@@ -313,6 +343,7 @@ function createAlien(boss = false) {
   root.userData.parts = { body, belly, head, face, leftArm, rightArm, leftLeg, rightLeg, antenna };
   root.userData.animTime = Math.random() * 20;
   root.userData.scale = scale;
+  root.userData.facing = 0;
   return root;
 }
 
@@ -350,7 +381,8 @@ function spawnAlien() {
   const side = spawnSide;
   spawnSide *= -1;
   group.position.set(side * 12.8, 0, THREE.MathUtils.randFloatSpread(4.8));
-  group.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+  group.userData.facing = side > 0 ? -1 : 1;
+  group.rotation.y = Math.PI + group.userData.facing * 0.36;
   scene.add(group);
   aliens.push({
     group,
@@ -407,10 +439,11 @@ function updateInput(delta) {
   player.group.position.addScaledVector(dir, player.moveSpeed * delta);
   player.group.position.x = clamp(player.group.position.x, -arena.x, arena.x);
   player.group.position.z = clamp(player.group.position.z, -arena.z, arena.z);
-  if (Math.abs(dir.x) > 0.08 && player.action !== "punch" && player.action !== "kick") {
-    const targetRot = dir.x > 0 ? Math.PI / 2 : -Math.PI / 2;
-    player.group.rotation.y = lerpAngle(player.group.rotation.y, targetRot, 1 - Math.pow(0.0004, delta));
+  if (Math.abs(dir.x) > 0.08) {
+    player.facing = dir.x > 0 ? 1 : -1;
   }
+  const idleTurn = player.action === "punch" || player.action === "kick" ? 0.42 : 0.28;
+  player.group.rotation.y = lerpAngle(player.group.rotation.y, Math.PI + player.facing * idleTurn, 1 - Math.pow(0.0004, delta));
 }
 
 function updatePlayerAnimation(delta) {
@@ -457,14 +490,15 @@ function posePunch(p) {
   const snap = Math.sin(Math.min(1, t * 1.35) * Math.PI);
   const out = easeOutBack(clamp((t - 0.08) / 0.34, 0, 1));
   const recover = easeOut(clamp((t - 0.48) / 0.52, 0, 1));
-  const side = player.punchStep % 2 === 0 ? 1 : -1;
+  const side = player.facing;
   const arm = side > 0 ? p.rightArm : p.leftArm;
   const other = side > 0 ? p.leftArm : p.rightArm;
   p.body.rotation.z = -side * 0.22 * snap;
   p.head.rotation.z = side * 0.1 * snap;
-  arm.joint.rotation.x = -1.2 * out + 1.2 * recover;
+  arm.joint.rotation.x = -0.65 * out + 0.65 * recover;
   arm.joint.rotation.z = -side * 0.72 * out + side * 0.72 * recover;
-  arm.joint.position.z = -0.42 * out + 0.42 * recover;
+  arm.joint.position.x = side * (0.42 * out - 0.42 * recover);
+  arm.joint.position.z = -0.2 * out + 0.2 * recover;
   arm.glove.scale.set(1 + 0.58 * out, 1 + 0.18 * out, 1 + 0.58 * out);
   other.joint.rotation.x = 0.55 * snap;
 }
@@ -473,24 +507,28 @@ function poseKick(p) {
   const t = actionProgress();
   const wind = easeOut(clamp(t / 0.3, 0, 1));
   const strike = easeOutBack(clamp((t - 0.18) / 0.34, 0, 1));
+  const side = player.facing;
   const leg = p.rightLeg;
   const arm = p.leftArm;
-  p.body.rotation.z = -0.28 * strike;
+  p.body.rotation.z = -side * 0.28 * strike;
   p.body.rotation.x = -0.18 * wind;
   leg.joint.rotation.x = -1.25 * strike;
-  leg.joint.rotation.z = -0.35 * strike;
-  leg.joint.position.z = -0.62 * strike;
+  leg.joint.rotation.z = -side * 0.35 * strike;
+  leg.joint.position.x = side * 0.66 * strike;
+  leg.joint.position.z = -0.3 * strike;
   leg.shoe.scale.set(1.35, 1, 1.25);
   arm.joint.rotation.x = 0.75 * strike;
-  p.head.rotation.z = 0.16 * strike;
+  p.head.rotation.z = side * 0.16 * strike;
 }
 
 function poseShoot(p) {
   const t = actionProgress();
   const out = easeOutBack(clamp(t / 0.46, 0, 1));
-  p.body.rotation.z = -0.12 * out;
+  const side = player.facing;
+  p.body.rotation.z = -side * 0.12 * out;
   p.rightArm.joint.rotation.x = -1.38 * out;
-  p.rightArm.joint.position.z = -0.35 * out;
+  p.rightArm.joint.position.x = side * 0.34 * out;
+  p.rightArm.joint.position.z = -0.18 * out;
   p.rightArm.glove.scale.set(1.22, 1, 1.22);
   p.leftArm.joint.rotation.x = -0.55 * out;
 }
@@ -545,7 +583,8 @@ function updateAliens(delta) {
     if (alien.stun <= 0 && dist > (alien.boss ? 1.45 : 1.05)) {
       toPlayer.normalize();
       pos.addScaledVector(toPlayer, alien.speed * delta);
-      alien.group.rotation.y = lerpAngle(alien.group.rotation.y, Math.atan2(toPlayer.x, toPlayer.z), 0.16);
+      alien.group.userData.facing = toPlayer.x >= 0 ? 1 : -1;
+      alien.group.rotation.y = lerpAngle(alien.group.rotation.y, Math.PI + alien.group.userData.facing * 0.36, 0.16);
     }
     animateAlien(alien, delta, dist);
     if (dist < (alien.boss ? 1.75 : 1.18) && alien.attack <= 0) {
@@ -574,11 +613,17 @@ function animateAlien(alien, delta, dist) {
   const scale = group.userData.scale;
   group.userData.animTime += delta * (alien.stun > 0 ? 12 : 6.5);
   group.userData.attackFlash = Math.max(0, (group.userData.attackFlash || 0) - delta);
+  group.userData.squash = Math.max(0, (group.userData.squash || 0) - delta * 3.6);
   const t = group.userData.animTime;
   const walk = alien.stun > 0 ? 0.2 : clamp(dist / 5, 0.25, 1);
   const hop = Math.abs(Math.sin(t * 2.2)) * 0.07 * scale * walk;
   group.position.y = hop;
-  group.scale.setScalar(1 + (alien.hitFlash > 0 ? 0.08 : 0));
+  const squash = group.userData.squash || 0;
+  group.scale.set(
+    1 + squash * 0.45 + (alien.hitFlash > 0 ? 0.08 : 0),
+    1 - squash * 0.34,
+    1 + squash * 0.16,
+  );
   parts.body.rotation.z = Math.sin(t * 2) * 0.1 * walk;
   parts.head.rotation.z = -parts.body.rotation.z * 0.8;
   parts.leftArm.joint.rotation.x = Math.sin(t * 2) * 0.75 * walk;
@@ -609,8 +654,10 @@ function updateProjectiles(delta) {
         alien.hp -= shot.damage;
         alien.stun = Math.max(alien.stun, 0.16);
         alien.hitFlash = 0.12;
+        alien.group.userData.squash = 0.12;
         shot.life = 0;
         addBurst(shot.mesh.position, 0x68ddff, 7);
+        addDamageNumber(alien.group.position.clone().add(new THREE.Vector3(0, alien.boss ? 2.4 : 1.8, -0.25)), Math.round(shot.damage), "#68ddff");
         cameraShake = Math.max(cameraShake, 0.16);
         break;
       }
@@ -692,6 +739,7 @@ function melee(kind) {
   const origin = player.group.position.clone();
   const forward = getForward();
   let hit = false;
+  addAttackArc(origin.clone().add(new THREE.Vector3(forward.x * 1.05, 1.2, -0.55)), forward.x, heavy);
   for (const alien of aliens) {
     const offset = alien.group.position.clone().sub(origin);
     const dist = offset.length();
@@ -700,9 +748,11 @@ function melee(kind) {
       alien.hp -= damage;
       alien.stun = heavy ? 0.38 : 0.19;
       alien.hitFlash = 0.14;
+      alien.group.userData.squash = heavy ? 0.26 : 0.16;
       alien.group.position.addScaledVector(forward, knock);
       hit = true;
       addBurst(alien.group.position.clone().add(new THREE.Vector3(0, 1.05, 0)), heavy ? 0xffd166 : 0x68ddff, heavy ? 13 : 8);
+      addDamageNumber(alien.group.position.clone().add(new THREE.Vector3(0, alien.boss ? 2.5 : 1.9, -0.25)), Math.round(damage), heavy ? "#ffd166" : "#f4fbff");
     }
   }
   if (hit) {
@@ -761,7 +811,9 @@ function explode(grenade) {
       alien.hp -= Math.round(82 * (1 - dist / 4));
       alien.stun = 0.54;
       alien.hitFlash = 0.16;
+      alien.group.userData.squash = 0.28;
       alien.group.position.add(alien.group.position.clone().sub(pos).setY(0).normalize().multiplyScalar(1.8));
+      addDamageNumber(alien.group.position.clone().add(new THREE.Vector3(0, alien.boss ? 2.5 : 1.9, -0.25)), "BOOM", "#ff8b3d");
     }
   }
 }
@@ -793,7 +845,7 @@ function damagePlayer(amount) {
 }
 
 function getForward() {
-  return new THREE.Vector3(Math.sin(player.group.rotation.y), 0, Math.cos(player.group.rotation.y)).normalize();
+  return new THREE.Vector3(player.facing, 0, 0);
 }
 
 function addBurst(position, color, count) {
@@ -805,6 +857,54 @@ function addBurst(position, color, count) {
     const velocity = new THREE.Vector3(THREE.MathUtils.randFloatSpread(4.4), Math.random() * 3.4, THREE.MathUtils.randFloatSpread(3.2));
     effects.push({ type: "spark", mesh, velocity, life: 0.45, maxLife: 0.45, grow: 0.55 });
   }
+}
+
+function addAttackArc(position, facing, heavy) {
+  const arcMat = new THREE.MeshBasicMaterial({
+    color: heavy ? 0xffd166 : 0x68ddff,
+    transparent: true,
+    opacity: heavy ? 0.78 : 0.62,
+    side: THREE.DoubleSide,
+  });
+  const arc = new THREE.Mesh(new THREE.RingGeometry(0.48, heavy ? 0.75 : 0.64, 36, 1, Math.PI * 0.12, Math.PI * 1.25), arcMat);
+  arc.position.copy(position);
+  arc.rotation.z = facing > 0 ? -0.6 : Math.PI + 0.6;
+  arc.scale.set(heavy ? 1.55 : 1.25, heavy ? 0.72 : 0.56, 1);
+  scene.add(arc);
+  effects.push({ type: "arc", mesh: arc, life: heavy ? 0.18 : 0.13, maxLife: heavy ? 0.18 : 0.13, grow: heavy ? 4.6 : 3.8 });
+
+  const smearMat = new THREE.MeshBasicMaterial({
+    color: heavy ? 0xfff0a0 : 0xf4fbff,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.DoubleSide,
+  });
+  const smear = new THREE.Mesh(new THREE.PlaneGeometry(heavy ? 1.7 : 1.25, heavy ? 0.34 : 0.24), smearMat);
+  smear.position.copy(position).add(new THREE.Vector3(facing * 0.32, 0.03, -0.02));
+  smear.rotation.z = facing > 0 ? -0.18 : 0.18;
+  scene.add(smear);
+  effects.push({ type: "smear", mesh: smear, life: 0.09, maxLife: 0.09, grow: 2.8 });
+}
+
+function addDamageNumber(position, text, color) {
+  const canvasText = document.createElement("canvas");
+  canvasText.width = 160;
+  canvasText.height = 80;
+  const g = canvasText.getContext("2d");
+  g.font = "900 36px Microsoft YaHei, Arial";
+  g.textAlign = "center";
+  g.textBaseline = "middle";
+  g.lineWidth = 8;
+  g.strokeStyle = "#111827";
+  g.strokeText(String(text), 80, 40);
+  g.fillStyle = color;
+  g.fillText(String(text), 80, 40);
+  const texture = new THREE.CanvasTexture(canvasText);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+  sprite.position.copy(position);
+  sprite.scale.set(1.2, 0.6, 1);
+  scene.add(sprite);
+  effects.push({ type: "damage", mesh: sprite, velocity: new THREE.Vector3(THREE.MathUtils.randFloatSpread(0.4), 1.8, 0), life: 0.55, maxLife: 0.55, grow: 0.25, texture });
 }
 
 function addRing(position, color, scale) {
@@ -846,8 +946,9 @@ function resetGame() {
   player.weaponLevel = 1;
   player.action = "idle";
   player.actionTime = 0;
+  player.facing = -1;
   player.group.position.set(-4, 0, 0);
-  player.group.rotation.set(0, -Math.PI / 2, 0);
+  player.group.rotation.set(0, Math.PI - 0.28, 0);
   spawnSide = -1;
   ended = false;
   banner.classList.add("hidden");
