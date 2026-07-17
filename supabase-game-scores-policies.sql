@@ -17,7 +17,8 @@ with check (
     'angry-birds',
     'link-link-game',
     'speed-fury',
-    'fire-basketball'
+    'fire-basketball',
+    'fire-basketball-v2'
   )
   and score >= 0
   and score <= 1000000

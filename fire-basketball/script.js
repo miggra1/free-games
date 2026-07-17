@@ -7,8 +7,8 @@ const resultMetaEl = document.querySelector("#resultMeta");
 
 const W = 430;
 const H = 760;
-const GAME_KEY = "fire-basketball";
-const BEST_KEY = "fire-basketball-best";
+const GAME_KEY = "fire-basketball-v2";
+const BEST_KEY = "fire-basketball-best-v2";
 const ROUND_SECONDS = 60;
 
 const state = {
