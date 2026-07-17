@@ -243,25 +243,78 @@ function createHero() {
 }
 
 function addFace(face) {
-  const eyeGeo = new THREE.SphereGeometry(0.055, 12, 8);
-  const mouthGeo = new THREE.BoxGeometry(0.2, 0.035, 0.025);
-  const browGeo = new THREE.BoxGeometry(0.16, 0.03, 0.024);
-  const leftEye = new THREE.Mesh(eyeGeo, blackMat);
-  const rightEye = new THREE.Mesh(eyeGeo, blackMat);
-  leftEye.position.set(-0.16, 0.07, 0);
-  rightEye.position.set(0.16, 0.07, 0);
-  const leftBrow = new THREE.Mesh(browGeo, blackMat);
-  const rightBrow = new THREE.Mesh(browGeo, blackMat);
-  leftBrow.position.set(-0.16, 0.2, 0);
-  rightBrow.position.set(0.16, 0.2, 0);
-  leftBrow.rotation.z = -0.18;
-  rightBrow.rotation.z = 0.18;
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), mat.skin);
-  nose.scale.set(0.75, 0.8, 0.5);
-  nose.position.set(0, -0.02, -0.015);
-  const mouth = new THREE.Mesh(mouthGeo, blackMat);
-  mouth.position.set(0, -0.12, 0);
-  face.add(leftEye, rightEye, leftBrow, rightBrow, nose, mouth);
+  const texture = makeHeroFaceTexture();
+  const plate = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.62, 0.58),
+    new THREE.MeshBasicMaterial({ map: texture, transparent: true, side: THREE.DoubleSide }),
+  );
+  plate.position.set(0, 0.01, -0.035);
+  face.add(plate);
+}
+
+function makeHeroFaceTexture() {
+  const c = document.createElement("canvas");
+  c.width = 256;
+  c.height = 256;
+  const g = c.getContext("2d");
+  g.clearRect(0, 0, c.width, c.height);
+  g.lineCap = "round";
+  g.lineJoin = "round";
+
+  g.strokeStyle = "#151923";
+  g.lineWidth = 14;
+  g.beginPath();
+  g.moveTo(54, 72);
+  g.lineTo(98, 60);
+  g.moveTo(158, 60);
+  g.lineTo(202, 72);
+  g.stroke();
+
+  drawEye(g, 78, 108);
+  drawEye(g, 178, 108);
+
+  g.strokeStyle = "rgba(130, 76, 42, 0.55)";
+  g.lineWidth = 7;
+  g.beginPath();
+  g.moveTo(128, 113);
+  g.quadraticCurveTo(116, 136, 132, 146);
+  g.stroke();
+
+  g.strokeStyle = "#5b2a22";
+  g.lineWidth = 10;
+  g.beginPath();
+  g.moveTo(86, 176);
+  g.quadraticCurveTo(128, 206, 174, 176);
+  g.stroke();
+
+  g.strokeStyle = "rgba(255, 239, 190, 0.55)";
+  g.lineWidth = 5;
+  g.beginPath();
+  g.moveTo(62, 145);
+  g.quadraticCurveTo(74, 156, 94, 150);
+  g.moveTo(194, 150);
+  g.quadraticCurveTo(210, 156, 222, 145);
+  g.stroke();
+
+  return new THREE.CanvasTexture(c);
+}
+
+function drawEye(g, x, y) {
+  g.fillStyle = "#f8fdff";
+  g.strokeStyle = "#151923";
+  g.lineWidth = 8;
+  g.beginPath();
+  g.ellipse(x, y, 28, 24, 0, 0, Math.PI * 2);
+  g.fill();
+  g.stroke();
+  g.fillStyle = "#1a2b38";
+  g.beginPath();
+  g.arc(x + 3, y + 2, 11, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = "#ffffff";
+  g.beginPath();
+  g.arc(x - 4, y - 5, 4, 0, Math.PI * 2);
+  g.fill();
 }
 
 function makeArm(x, y, z, side) {
@@ -720,9 +773,9 @@ function updateCamera(delta) {
   const target = player.group.position;
   const shakeX = (Math.random() - 0.5) * cameraShake * 0.25;
   const shakeY = (Math.random() - 0.5) * cameraShake * 0.18;
-  const desired = new THREE.Vector3(target.x * 0.82 + shakeX, 5.1 + shakeY, 10.6);
+  const desired = new THREE.Vector3(target.x * 0.82 + shakeX, 4.55 + shakeY, 8.7);
   camera.position.lerp(desired, 1 - Math.pow(0.001, delta));
-  camera.lookAt(target.x * 0.82, 1.15, -0.7);
+  camera.lookAt(target.x * 0.82, 1.18, -0.58);
 }
 
 function melee(kind) {
