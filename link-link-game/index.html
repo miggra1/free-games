@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>&#27700;&#26524;&#36830;&#36830;&#30475;</title>
+    <link rel="stylesheet" href="style.css?v=best-record-1" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar" aria-label="game status">
+        <div><span>&#21097;&#20313;</span><strong id="leftCount">0</strong></div>
+        <div><span>&#26102;&#38388;</span><strong id="timer">180</strong></div>
+        <div><span>&#36830;&#20987;</span><strong id="combo">0</strong></div>
+        <div class="best-box"><span>&#26368;&#39640;&#35760;&#24405;</span><strong id="bestRecord">--</strong></div>
+        <button id="shuffle" type="button">&#37325;&#25490;</button>
+        <button id="restart" type="button">&#37325;&#24320;</button>
+      </section>
+
+      <section class="board-wrap">
+        <div id="gameBoard" class="game-board" aria-label="link game board"></div>
+        <div id="resultModal" class="result-modal hidden" role="dialog" aria-modal="true" aria-label="game result">
+          <div class="result-card">
+            <strong id="resultTitle">&#32467;&#31639;</strong>
+            <div class="result-stats">
+              <span id="resultTime">0s</span>
+              <span id="resultLeft">0</span>
+              <span id="resultCombo">0</span>
+              <span id="resultBest">&#26368;&#39640;&#35760;&#24405; --</span>
+            </div>
+            <button id="resultRestart" type="button">&#20877;&#26469;&#19968;&#23616;</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside id="cheatPanel" class="cheat-panel hidden" aria-label="free cheat panel">
+      <div class="cheat-head">
+        <strong>FREE &#22806;&#25346;</strong>
+        <button id="cheatClose" type="button" aria-label="close">&times;</button>
+      </div>
+      <div class="cheat-grid">
+        <label>
+          <span>&#26102;&#38388;</span>
+          <input id="cheatTime" type="number" min="0" max="9999" step="10" />
+        </label>
+        <label>
+          <span>&#36830;&#20987;</span>
+          <input id="cheatCombo" type="number" min="0" max="999" step="1" />
+        </label>
+        <label>
+          <span>&#26041;&#22359;&#20142;&#24230;</span>
+          <input id="cheatBrightness" type="range" min="45" max="100" value="76" />
+        </label>
+        <label class="cheat-check">
+          <input id="cheatHints" type="checkbox" />
+          <span>&#33258;&#21160;&#25552;&#31034;</span>
+        </label>
+      </div>
+      <div class="cheat-actions">
+        <button id="cheatApply" type="button">&#24212;&#29992;&#21442;&#25968;</button>
+        <button id="cheatAddTime" type="button">+60s</button>
+        <button id="cheatSolve" type="button">&#28040;&#19968;&#23545;</button>
+        <button id="cheatWin" type="button">&#30452;&#25509;&#36890;&#20851;</button>
+      </div>
+      <small>&#25353;&#38190;&#30424;&#36755;&#20837; free &#21487;&#26174;&#31034;&#25110;&#38544;&#34255;&#12290;</small>
+    </aside>
+
+    <script src="/shared/supabase-scores.js?v=supabase-1"></script>
+    <script src="script.js?v=supabase-1"></script>
+  </body>
+</html>

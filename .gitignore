@@ -1,0 +1,20 @@
+# Local captures and verification screenshots
+/*.png
+/*.jpg
+/*.jpeg
+
+# Video/export scratch files
+*.mp4
+video_frames/
+video_review_frames/
+_video_build/
+douyin_content_plan/
+
+# Test and tool output
+test-results/
+.playwright/
+node_modules/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

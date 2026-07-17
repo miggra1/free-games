@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>铠甲小人格斗</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="topbar" aria-label="战斗状态">
+        <div class="fighter-panel crimson">
+          <div class="name-row">
+            <strong id="p1Name">赤焰骑士</strong>
+            <span id="p1Wins">0</span>
+          </div>
+          <div class="bar hp"><i id="p1Hp"></i></div>
+          <div class="bar energy"><i id="p1Energy"></i></div>
+        </div>
+
+        <div class="round-panel">
+          <strong id="timer">99</strong>
+          <span id="message">准备战斗</span>
+        </div>
+
+        <div class="fighter-panel azure">
+          <div class="name-row">
+            <span id="p2Wins">0</span>
+            <strong id="p2Name">苍雷武士</strong>
+          </div>
+          <div class="bar hp"><i id="p2Hp"></i></div>
+          <div class="bar energy"><i id="p2Energy"></i></div>
+        </div>
+      </section>
+
+      <canvas id="game" width="1100" height="620" aria-label="双人格斗游戏"></canvas>
+
+      <section class="select-screen" id="selectScreen" aria-label="选择人物">
+        <div class="select-panel">
+          <header>
+            <strong>选择人物</strong>
+            <span>玩家1 A/D 选择，玩家2 ←/→ 选择，Enter 开始</span>
+          </header>
+
+          <div class="select-grid">
+            <div class="select-side">
+              <h2>玩家 1</h2>
+              <div class="choice-row" data-player="p1">
+                <button class="choice active" type="button" data-type="warrior">
+                  <b>战士</b>
+                  <span>突进、三段斩、浮空追击</span>
+                </button>
+                <button class="choice" type="button" data-type="mage">
+                  <b>法师</b>
+                  <span>远程魔弹、法阵牵制、身板更脆</span>
+                </button>
+                <button class="choice" type="button" data-type="assassin">
+                  <b>刺客</b>
+                  <span>高速突袭、背刺、影分身斩</span>
+                </button>
+                <button class="choice" type="button" data-type="guardian">
+                  <b>守卫</b>
+                  <span>重甲压制、护盾反击、震地</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="select-side">
+              <h2>玩家 2</h2>
+              <div class="choice-row" data-player="p2">
+                <button class="choice" type="button" data-type="warrior">
+                  <b>战士</b>
+                  <span>突进、三段斩、浮空追击</span>
+                </button>
+                <button class="choice active" type="button" data-type="mage">
+                  <b>法师</b>
+                  <span>远程魔弹、法阵牵制、身板更脆</span>
+                </button>
+                <button class="choice" type="button" data-type="assassin">
+                  <b>刺客</b>
+                  <span>高速突袭、背刺、影分身斩</span>
+                </button>
+                <button class="choice" type="button" data-type="guardian">
+                  <b>守卫</b>
+                  <span>重甲压制、护盾反击、震地</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button id="startBtn" class="start-btn" type="button">开始战斗</button>
+        </div>
+      </section>
+
+      <section class="controls">
+        <div>
+          <b>玩家 1</b>
+          A/D 移动，W 跳，S 格挡，J 轻击，K 重击，L 技能，U 冲刺/脱离，I 大招
+        </div>
+        <div>
+          <b>玩家 2</b>
+          ←/→ 移动，↑ 跳，↓ 格挡，1 轻击，2 重击，3 技能，4 冲刺/脱离，5 大招
+        </div>
+        <button id="restartBtn" type="button">重新开始 R</button>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

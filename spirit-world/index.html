@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>捕捉精灵大世界</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="stage" aria-label="捕捉精灵大世界游戏区">
+        <canvas id="world" width="960" height="600"></canvas>
+        <div class="hud top-left">
+          <a class="back-link" href="/free-games/">返回大厅</a>
+          <div>
+            <strong id="zoneName">星露草原</strong>
+            <span id="hintText">靠近精灵，按空格或点捕捉</span>
+          </div>
+        </div>
+        <div class="hud top-right">
+          <span>精灵球 <b id="ballCount">18</b></span>
+          <span>浆果 <b id="berryCount">3</b></span>
+          <span>图鉴 <b id="dexCount">0/12</b></span>
+        </div>
+        <div class="focus-panel" id="focusPanel">
+          <span id="focusType">发现精灵</span>
+          <strong id="focusName">靠近目标</strong>
+          <button id="catchButton" type="button">捕捉</button>
+        </div>
+        <div class="mobile-controls" aria-label="触控操作">
+          <div class="dpad">
+            <button type="button" data-dir="up">上</button>
+            <button type="button" data-dir="left">左</button>
+            <button type="button" data-dir="down">下</button>
+            <button type="button" data-dir="right">右</button>
+          </div>
+          <button class="catch-touch" id="touchCatch" type="button">捕捉</button>
+        </div>
+      </section>
+
+      <aside class="side-panel" aria-label="游戏状态">
+        <div class="panel-block">
+          <span class="panel-label">冒险者</span>
+          <h1>捕捉精灵大世界</h1>
+          <p>探索草原、湖岸、火山坡和古木林。不同地形会刷出不同精灵，稀有精灵更难收入图鉴。</p>
+        </div>
+        <div class="panel-block">
+          <span class="panel-label">当前任务</span>
+          <ul class="quest-list" id="questList"></ul>
+        </div>
+        <div class="panel-block">
+          <span class="panel-label">图鉴</span>
+          <div class="dex-grid" id="dexGrid"></div>
+        </div>
+        <div class="panel-block compact">
+          <button id="resetButton" type="button">重新开始</button>
+          <span>键盘：WASD / 方向键移动，空格捕捉。手机：按方向键和捕捉。</span>
+        </div>
+      </aside>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>双人竞技场</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="scoreboard" aria-label="比分和生命值">
+        <div class="player-card red">
+          <span>玩家 1</span>
+          <strong id="p1Score">0</strong>
+          <div class="health"><i id="p1Hp"></i></div>
+        </div>
+        <div class="round" id="message">按任意操作开始</div>
+        <div class="player-card blue">
+          <span>玩家 2</span>
+          <strong id="p2Score">0</strong>
+          <div class="health"><i id="p2Hp"></i></div>
+        </div>
+      </section>
+
+      <canvas id="arena" width="960" height="560" aria-label="双人对战游戏画布"></canvas>
+
+      <section class="help">
+        <div><b>玩家 1</b> WASD 移动，F 射击</div>
+        <div><b>玩家 2</b> 方向键移动，1 / + 射击</div>
+        <button id="restartBtn" type="button">重新开始</button>
+      </section>
+    </main>
+
+    <script src="script.js?v=bounce-midline-1"></script>
+  </body>
+</html>

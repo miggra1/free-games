@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>狂扁外星人 3D</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="topbar" aria-label="游戏状态">
+        <div>
+          <span>生命</span>
+          <strong id="hp">100</strong>
+        </div>
+        <div>
+          <span>能量</span>
+          <strong id="energy">100</strong>
+        </div>
+        <div>
+          <span>波次</span>
+          <strong id="wave">1</strong>
+        </div>
+        <div>
+          <span>击败</span>
+          <strong id="score">0</strong>
+        </div>
+        <div>
+          <span>连击</span>
+          <strong id="combo">0</strong>
+        </div>
+      </section>
+
+      <section class="stage-wrap">
+        <canvas id="stage" aria-label="狂扁外星人 3D 游戏画面"></canvas>
+        <div class="crosshair" aria-hidden="true"></div>
+        <div id="banner" class="banner hidden"></div>
+      </section>
+
+      <section class="controls" aria-label="操作说明">
+        <span>WASD / 方向键 移动</span>
+        <span>J 拳击三连</span>
+        <span>K 重踢击退</span>
+        <span>L 能量炮</span>
+        <span>I 手雷</span>
+        <span>空格 冲刺</span>
+        <span>R 重开</span>
+      </section>
+    </main>
+
+    <script type="module" src="script.js?v=3d-brawler-2"></script>
+  </body>
+</html>

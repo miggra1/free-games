@@ -1,0 +1,283 @@
+:root {
+  color-scheme: dark;
+  --bg: oklch(16% 0.035 210);
+  --surface: oklch(22% 0.035 215);
+  --surface-strong: oklch(30% 0.045 215);
+  --text: oklch(96% 0.012 95);
+  --muted: oklch(77% 0.028 215);
+  --accent: oklch(74% 0.16 168);
+  --gold: oklch(84% 0.16 86);
+  --danger: oklch(64% 0.2 28);
+  --violet: oklch(70% 0.15 290);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 10%, oklch(33% 0.08 188 / 0.55), transparent 28rem),
+    radial-gradient(circle at 88% 90%, oklch(30% 0.09 292 / 0.44), transparent 24rem),
+    linear-gradient(145deg, oklch(18% 0.04 217), oklch(11% 0.035 230));
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell {
+  width: min(100vw, 1180px);
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px;
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: 0.7fr 0.8fr minmax(180px, 1.35fr) 0.8fr 0.7fr;
+  gap: 8px;
+}
+
+.hud-card,
+.control-btn,
+.dpad button {
+  border: 1px solid oklch(100% 0 0 / 0.13);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--surface) 88%, black);
+  box-shadow: 0 14px 34px oklch(0% 0 0 / 0.28);
+}
+
+.hud-card {
+  min-width: 0;
+  padding: 9px 11px;
+}
+
+.hud-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.hud-card strong {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-card--wide strong {
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.play-area {
+  position: relative;
+  min-height: 0;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  display: block;
+  border: 2px solid oklch(100% 0 0 / 0.15);
+  border-radius: 8px;
+  background: oklch(12% 0.02 220);
+  box-shadow: 0 26px 70px oklch(0% 0 0 / 0.44);
+  touch-action: none;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  max-width: min(620px, calc(100% - 28px));
+  padding: 9px 14px;
+  border: 1px solid oklch(100% 0 0 / 0.15);
+  border-radius: 8px;
+  background: oklch(13% 0.025 215 / 0.84);
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  transform: translateX(-50%);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+
+.toast.is-hidden {
+  opacity: 0;
+  transform: translate(-50%, -8px);
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 92px 92px minmax(210px, 1fr) 92px 92px;
+  gap: 8px;
+  align-items: center;
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+.control-btn,
+.dpad button {
+  min-height: 46px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.control-btn {
+  background: color-mix(in oklch, var(--surface-strong) 88%, black);
+}
+
+.control-btn:hover,
+.dpad button:hover {
+  border-color: color-mix(in oklch, var(--accent) 65%, white 6%);
+}
+
+.control-btn:focus-visible,
+.dpad button:focus-visible {
+  outline: 3px solid color-mix(in oklch, var(--accent) 74%, white);
+  outline-offset: 2px;
+}
+
+.control-btn:active,
+.dpad button:active,
+.dpad button.is-active {
+  transform: translateY(1px);
+  background: color-mix(in oklch, var(--surface-strong) 68%, var(--accent));
+}
+
+.dpad {
+  width: min(280px, 100%);
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(3, 54px);
+  grid-template-rows: repeat(2, 46px);
+  gap: 6px;
+  justify-content: center;
+}
+
+.dpad button {
+  padding: 0;
+  font-size: 22px;
+}
+
+#upBtn {
+  grid-column: 2;
+}
+
+#leftBtn {
+  grid-column: 1;
+}
+
+#downBtn {
+  grid-column: 2;
+}
+
+#rightBtn {
+  grid-column: 3;
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow: auto;
+  }
+
+  .game-shell {
+    min-height: 100dvh;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .hud {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .hud-card {
+    padding: 8px;
+  }
+
+  .hud-card--wide {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .hud-card span {
+    font-size: 11px;
+  }
+
+  .hud-card strong {
+    font-size: 17px;
+  }
+
+  .hud-card--wide strong {
+    font-size: 15px;
+  }
+
+  #game {
+    height: 58dvh;
+    min-height: 380px;
+  }
+
+  .controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .dpad {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .control-btn {
+    min-height: 42px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hud {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hud-card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dpad {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

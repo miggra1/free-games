@@ -1,0 +1,190 @@
+:root {
+  color-scheme: dark;
+  --bg: #151719;
+  --panel: #252a31;
+  --line: rgba(255, 255, 255, 0.14);
+  --text: #f6f1e6;
+  --muted: #bac1c8;
+  --gold: #f0c86a;
+  --green: #5cc887;
+  --red: #ee5d50;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(240, 200, 106, 0.18), transparent 30%),
+    linear-gradient(135deg, #1b211c, #121317);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+}
+
+.shell {
+  width: min(1240px, 100vw);
+  height: min(820px, 100dvh);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  padding: 12px;
+  position: relative;
+}
+
+.topbar,
+.bottombar,
+.build-menu {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(37, 42, 49, 0.94);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 10px;
+  padding: 10px;
+}
+
+.topbar div {
+  min-width: 0;
+}
+
+.topbar span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.topbar strong {
+  display: block;
+  margin-top: 2px;
+  font-size: clamp(20px, 4vw, 30px);
+  line-height: 1;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 460px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: #334e36;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+}
+
+.bottombar {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: var(--muted);
+}
+
+button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--gold);
+  color: #171717;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.build-menu {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 92px);
+  gap: 8px;
+  padding: 8px;
+  transform: translate(-50%, -112%);
+}
+
+.build-menu.hidden,
+.build-menu button.hidden {
+  display: none;
+}
+
+.build-menu button {
+  height: 72px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 8px;
+  background: #313842;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.build-menu b,
+.build-menu span {
+  display: block;
+}
+
+.build-menu span {
+  color: var(--gold);
+  font-size: 12px;
+}
+
+.build-menu .sell-btn {
+  background: rgba(238, 93, 80, 0.22);
+  border-color: rgba(238, 93, 80, 0.72);
+}
+
+.build-menu .sell-btn span {
+  color: #ffb8b1;
+}
+
+.build-menu .upgrade-btn {
+  background: rgba(92, 200, 135, 0.2);
+  border-color: rgba(92, 200, 135, 0.72);
+}
+
+.build-menu .upgrade-btn span {
+  color: #a9f0c1;
+}
+
+@media (max-width: 780px) {
+  body {
+    overflow: auto;
+  }
+
+  .shell {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .topbar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  canvas {
+    min-height: 520px;
+  }
+
+  .build-menu {
+    grid-template-columns: repeat(2, 100px);
+  }
+}

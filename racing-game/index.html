@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>双人分屏实景赛车</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="scoreboard" aria-label="比赛状态">
+        <div class="driver-card driver-card--red">
+          <span>红车 P1</span>
+          <strong id="p1Score">0 m · 1挡</strong>
+          <small>WASD 驾驶 · Q/E 换挡 · F 氮气</small>
+          <div class="nitro-meter" aria-label="红车氮气"><span id="p1Nitro"></span></div>
+        </div>
+        <div class="race-status">
+          <span id="raceState">准备发车</span>
+          <strong id="raceTimer">90</strong>
+          <small>时间到才结算</small>
+        </div>
+        <div class="driver-card driver-card--blue">
+          <span>蓝车 P2</span>
+          <strong id="p2Score">0 m · 1挡</strong>
+          <small>方向键驾驶 · ,/. 换挡 · Enter 氮气</small>
+          <div class="nitro-meter" aria-label="蓝车氮气"><span id="p2Nitro"></span></div>
+        </div>
+      </section>
+
+      <section class="race-windows" aria-label="双人分屏赛车窗口">
+        <div class="race-window race-window--red">
+          <div class="window-label">红车视角</div>
+          <canvas id="p1View" width="560" height="620" aria-label="红车赛车窗口"></canvas>
+        </div>
+        <div class="race-window race-window--blue">
+          <div class="window-label">蓝车视角</div>
+          <canvas id="p2View" width="560" height="620" aria-label="蓝车赛车窗口"></canvas>
+        </div>
+      </section>
+
+      <section class="mobile-controls" aria-label="触屏控制">
+        <div>
+          <span>红车</span>
+          <button id="p1Left" type="button">左</button>
+          <button id="p1Right" type="button">右</button>
+          <button id="p1Up" type="button">升挡</button>
+          <button id="p1Down" type="button">降挡</button>
+          <button id="p1NitroBtn" type="button">氮气</button>
+        </div>
+        <div>
+          <span>蓝车</span>
+          <button id="p2Left" type="button">左</button>
+          <button id="p2Right" type="button">右</button>
+          <button id="p2Up" type="button">升挡</button>
+          <button id="p2Down" type="button">降挡</button>
+          <button id="p2NitroBtn" type="button">氮气</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="results" class="results">
+      <form method="dialog">
+        <span id="resultKicker">比赛结束</span>
+        <h2 id="resultTitle">结算</h2>
+        <div class="result-grid">
+          <div>
+            <span>红车距离</span>
+            <strong id="resultP1">0 m</strong>
+          </div>
+          <div>
+            <span>蓝车距离</span>
+            <strong id="resultP2">0 m</strong>
+          </div>
+          <div>
+            <span>红车碰撞</span>
+            <strong id="resultP1Hits">0</strong>
+          </div>
+          <div>
+            <span>蓝车碰撞</span>
+            <strong id="resultP2Hits">0</strong>
+          </div>
+        </div>
+        <button id="restartBtn" value="restart" type="submit">再来一局</button>
+      </form>
+    </dialog>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>秘境迷宫</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="hud" aria-label="游戏状态">
+        <div class="hud-card">
+          <span>关卡</span>
+          <strong id="levelText">1</strong>
+        </div>
+        <div class="hud-card">
+          <span>时间</span>
+          <strong id="timeText">90</strong>
+        </div>
+        <div class="hud-card hud-card--wide">
+          <span>目标</span>
+          <strong id="goalText">找钥匙，冲出口</strong>
+        </div>
+        <div class="hud-card">
+          <span>宝石</span>
+          <strong id="gemText">0/0</strong>
+        </div>
+        <div class="hud-card">
+          <span>生命</span>
+          <strong id="lifeText">3</strong>
+        </div>
+      </section>
+
+      <section class="play-area" aria-label="迷宫游戏区域">
+        <canvas id="game" width="960" height="720"></canvas>
+        <div class="toast" id="toast">点击开始</div>
+      </section>
+
+      <section class="controls" aria-label="操作">
+        <button class="control-btn" id="restartBtn" type="button">重开</button>
+        <button class="control-btn" id="modeBtn" type="button">普通</button>
+        <div class="dpad" aria-label="触屏方向键">
+          <button id="upBtn" type="button" aria-label="上">↑</button>
+          <button id="leftBtn" type="button" aria-label="左">←</button>
+          <button id="downBtn" type="button" aria-label="下">↓</button>
+          <button id="rightBtn" type="button" aria-label="右">→</button>
+        </div>
+        <button class="control-btn" id="hintBtn" type="button">提示</button>
+        <button class="control-btn" id="pauseBtn" type="button">暂停</button>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

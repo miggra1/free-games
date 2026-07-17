@@ -1,0 +1,193 @@
+:root {
+  color-scheme: dark;
+  --bg: #12171d;
+  --panel: #202832;
+  --panel-2: #2b3541;
+  --text: #fff4df;
+  --muted: #b9c6cf;
+  --gold: #f3c860;
+  --red: #f25a4b;
+  --green: #75cf72;
+  --sky: #7fc1e0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 4%, rgba(243, 200, 96, 0.18), transparent 30%),
+    linear-gradient(145deg, #18202a, #0d1116);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+}
+
+.game-shell {
+  width: min(1180px, 100%);
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: 10px;
+  padding: 12px;
+}
+
+.topbar,
+.hud {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
+  background: rgba(32, 40, 50, 0.94);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+.topbar {
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) 86px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+.topbar a,
+.topbar button,
+.result-dialog button {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--gold);
+  color: #151515;
+  font: inherit;
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.topbar div {
+  min-width: 0;
+  text-align: center;
+}
+
+.topbar span,
+.hud span,
+.result-dialog span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.topbar strong {
+  display: block;
+  margin-top: 2px;
+  font-size: clamp(26px, 5vw, 46px);
+  line-height: 1;
+}
+
+.hud {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+}
+
+.hud div {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.hud strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 22px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-wrap {
+  min-height: 0;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--sky);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+}
+
+#game {
+  width: 100%;
+  height: min(620px, 58.18vw);
+  aspect-ratio: 1100 / 640;
+  display: block;
+  touch-action: none;
+}
+
+.result-dialog {
+  width: min(92vw, 460px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 0;
+  color: var(--text);
+  background: #18202a;
+}
+
+.result-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.result-dialog form {
+  padding: 22px;
+}
+
+.result-dialog h2 {
+  margin: 6px 0 8px;
+  font-size: 34px;
+}
+
+.result-dialog p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.result-dialog button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+@media (max-width: 640px) {
+  .game-shell {
+    padding: 8px;
+  }
+
+  .topbar {
+    grid-template-columns: 64px minmax(0, 1fr) 64px;
+  }
+
+  .topbar a,
+  .topbar button {
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #game {
+    height: 58.18vw;
+    min-height: 0;
+  }
+}

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>free小游戏</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="portal">
+      <header class="hero">
+        <div class="brand-block">
+          <strong>free小游戏</strong>
+          <span>打开就玩，适合电脑和本地双人同屏的小游戏大厅</span>
+        </div>
+        <label class="search-box">
+          <span>搜索</span>
+          <input id="gameSearch" type="search" placeholder="搜索赛车、塔防、黄金矿工..." autocomplete="off" />
+        </label>
+        <nav class="category-tabs" aria-label="游戏分类">
+          <button class="active" type="button" data-filter="all">全部</button>
+          <button type="button" data-filter="duo">双人</button>
+          <button type="button" data-filter="action">动作</button>
+          <button type="button" data-filter="strategy">策略</button>
+          <button type="button" data-filter="puzzle">益智</button>
+          <button type="button" data-filter="racing">赛车</button>
+        </nav>
+      </header>
+
+      <section class="cover-hero" aria-label="主推游戏">
+        <a class="cover-main" href="/speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
+          <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+          <div>
+            <i>主推竞速</i>
+            <h1>速度与激情</h1>
+            <p>高速公路狂飙，氮气加速穿过车流和障碍，挑战更高速度和更长距离。</p>
+          </div>
+        </a>
+        <a class="cover-side" href="/gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
+          <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
+          <div><i>双人合作</i><b>双人黄金矿工</b></div>
+        </a>
+        <a class="cover-side" href="/tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+          <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+          <div><i>策略塔防</i><b>皇城突袭塔防</b></div>
+        </a>
+      </section>
+
+      <section class="game-section" id="hot">
+        <div class="section-title">
+          <h2>游戏大厅</h2>
+          <span id="resultCount">11 款游戏</span>
+        </div>
+
+        <div class="game-grid">
+          <a class="game-card featured" href="/gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
+            <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
+            <i>双人</i>
+            <b>双人黄金矿工</b>
+            <span>两名矿工同时放钩，抓金块钻石，合作冲关</span>
+          </a>
+          <a class="game-card featured" href="/tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+            <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+            <i>塔防</i>
+            <b>皇城突袭塔防</b>
+            <span>每关重新布防，防御工事可升级，守住皇城</span>
+          </a>
+          <a class="game-card featured" href="/zhaoyun-adou/" data-game-card data-tags="strategy" data-title="赵云与阿斗 三国 文字 合成">
+            <img src="covers/zhaoyun-adou.png" alt="赵云与阿斗游戏截图" />
+            <i>三国</i>
+            <b>赵云与阿斗</b>
+            <span>文字合成、武将召唤、策略布阵保护阿斗</span>
+          </a>
+          <a class="game-card featured alien-card" href="/alien-brawler/" data-game-card data-tags="action" data-title="狂扁外星人 3D 动作 连击 射击">
+            <img src="covers/alien-brawler.svg" alt="狂扁外星人3D游戏封面" />
+            <i>3D动作</i>
+            <b>狂扁外星人 3D</b>
+            <span>街区场景、连击、能量炮、手雷和 Boss 波</span>
+          </a>
+          <a class="game-card featured speed-card" href="/speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
+            <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+            <i>单人赛车</i>
+            <b>速度与激情</b>
+            <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
+          </a>
+          <a class="game-card" href="/angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟 弹弓">
+            <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
+            <i>弹弓</i>
+            <b>愤怒的小鸟</b>
+            <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
+          </a>
+          <a class="game-card" href="/racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车">
+            <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
+            <i>竞速</i>
+            <b>双人分屏赛车</b>
+            <span>换挡、氮气、撞车、障碍和结算页</span>
+          </a>
+          <a class="game-card" href="/two-player-battle/" data-game-card data-tags="duo action" data-title="双人竞技场">
+            <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
+            <i>双人</i>
+            <b>双人竞技场</b>
+            <span>半场限制，子弹反弹一次</span>
+          </a>
+          <a class="game-card" href="/frontline-shooter/" data-game-card data-tags="action" data-title="前线守卫战 射击">
+            <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
+            <i>射击</i>
+            <b>前线守卫战</b>
+            <span>第一人称射击，武器逐关升级</span>
+          </a>
+          <a class="game-card" href="/armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗">
+            <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
+            <i>格斗</i>
+            <b>铠甲动漫格斗</b>
+            <span>四角色选择，技能连招对战</span>
+          </a>
+          <a class="game-card" href="/maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫">
+            <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
+            <i>闯关</i>
+            <b>趣味迷宫</b>
+            <span>寻找路线，挑战迷宫</span>
+          </a>
+          <a class="game-card link-card" href="/link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看">
+            <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
+            <i>益智</i>
+            <b>水果连连看</b>
+            <span>相同水果连线消除，最多两次转弯</span>
+          </a>
+          <a class="game-card" href="/match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐">
+            <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
+            <i>消除</i>
+            <b>宝石消消乐</b>
+            <span>关卡目标、掉落动画、四连五连生成道具</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js?v=cover-flow-speed-1"></script>
+  </body>
+</html>

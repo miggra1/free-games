@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>赵云与阿斗</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hud">
+        <div><span>馒头</span><strong id="food">0</strong></div>
+        <div><span>波次</span><strong id="wave">第 1 波</strong></div>
+        <div><span>我方阿斗</span><strong id="myHp">♥♥♥</strong></div>
+        <div><span>最高波</span><strong id="enemyHp">最高 0</strong></div>
+        <button id="summon" type="button">召唤 3</button>
+        <button id="startWave" type="button">开战</button>
+        <button id="speedToggle" type="button" aria-pressed="false">1x</button>
+      </section>
+
+      <section class="game-wrap">
+        <canvas id="game" width="1180" height="680" aria-label="赵云与阿斗游戏画布"></canvas>
+        <div id="overlay" class="overlay hidden"></div>
+      </section>
+
+      <section class="footer">
+        <div id="status">召唤文字单位，拖到棋盘。兵种同字同等级可二合一；武将名字按顺序横竖相邻会自动合成；拖到右下角可出售。</div>
+        <button id="restart" type="button">重新开始</button>
+      </section>
+    </main>
+
+    <script src="script.js?v=swap-1"></script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>&#24868;&#24594;&#30340;&#23567;&#40479;</title>
+    <link rel="stylesheet" href="style.css?v=levels-10" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a href="/free-games/" aria-label="back">&#36820;&#22238;</a>
+        <div>
+          <span>&#24377;&#24339;&#29289;&#29702;&#23567;&#28216;&#25103;</span>
+          <strong>&#24868;&#24594;&#30340;&#23567;&#40479;</strong>
+        </div>
+        <button id="resetBtn" type="button">&#37325;&#24320;</button>
+      </header>
+
+      <section class="hud" aria-label="game status">
+        <div>
+          <span>&#20851;&#21345;</span>
+          <strong id="levelLabel">1 / 10</strong>
+        </div>
+        <div>
+          <span>&#20998;&#25968;</span>
+          <strong id="score">0</strong>
+        </div>
+        <div>
+          <span>&#23567;&#40479;</span>
+          <strong id="birdsLeft">5</strong>
+        </div>
+        <div>
+          <span>&#30446;&#26631;</span>
+          <strong id="pigsLeft">0</strong>
+        </div>
+        <div>
+          <span>&#29366;&#24577;</span>
+          <strong id="status">&#25289;&#24377;&#24339;</strong>
+        </div>
+      </section>
+
+      <section class="stage-wrap">
+        <canvas id="game" width="1100" height="640" aria-label="angry birds game canvas"></canvas>
+      </section>
+    </main>
+
+    <dialog id="resultDialog" class="result-dialog">
+      <form method="dialog">
+        <span id="resultMeta">&#26412;&#23616;&#32467;&#26524;</span>
+        <h2 id="resultTitle">&#32988;&#21033;</h2>
+        <p id="resultText">&#25152;&#26377;&#23567;&#29482;&#37117;&#34987;&#25171;&#20498;&#20102;&#12290;</p>
+        <button id="resultAction" value="next" type="submit">&#19979;&#19968;&#20851;</button>
+      </form>
+    </dialog>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+    <script src="/shared/supabase-scores.js?v=supabase-1"></script>
+    <script src="script.js?v=supabase-1"></script>
+  </body>
+</html>

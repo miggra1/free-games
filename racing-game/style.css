@@ -1,0 +1,318 @@
+:root {
+  color-scheme: dark;
+  --bg: oklch(17% 0.025 238);
+  --panel: oklch(24% 0.025 238);
+  --panel-strong: oklch(31% 0.04 238);
+  --text: oklch(96% 0.01 96);
+  --muted: oklch(76% 0.025 230);
+  --red: oklch(62% 0.21 29);
+  --blue: oklch(68% 0.14 235);
+  --gold: oklch(84% 0.16 84);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, oklch(24% 0.04 238), oklch(12% 0.035 230) 74%);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+}
+
+.game-shell {
+  width: min(100vw, 1260px);
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px;
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.driver-card,
+.race-status {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid oklch(100% 0 0 / 0.12);
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--panel) 92%, black);
+  box-shadow: 0 12px 28px oklch(0% 0 0 / 0.28);
+}
+
+.driver-card--red {
+  border-color: color-mix(in oklch, var(--red) 58%, white 8%);
+  box-shadow: inset 0 3px 0 color-mix(in oklch, var(--red) 72%, transparent), 0 12px 28px oklch(0% 0 0 / 0.28);
+}
+
+.driver-card--blue {
+  border-color: color-mix(in oklch, var(--blue) 58%, white 8%);
+  box-shadow: inset 0 3px 0 color-mix(in oklch, var(--blue) 72%, transparent), 0 12px 28px oklch(0% 0 0 / 0.28);
+}
+
+.driver-card span,
+.race-status span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.driver-card strong,
+.race-status strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 23px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.driver-card small,
+.race-status small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.race-status {
+  text-align: center;
+  background: color-mix(in oklch, var(--panel-strong) 88%, black);
+}
+
+.nitro-meter {
+  height: 7px;
+  margin-top: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: oklch(12% 0.02 238);
+}
+
+.nitro-meter span {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: linear-gradient(90deg, var(--blue), var(--gold));
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+
+.race-windows {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.race-window {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 2px solid oklch(100% 0 0 / 0.14);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #29323b;
+  box-shadow: 0 20px 60px oklch(0% 0 0 / 0.42);
+}
+
+.race-window--red {
+  border-color: color-mix(in oklch, var(--red) 54%, white 10%);
+}
+
+.race-window--blue {
+  border-color: color-mix(in oklch, var(--blue) 54%, white 10%);
+}
+
+.window-label {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  left: 10px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: oklch(10% 0.02 238 / 0.68);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  display: block;
+  touch-action: none;
+}
+
+.mobile-controls {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-bottom: max(2px, env(safe-area-inset-bottom));
+}
+
+.mobile-controls div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: oklch(20% 0.024 238);
+}
+
+.mobile-controls span,
+.mobile-controls button:last-child {
+  grid-column: 1 / -1;
+}
+
+.mobile-controls span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mobile-controls button {
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--panel-strong);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 oklch(0% 0 0 / 0.28);
+  user-select: none;
+}
+
+.mobile-controls button:last-child {
+  background: color-mix(in oklch, var(--gold) 74%, var(--panel-strong));
+  color: oklch(14% 0.025 238);
+}
+
+.mobile-controls button:active {
+  transform: translateY(1px);
+  background: color-mix(in oklch, var(--panel-strong) 82%, white);
+}
+
+.results {
+  width: min(92vw, 520px);
+  border: 1px solid oklch(100% 0 0 / 0.16);
+  border-radius: 8px;
+  padding: 0;
+  color: var(--text);
+  background: oklch(18% 0.026 238);
+  box-shadow: 0 28px 80px oklch(0% 0 0 / 0.55);
+}
+
+.results::backdrop {
+  background: oklch(0% 0 0 / 0.62);
+}
+
+.results form {
+  padding: 24px;
+}
+
+.results span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.results h2 {
+  margin: 6px 0 18px;
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.result-grid div {
+  padding: 12px;
+  border-radius: 8px;
+  background: oklch(24% 0.026 238);
+}
+
+.result-grid strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.results button {
+  width: 100%;
+  height: 46px;
+  margin-top: 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--gold);
+  color: oklch(14% 0.025 238);
+  font: inherit;
+  font-weight: 800;
+}
+
+@media (max-width: 860px) {
+  body {
+    overflow: auto;
+  }
+
+  .scoreboard {
+    grid-template-columns: 1fr 82px 1fr;
+  }
+
+  .driver-card,
+  .race-status {
+    padding: 8px;
+  }
+
+  .driver-card strong,
+  .race-status strong {
+    font-size: 17px;
+  }
+
+  .driver-card small,
+  .race-status small {
+    display: none;
+  }
+
+  .race-windows {
+    grid-template-columns: 1fr;
+  }
+
+  canvas {
+    height: 34dvh;
+    min-height: 260px;
+  }
+
+  .mobile-controls {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

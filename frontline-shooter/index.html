@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>前线守卫战</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hud">
+        <div><span>关卡</span><strong id="level">1</strong></div>
+        <div><span>生命</span><strong id="hp">100</strong></div>
+        <div><span>武器</span><strong id="weapon">步枪</strong></div>
+        <div><span>弹药</span><strong id="ammo">5 / 5</strong></div>
+      </section>
+
+      <section class="game-wrap">
+        <canvas id="game" width="1120" height="640" aria-label="第一人称射击游戏"></canvas>
+        <div id="message" class="message">
+          <strong>前线守卫战</strong>
+          <span>鼠标点击射击，A/D 或 ←/→ 切换左中右掩体，R 手动换弹</span>
+          <button id="start" type="button">开始战斗</button>
+        </div>
+      </section>
+
+      <section class="footer">
+        <div id="status">守住阵地，优先击倒靠近的敌兵。</div>
+        <button id="restart" type="button">重新开始</button>
+      </section>
+    </main>
+
+    <script src="script.js?v=ammo-range-1"></script>
+  </body>
+</html>
