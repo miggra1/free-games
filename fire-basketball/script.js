@@ -127,6 +127,7 @@ function update(delta) {
   }
 
   checkScore();
+  collideRim();
   collideBackboard();
   updateEffects(delta);
 }
@@ -193,6 +194,43 @@ function collideBackboard() {
   state.netSide = hoop.side;
   state.netSwing = Math.max(state.netSwing, 0.18);
   state.ripples.push({ x: boardInnerX, y: clamp(b.y, boardTop + 10, boardBottom - 10), r: 8, life: 0.14 });
+}
+
+function collideRim() {
+  const b = state.ball;
+  if (!b || b.scored) return;
+
+  const hoop = targetHoop();
+  const rimX = hoopRimX(hoop);
+  const rimY = hoop.y - 8;
+  const nearestX = clamp(b.x, rimX - 31, rimX + 31);
+  const dx = b.x - nearestX;
+  const dy = b.y - rimY;
+  const minDist = b.r + 4;
+  const distSq = dx * dx + dy * dy;
+  if (distSq > minDist * minDist) return;
+
+  const prevNearestX = clamp(b.px, rimX - 31, rimX + 31);
+  const prevDx = b.px - prevNearestX;
+  const prevDy = b.py - rimY;
+  const wasClear = prevDx * prevDx + prevDy * prevDy >= (minDist - 2) * (minDist - 2);
+  if (!wasClear && Math.abs(b.vy) < 2.2) return;
+
+  const dist = Math.max(0.001, Math.sqrt(distSq));
+  const nx = dx / dist || (hoop.side === "left" ? 1 : -1);
+  const ny = dy / dist || -1;
+  const speedIntoRim = b.vx * nx + b.vy * ny;
+  if (speedIntoRim >= 0.4) return;
+
+  b.x = nearestX + nx * minDist;
+  b.y = rimY + ny * minDist;
+  b.vx = (b.vx - 1.62 * speedIntoRim * nx) * 0.86;
+  b.vy = (b.vy - 1.62 * speedIntoRim * ny) * 0.82;
+  b.spin += nx * 0.7;
+  state.shake = Math.max(state.shake, 0.18);
+  state.netSide = hoop.side;
+  state.netSwing = Math.max(state.netSwing, 0.26);
+  state.ripples.push({ x: nearestX, y: rimY, r: 7, life: 0.13 });
 }
 
 function scoreHitTest(ball, rimX, rimY, side) {
