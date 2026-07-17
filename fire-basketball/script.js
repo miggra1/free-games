@@ -51,8 +51,7 @@ async function syncCloudBestScore() {
 async function saveFireBasketballScore(scoreValue) {
   const finalScore = Math.max(0, Math.floor(Number(scoreValue) || 0));
   if (!window.FreeGamesScores || finalScore <= 0 || finalScore <= lastSavedScore) return;
-  lastSavedScore = finalScore;
-  await window.FreeGamesScores.saveScore({
+  const saved = await window.FreeGamesScores.saveScore({
     game_key: GAME_KEY,
     score: finalScore,
     won: true,
@@ -67,6 +66,7 @@ async function saveFireBasketballScore(scoreValue) {
       fire: Number(state.fire.toFixed(2)),
     },
   });
+  if (saved) lastSavedScore = finalScore;
 }
 
 function reset() {
@@ -238,6 +238,7 @@ function checkScore() {
   setBestScore(state.score);
   state.combo += 1;
   state.maxCombo = Math.max(state.maxCombo, state.combo);
+  saveFireBasketballScore(state.score);
   state.fire = Math.min(1, state.fire + (perfect ? 0.5 : 0.27));
   state.shake = perfect ? 0.65 : 0.36;
   showMessage(perfect ? `完美 x${Math.max(2, state.combo)}` : `命中 +1`, 1.05);

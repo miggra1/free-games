@@ -38,8 +38,7 @@ async function syncCloudBestScore() {
 async function saveSpeedFuryScore(scoreValue) {
   const finalScore = Math.max(0, Math.floor(Number(scoreValue) || 0));
   if (!window.FreeGamesScores || finalScore <= 0 || finalScore <= lastSavedScore) return;
-  lastSavedScore = finalScore;
-  await window.FreeGamesScores.saveScore({
+  const saved = await window.FreeGamesScores.saveScore({
     game_key: gameKey,
     score: finalScore,
     won: false,
@@ -52,6 +51,7 @@ async function saveSpeedFuryScore(scoreValue) {
       traffic: game.traffic.length,
     },
   });
+  if (saved) lastSavedScore = finalScore;
 }
 
 function createGame() {
