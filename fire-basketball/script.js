@@ -127,8 +127,9 @@ function update(delta) {
   }
 
   checkScore();
-  collideRim();
-  collideBackboard();
+  if (!collideRim()) {
+    collideBackboard();
+  }
   updateEffects(delta);
 }
 
@@ -172,33 +173,35 @@ function checkScore() {
 
 function collideBackboard() {
   const b = state.ball;
-  if (!b || b.scored) return;
+  if (!b || b.scored) return false;
 
   const hoop = targetHoop();
   const dir = hoop.side === "left" ? 1 : -1;
+  const rimY = hoop.y - 8;
   const boardTop = hoop.y - 74;
   const boardBottom = hoop.y + 52;
   const boardInnerX = hoop.side === "left" ? 14 : W - 14;
   const yOnBoard = b.y + b.r > boardTop && b.y - b.r < boardBottom;
-  if (!yOnBoard) return;
+  if (!yOnBoard) return false;
 
   const hitLeftBoard = hoop.side === "left" && b.vx < 0 && b.px - b.r > boardInnerX && b.x - b.r <= boardInnerX;
   const hitRightBoard = hoop.side === "right" && b.vx > 0 && b.px + b.r < boardInnerX && b.x + b.r >= boardInnerX;
-  if (!hitLeftBoard && !hitRightBoard) return;
+  if (!hitLeftBoard && !hitRightBoard) return false;
 
   b.x = boardInnerX + dir * b.r;
-  b.vx = Math.abs(b.vx) * dir * 0.72;
-  b.vy *= 0.86;
-  b.spin += dir * 0.55;
-  state.shake = Math.max(state.shake, 0.16);
+  b.vx = Math.abs(b.vx) * dir * 0.9;
+  b.vy *= b.y < rimY - 18 ? 0.9 : 0.76;
+  b.spin += dir * 0.8;
+  state.shake = Math.max(state.shake, 0.2);
   state.netSide = hoop.side;
-  state.netSwing = Math.max(state.netSwing, 0.18);
-  state.ripples.push({ x: boardInnerX, y: clamp(b.y, boardTop + 10, boardBottom - 10), r: 8, life: 0.14 });
+  state.netSwing = Math.max(state.netSwing, 0.1);
+  state.ripples.push({ x: boardInnerX, y: clamp(b.y, boardTop + 10, boardBottom - 10), r: 13, life: 0.18 });
+  return true;
 }
 
 function collideRim() {
   const b = state.ball;
-  if (!b || b.scored) return;
+  if (!b || b.scored) return false;
 
   const hoop = targetHoop();
   const rimX = hoopRimX(hoop);
@@ -220,18 +223,18 @@ function collideRim() {
       contact = { ...point, dx, dy };
     }
   }
-  if (!contact || bestDistSq > minDist * minDist) return;
+  if (!contact || bestDistSq > minDist * minDist) return false;
 
   const prevDx = b.px - contact.x;
   const prevDy = b.py - contact.y;
   const wasClear = prevDx * prevDx + prevDy * prevDy >= (minDist - 2) * (minDist - 2);
-  if (!wasClear && Math.abs(b.vy) < 2.2) return;
+  if (!wasClear && Math.abs(b.vy) < 2.2) return false;
 
   const dist = Math.max(0.001, Math.sqrt(bestDistSq));
   const nx = contact.dx / dist || (hoop.side === "left" ? 1 : -1);
   const ny = contact.dy / dist || -1;
   const speedIntoRim = b.vx * nx + b.vy * ny;
-  if (speedIntoRim >= 0.4) return;
+  if (speedIntoRim >= 0.4) return false;
 
   b.x = contact.x + nx * minDist;
   b.y = contact.y + ny * minDist;
@@ -242,6 +245,7 @@ function collideRim() {
   state.netSide = hoop.side;
   state.netSwing = Math.max(state.netSwing, 0.2);
   state.ripples.push({ x: contact.x, y: contact.y, r: 7, life: 0.13 });
+  return true;
 }
 
 function scoreHitTest(ball, rimX, rimY, side) {
@@ -272,8 +276,18 @@ function scoreHitTest(ball, rimX, rimY, side) {
   const enteredFromAbove = ball.py < rimY + 12;
   const netGateHit = crossedNetGate && enteredFromAbove && xAtNet >= rimX - 38 && xAtNet <= rimX + 38;
 
-  const hit = horizontalHit || verticalHit || netGateHit;
-  const nearCenter = horizontalHit ? Math.abs(yAtRim - rimY) : Math.min(Math.abs(xAtRim - rimX), Math.abs(xAtNet - rimX));
+  const settledInNet = ball.vy > 0.25
+    && ball.y > ball.py
+    && ball.py < rimY + 30
+    && ball.y > rimY + 6
+    && ball.y < rimY + 56
+    && Math.abs(ball.x - rimX) < 34
+    && !(ball.py > rimY + 28 && ball.y <= rimY + 28);
+
+  const hit = horizontalHit || verticalHit || netGateHit || settledInNet;
+  const nearCenter = horizontalHit
+    ? Math.abs(yAtRim - rimY)
+    : Math.min(Math.abs(xAtRim - rimX), Math.abs(xAtNet - rimX), Math.abs(ball.x - rimX));
   return {
     hit,
     perfect: hit && nearCenter < 12 && Math.abs(ball.vy) < 7.4,
@@ -283,6 +297,7 @@ function scoreHitTest(ball, rimX, rimY, side) {
     horizontalHit,
     verticalHit,
     netGateHit,
+    settledInNet,
   };
 }
 
