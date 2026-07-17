@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="55%" r="70%">
+      <stop offset="0" stop-color="#5b626c"/>
+      <stop offset="1" stop-color="#1c222b"/>
+    </radialGradient>
+    <radialGradient id="fire" cx="45%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#fff06a"/>
+      <stop offset=".45" stop-color="#ff7424"/>
+      <stop offset="1" stop-color="#b51d12" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#bg)"/>
+  <rect x="0" y="72" width="960" height="54" fill="#111821" opacity=".78"/>
+  <circle cx="188" cy="99" r="34" fill="#ff4c58"/>
+  <circle cx="772" cy="99" r="34" fill="#42a5ff"/>
+  <rect x="244" y="78" width="120" height="40" rx="20" fill="#ff4c58"/>
+  <rect x="596" y="78" width="120" height="40" rx="20" fill="#42a5ff"/>
+  <text x="480" y="106" fill="#ffd15c" font-family="Microsoft YaHei,Arial" font-size="28" font-weight="900" text-anchor="middle">烈火篮球</text>
+  <g transform="translate(712 302)">
+    <ellipse cx="-90" cy="18" rx="150" ry="70" fill="url(#fire)" transform="rotate(-20)"/>
+    <circle cx="0" cy="0" r="48" fill="#f36b21"/>
+    <path d="M-48 0H48M0-48V48" stroke="#7b2d12" stroke-width="8"/>
+    <path d="M-22-42C-50-12-52 16-22 42M22-42C50-12 52 16 22 42" fill="none" stroke="#7b2d12" stroke-width="7"/>
+  </g>
+  <g transform="translate(116 328)">
+    <path d="M0-86V76" stroke="#d8f3ff" stroke-width="12"/>
+    <path d="M0-18H118" stroke="#ff473f" stroke-width="11"/>
+    <ellipse cx="76" cy="-18" rx="56" ry="15" fill="none" stroke="#fff" stroke-width="6"/>
+    <path d="M36-10L52 76M60-10L72 76M84-10L92 76M108-10L112 76" stroke="#fff" stroke-width="5"/>
+  </g>
+  <text x="74" y="462" fill="#fff" font-family="Microsoft YaHei,Arial" font-size="52" font-weight="900">完美 x4</text>
+</svg>
