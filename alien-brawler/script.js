@@ -59,8 +59,12 @@ const player = {
   action: "idle",
   actionTime: 0,
   actionDuration: 0,
+  pendingKick: false,
   punchStep: 0,
   facing: -1,
+  turnTime: 0,
+  turnFrom: -1,
+  turnTo: -1,
   moveSpeed: 0,
   animTime: 0,
   group: null,
@@ -463,12 +467,14 @@ function update(delta) {
   player.invincible = Math.max(0, player.invincible - delta);
   player.comboTimer = Math.max(0, player.comboTimer - delta);
   player.actionTime = Math.max(0, player.actionTime - delta);
+  player.turnTime = Math.max(0, player.turnTime - delta);
   cameraShake = Math.max(0, cameraShake - delta * 4.5);
   if (player.actionTime <= 0) player.action = "idle";
   if (player.comboTimer <= 0) player.combo = 0;
   player.energy = Math.min(100, player.energy + delta * 12);
 
   updateInput(delta);
+  updatePendingStrike();
   updatePlayerAnimation(delta);
   updateSpawning(delta);
   updateAliens(delta);
@@ -493,7 +499,13 @@ function updateInput(delta) {
   player.group.position.x = clamp(player.group.position.x, -arena.x, arena.x);
   player.group.position.z = clamp(player.group.position.z, -arena.z, arena.z);
   if (Math.abs(dir.x) > 0.08) {
-    player.facing = dir.x > 0 ? 1 : -1;
+    const nextFacing = dir.x > 0 ? 1 : -1;
+    if (nextFacing !== player.facing) {
+      player.turnFrom = player.facing;
+      player.turnTo = nextFacing;
+      player.turnTime = 0.22;
+      player.facing = nextFacing;
+    }
   }
   const idleTurn = player.action === "punch" || player.action === "kick" ? 0.42 : 0.28;
   player.group.rotation.y = lerpAngle(player.group.rotation.y, Math.PI + player.facing * idleTurn, 1 - Math.pow(0.0004, delta));
@@ -513,6 +525,7 @@ function updatePlayerAnimation(delta) {
   p.rightArm.joint.rotation.x = -Math.sin(player.animTime * 2) * 0.75 * walk;
   p.leftLeg.joint.rotation.x = -Math.sin(player.animTime * 2) * 0.58 * walk;
   p.rightLeg.joint.rotation.x = Math.sin(player.animTime * 2) * 0.58 * walk;
+  applyTurnPose(p);
 
   if (player.action === "punch") posePunch(p);
   if (player.action === "kick") poseKick(p);
@@ -529,9 +542,29 @@ function resetHeroPose(p) {
     limb.joint.position.copy(limb.base);
   }
   p.body.rotation.set(-0.02, 0, 0);
+  p.body.position.set(0, 1.1, 0);
   p.belly.rotation.set(0, 0, 0);
   p.head.rotation.set(0, 0, 0);
   p.hair.rotation.set(0, 0, 0);
+  p.face.rotation.set(0, 0, 0);
+}
+
+function applyTurnPose(p) {
+  const idleYaw = player.facing * 0.1;
+  p.head.rotation.y = idleYaw;
+  p.face.rotation.y = idleYaw * 0.35;
+  p.hair.rotation.y = idleYaw * 0.55;
+  if (player.turnTime <= 0) return;
+
+  const t = 1 - clamp(player.turnTime / 0.22, 0, 1);
+  const snap = Math.sin(t * Math.PI);
+  const side = player.turnTo;
+  p.head.rotation.y = side * (0.44 * snap + 0.1);
+  p.face.rotation.y = side * (0.22 * snap + 0.04);
+  p.hair.rotation.y = -side * 0.24 * snap;
+  p.body.rotation.z += -side * 0.15 * snap;
+  p.leftArm.joint.rotation.z += side * 0.3 * snap;
+  p.rightArm.joint.rotation.z += side * 0.3 * snap;
 }
 
 function actionProgress() {
@@ -558,20 +591,25 @@ function posePunch(p) {
 
 function poseKick(p) {
   const t = actionProgress();
-  const wind = easeOut(clamp(t / 0.3, 0, 1));
-  const strike = easeOutBack(clamp((t - 0.18) / 0.34, 0, 1));
+  const wind = easeOut(clamp(t / 0.32, 0, 1));
+  const strike = easeOutBack(clamp((t - 0.26) / 0.22, 0, 1));
+  const recover = easeOut(clamp((t - 0.58) / 0.42, 0, 1));
+  const kick = Math.max(0, strike - recover);
   const side = player.facing;
   const leg = p.rightLeg;
   const arm = p.leftArm;
-  p.body.rotation.z = -side * 0.28 * strike;
-  p.body.rotation.x = -0.18 * wind;
-  leg.joint.rotation.x = -1.25 * strike;
-  leg.joint.rotation.z = -side * 0.35 * strike;
-  leg.joint.position.x = side * 0.66 * strike;
-  leg.joint.position.z = -0.3 * strike;
-  leg.shoe.scale.set(1.35, 1, 1.25);
-  arm.joint.rotation.x = 0.75 * strike;
-  p.head.rotation.z = side * 0.16 * strike;
+  p.body.rotation.z = side * 0.16 * wind - side * 0.36 * kick + side * 0.1 * recover;
+  p.body.rotation.x = -0.16 * wind - 0.1 * kick;
+  p.body.position.x = side * (0.08 * wind - 0.12 * kick);
+  p.head.rotation.z = side * (0.1 * wind + 0.2 * kick);
+  p.leftLeg.joint.rotation.x = 0.35 * wind;
+  leg.joint.rotation.x = 0.95 * wind - 1.35 * kick + 0.55 * recover;
+  leg.joint.rotation.z = side * (0.22 * wind - 0.5 * kick);
+  leg.joint.position.x = side * (-0.18 * wind + 0.88 * kick - 0.18 * recover);
+  leg.joint.position.z = -0.08 * wind - 0.34 * kick;
+  leg.shoe.scale.set(1 + 0.42 * kick, 1, 1 + 0.34 * kick);
+  arm.joint.rotation.x = 0.55 * wind + 0.9 * kick;
+  arm.joint.rotation.z = side * 0.35 * kick;
 }
 
 function poseShoot(p) {
@@ -785,7 +823,19 @@ function melee(kind) {
   player.action = heavy ? "kick" : "punch";
   player.actionDuration = heavy ? 0.5 : 0.32;
   player.actionTime = player.actionDuration;
+  player.pendingKick = heavy;
   player.attackCooldown = heavy ? 0.44 : 0.22;
+  if (!heavy) performMeleeHit(false);
+}
+
+function updatePendingStrike() {
+  if (player.action !== "kick" || !player.pendingKick) return;
+  if (actionProgress() < 0.42) return;
+  player.pendingKick = false;
+  performMeleeHit(true);
+}
+
+function performMeleeHit(heavy) {
   const range = heavy ? 2.35 : 1.72 + Math.min(0.75, player.combo * 0.05);
   const damage = (heavy ? 34 : 19 + player.combo * 2) + player.weaponLevel * 4;
   const knock = heavy ? 2.2 : 1.05;
@@ -999,6 +1049,7 @@ function resetGame() {
   player.weaponLevel = 1;
   player.action = "idle";
   player.actionTime = 0;
+  player.pendingKick = false;
   player.facing = -1;
   player.group.position.set(-4, 0, 0);
   player.group.rotation.set(0, Math.PI - 0.28, 0);
