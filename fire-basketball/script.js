@@ -173,6 +173,9 @@ function checkScore() {
   b.vx = state.side === "left" ? -2.9 : 2.9;
   b.vy = -4.4;
   b.x = clamp(b.x, 70, W - 70);
+  b.px = b.x;
+  b.py = b.y;
+  b.scored = false;
 }
 
 function collideBackboard() {
@@ -201,7 +204,7 @@ function collideBackboard() {
 
 function backboardHitTest(ball, hoop) {
   const dir = hoop.side === "left" ? 1 : -1;
-  const edgePad = 5;
+  const edgePad = 9;
   const boardTop = hoop.y - 74 - edgePad;
   const boardBottom = hoop.y + 52 + edgePad;
   const boardInnerX = hoop.side === "left" ? 14 : W - 14;
@@ -222,12 +225,17 @@ function backboardHitTest(ball, hoop) {
   const currentYOnBoard = ball.y + ball.r >= boardTop && ball.y - ball.r <= boardBottom;
   const overlapHit = penetratingFace && currentYOnBoard;
 
-  if ((crossedPlane && sweptYOnBoard) || overlapHit) {
+  const topEdgeHit = sweptPointHit(ball, boardInnerX, boardTop + edgePad, ball.r + 4);
+  const bottomEdgeHit = sweptPointHit(ball, boardInnerX, boardBottom - edgePad, ball.r + 4);
+  const edgeHit = movingIntoBoard && (topEdgeHit.hit || bottomEdgeHit.hit);
+
+  if ((crossedPlane && sweptYOnBoard) || overlapHit || edgeHit) {
+    const edge = topEdgeHit.hit ? topEdgeHit : bottomEdgeHit;
     return {
       hit: true,
       planeX,
       boardInnerX,
-      y: crossedPlane && sweptYOnBoard ? yAtPlane : ball.y,
+      y: edgeHit ? edge.cy : (crossedPlane && sweptYOnBoard ? yAtPlane : ball.y),
     };
   }
 
@@ -243,29 +251,27 @@ function collideRim() {
   const rimY = hoop.y - 8;
   const rimPoints = [
     { x: rimX - 31, y: rimY },
+    { x: rimX - 16, y: rimY + 3 },
+    { x: rimX, y: rimY + 4 },
+    { x: rimX + 16, y: rimY + 3 },
     { x: rimX + 31, y: rimY },
   ];
   let contact = null;
-  let bestDistSq = Infinity;
   const minDist = b.r + 6;
 
   for (const point of rimPoints) {
-    const dx = b.x - point.x;
-    const dy = b.y - point.y;
-    const distSq = dx * dx + dy * dy;
-    if (distSq < bestDistSq) {
-      bestDistSq = distSq;
-      contact = { ...point, dx, dy };
-    }
+    const hit = sweptPointHit(b, point.x, point.y, minDist);
+    if (!hit.hit) continue;
+    if (!contact || hit.t < contact.t) contact = { ...point, ...hit };
   }
-  if (!contact || bestDistSq > minDist * minDist) return false;
+  if (!contact) return false;
 
   const prevDx = b.px - contact.x;
   const prevDy = b.py - contact.y;
   const wasClear = prevDx * prevDx + prevDy * prevDy >= (minDist - 2) * (minDist - 2);
   if (!wasClear && Math.abs(b.vy) < 2.2) return false;
 
-  const dist = Math.max(0.001, Math.sqrt(bestDistSq));
+  const dist = Math.max(0.001, Math.sqrt(contact.distSq));
   const nx = contact.dx / dist || (hoop.side === "left" ? 1 : -1);
   const ny = contact.dy / dist || -1;
   const speedIntoRim = b.vx * nx + b.vy * ny;
@@ -281,6 +287,29 @@ function collideRim() {
   state.netSwing = Math.max(state.netSwing, 0.2);
   state.ripples.push({ x: contact.x, y: contact.y, r: 7, life: 0.13 });
   return true;
+}
+
+function sweptPointHit(ball, x, y, radius) {
+  const vx = ball.x - ball.px;
+  const vy = ball.y - ball.py;
+  const lenSq = vx * vx + vy * vy;
+  const t = lenSq < 0.0001
+    ? 1
+    : clamp(((x - ball.px) * vx + (y - ball.py) * vy) / lenSq, 0, 1);
+  const cx = ball.px + vx * t;
+  const cy = ball.py + vy * t;
+  const dx = cx - x;
+  const dy = cy - y;
+  const distSq = dx * dx + dy * dy;
+  return {
+    hit: distSq <= radius * radius,
+    t,
+    cx,
+    cy,
+    dx,
+    dy,
+    distSq,
+  };
 }
 
 function scoreHitTest(ball, rimX, rimY, side) {
@@ -300,8 +329,8 @@ function scoreHitTest(ball, rimX, rimY, side) {
   const crossedDownThroughRim = ball.py <= rimY - 16 && ball.y >= rimY - 2 && ball.vy > 0.35;
   const verticalT = Math.abs(ball.y - ball.py) < 0.001 ? 1 : clamp((rimY - ball.py) / (ball.y - ball.py), 0, 1);
   const xAtRim = ball.px + (ball.x - ball.px) * verticalT;
-  const rimMouthMin = rimX - 40;
-  const rimMouthMax = rimX + 40;
+  const rimMouthMin = rimX - 43;
+  const rimMouthMax = rimX + 43;
   const verticalHit = crossedDownThroughRim && xAtRim >= rimMouthMin && xAtRim <= rimMouthMax;
 
   const netGateY = rimY + 18;
@@ -309,14 +338,14 @@ function scoreHitTest(ball, rimX, rimY, side) {
   const netT = Math.abs(ball.y - ball.py) < 0.001 ? 1 : clamp((netGateY - ball.py) / (ball.y - ball.py), 0, 1);
   const xAtNet = ball.px + (ball.x - ball.px) * netT;
   const enteredFromAbove = ball.py < rimY + 12;
-  const netGateHit = crossedNetGate && enteredFromAbove && xAtNet >= rimX - 38 && xAtNet <= rimX + 38;
+  const netGateHit = crossedNetGate && enteredFromAbove && xAtNet >= rimX - 42 && xAtNet <= rimX + 42;
 
   const settledInNet = ball.vy > 0.25
     && ball.y > ball.py
-    && ball.py < rimY + 30
+    && ball.py < rimY + 36
     && ball.y > rimY + 6
-    && ball.y < rimY + 56
-    && Math.abs(ball.x - rimX) < 34
+    && ball.y < rimY + 62
+    && Math.abs(ball.x - rimX) < 39
     && !(ball.py > rimY + 28 && ball.y <= rimY + 28);
 
   const hit = horizontalHit || verticalHit || netGateHit || settledInNet;
