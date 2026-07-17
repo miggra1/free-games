@@ -121,14 +121,18 @@ function update(delta) {
   }
   if (b.y > H - 68) {
     miss();
-  }
-  if (b.x < -28 || b.x > W + 28) {
-    miss();
+    updateEffects(delta);
+    return;
   }
 
   checkScore();
   if (!collideRim()) {
     collideBackboard();
+  }
+  if (b.x < -28 || b.x > W + 28) {
+    miss();
+    updateEffects(delta);
+    return;
   }
   updateEffects(delta);
 }
@@ -176,27 +180,58 @@ function collideBackboard() {
   if (!b || b.scored) return false;
 
   const hoop = targetHoop();
+  const hit = backboardHitTest(b, hoop);
+  if (!hit.hit) return false;
+
   const dir = hoop.side === "left" ? 1 : -1;
   const rimY = hoop.y - 8;
   const boardTop = hoop.y - 74;
   const boardBottom = hoop.y + 52;
-  const boardInnerX = hoop.side === "left" ? 14 : W - 14;
-  const yOnBoard = b.y + b.r > boardTop && b.y - b.r < boardBottom;
-  if (!yOnBoard) return false;
 
-  const hitLeftBoard = hoop.side === "left" && b.vx < 0 && b.px - b.r > boardInnerX && b.x - b.r <= boardInnerX;
-  const hitRightBoard = hoop.side === "right" && b.vx > 0 && b.px + b.r < boardInnerX && b.x + b.r >= boardInnerX;
-  if (!hitLeftBoard && !hitRightBoard) return false;
-
-  b.x = boardInnerX + dir * b.r;
-  b.vx = Math.abs(b.vx) * dir * 0.9;
+  b.x = hit.planeX;
+  b.vx = Math.max(1.65, Math.abs(b.vx)) * dir * 0.9;
   b.vy *= b.y < rimY - 18 ? 0.9 : 0.76;
   b.spin += dir * 0.8;
   state.shake = Math.max(state.shake, 0.2);
   state.netSide = hoop.side;
   state.netSwing = Math.max(state.netSwing, 0.1);
-  state.ripples.push({ x: boardInnerX, y: clamp(b.y, boardTop + 10, boardBottom - 10), r: 13, life: 0.18 });
+  state.ripples.push({ x: hit.boardInnerX, y: clamp(hit.y, boardTop + 10, boardBottom - 10), r: 13, life: 0.18 });
   return true;
+}
+
+function backboardHitTest(ball, hoop) {
+  const dir = hoop.side === "left" ? 1 : -1;
+  const edgePad = 5;
+  const boardTop = hoop.y - 74 - edgePad;
+  const boardBottom = hoop.y + 52 + edgePad;
+  const boardInnerX = hoop.side === "left" ? 14 : W - 14;
+  const planeX = boardInnerX + dir * ball.r;
+  const movingIntoBoard = hoop.side === "left" ? ball.vx < -0.12 : ball.vx > 0.12;
+  if (!movingIntoBoard) return { hit: false };
+
+  const crossedPlane = hoop.side === "left"
+    ? ball.px > planeX && ball.x <= planeX
+    : ball.px < planeX && ball.x >= planeX;
+  const t = Math.abs(ball.x - ball.px) < 0.001 ? 1 : clamp((planeX - ball.px) / (ball.x - ball.px), 0, 1);
+  const yAtPlane = ball.py + (ball.y - ball.py) * t;
+  const sweptYOnBoard = yAtPlane + ball.r >= boardTop && yAtPlane - ball.r <= boardBottom;
+
+  const penetratingFace = hoop.side === "left"
+    ? ball.x <= planeX && ball.x >= -ball.r
+    : ball.x >= planeX && ball.x <= W + ball.r;
+  const currentYOnBoard = ball.y + ball.r >= boardTop && ball.y - ball.r <= boardBottom;
+  const overlapHit = penetratingFace && currentYOnBoard;
+
+  if ((crossedPlane && sweptYOnBoard) || overlapHit) {
+    return {
+      hit: true,
+      planeX,
+      boardInnerX,
+      y: crossedPlane && sweptYOnBoard ? yAtPlane : ball.y,
+    };
+  }
+
+  return { hit: false };
 }
 
 function collideRim() {
@@ -303,6 +338,7 @@ function scoreHitTest(ball, rimX, rimY, side) {
 
 if (typeof window !== "undefined") {
   window.__fireBasketballHitTest = scoreHitTest;
+  window.__fireBasketballBackboardHitTest = backboardHitTest;
 }
 
 function showMessage(text, life) {
