@@ -4,10 +4,12 @@ const tip = document.querySelector("#tip");
 
 const W = 430;
 const H = 760;
+const GAME_KEY = "fire-basketball";
+const BEST_KEY = "fire-basketball-best";
 
 const state = {
   score: 0,
-  best: Number(localStorage.getItem("fire-basketball-best") || 0),
+  best: Number(localStorage.getItem(BEST_KEY) || 0),
   combo: 0,
   side: "left",
   hoopY: 390,
@@ -23,6 +25,39 @@ const state = {
   ripples: [],
   last: 0,
 };
+
+let lastSavedScore = 0;
+
+function setBestScore(value) {
+  const score = Math.max(0, Math.floor(Number(value) || 0));
+  if (score <= state.best) return;
+  state.best = score;
+  localStorage.setItem(BEST_KEY, String(state.best));
+}
+
+async function syncCloudBestScore() {
+  if (!window.FreeGamesScores) return;
+  const record = await window.FreeGamesScores.getBestScore(GAME_KEY);
+  if (record) setBestScore(record.score);
+}
+
+async function saveFireBasketballScore(scoreValue) {
+  const finalScore = Math.max(0, Math.floor(Number(scoreValue) || 0));
+  if (!window.FreeGamesScores || finalScore <= 0 || finalScore <= lastSavedScore) return;
+  lastSavedScore = finalScore;
+  await window.FreeGamesScores.saveScore({
+    game_key: GAME_KEY,
+    score: finalScore,
+    won: true,
+    level: 1,
+    best_combo: state.combo,
+    detail: {
+      combo: state.combo,
+      side: state.side,
+      fire: Number(state.fire.toFixed(2)),
+    },
+  });
+}
 
 function reset() {
   state.score = 0;
@@ -92,7 +127,10 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault();
     flap();
   }
-  if (event.code === "KeyR") reset();
+  if (event.code === "KeyR") {
+    saveFireBasketballScore(state.score);
+    reset();
+  }
 });
 
 function update(delta) {
@@ -138,6 +176,7 @@ function update(delta) {
 }
 
 function miss() {
+  saveFireBasketballScore(state.score);
   state.combo = 0;
   state.fire = 0;
   state.shake = Math.max(state.shake, 0.25);
@@ -157,8 +196,7 @@ function checkScore() {
   const perfect = result.perfect;
   const add = 1;
   state.score += add;
-  state.best = Math.max(state.best, state.score);
-  localStorage.setItem("fire-basketball-best", String(state.best));
+  setBestScore(state.score);
   state.combo += 1;
   state.fire = Math.min(1, state.fire + (perfect ? 0.5 : 0.27));
   state.shake = perfect ? 0.65 : 0.36;
@@ -673,4 +711,5 @@ function frame(now) {
 }
 
 reset();
+syncCloudBestScore();
 requestAnimationFrame(frame);

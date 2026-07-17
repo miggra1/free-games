@@ -10,14 +10,49 @@ const resultTextEl = document.querySelector("#resultText");
 
 const keys = new Set();
 const touch = { left: false, right: false, brake: false, nitro: false };
+const gameKey = "speed-fury";
 const bestKey = "speed-fury-best";
 const carColors = ["#5dc8ff", "#f3c760", "#f15d4e", "#8fd66f", "#c780ff"];
 
 let best = Number(localStorage.getItem(bestKey) || 0);
 let game;
 let lastTime = 0;
+let lastSavedScore = 0;
 
 bestEl.textContent = best;
+
+function setBestScore(value) {
+  const score = Math.max(0, Math.floor(Number(value) || 0));
+  if (score <= best) return;
+  best = score;
+  localStorage.setItem(bestKey, String(best));
+  bestEl.textContent = best;
+}
+
+async function syncCloudBestScore() {
+  if (!window.FreeGamesScores) return;
+  const record = await window.FreeGamesScores.getBestScore(gameKey);
+  if (record) setBestScore(record.score);
+}
+
+async function saveSpeedFuryScore(scoreValue) {
+  const finalScore = Math.max(0, Math.floor(Number(scoreValue) || 0));
+  if (!window.FreeGamesScores || finalScore <= 0 || finalScore <= lastSavedScore) return;
+  lastSavedScore = finalScore;
+  await window.FreeGamesScores.saveScore({
+    game_key: gameKey,
+    score: finalScore,
+    won: false,
+    level: 1,
+    time_used: null,
+    best_combo: null,
+    detail: {
+      speed: Math.floor(game.speed),
+      nitro: Math.floor(game.nitro),
+      traffic: game.traffic.length,
+    },
+  });
+}
 
 function createGame() {
   return {
@@ -82,13 +117,13 @@ function crash() {
   if (game.state !== "playing") return;
   game.state = "crashed";
   game.shake = 20;
-  best = Math.max(best, Math.floor(game.score));
-  localStorage.setItem(bestKey, String(best));
-  bestEl.textContent = best;
+  const finalScore = Math.floor(game.score);
+  setBestScore(finalScore);
   burst(laneX(game.player.x), h() * game.player.y, "#f3c760", 36);
   burst(laneX(game.player.x), h() * game.player.y, "#f15d4e", 28);
-  resultTextEl.textContent = `得分 ${Math.floor(game.score)}，最高 ${best}`;
+  resultTextEl.textContent = `得分 ${finalScore}，最高 ${best}`;
   if (!resultDialog.open) resultDialog.showModal();
+  saveSpeedFuryScore(finalScore);
 }
 
 function burst(x, y, color, amount) {
@@ -361,4 +396,5 @@ bindButton("#nitroBtn", "nitro");
 
 resizeCanvas();
 restart();
+syncCloudBestScore();
 requestAnimationFrame(frame);
