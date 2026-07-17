@@ -203,34 +203,45 @@ function collideRim() {
   const hoop = targetHoop();
   const rimX = hoopRimX(hoop);
   const rimY = hoop.y - 8;
-  const nearestX = clamp(b.x, rimX - 31, rimX + 31);
-  const dx = b.x - nearestX;
-  const dy = b.y - rimY;
-  const minDist = b.r + 4;
-  const distSq = dx * dx + dy * dy;
-  if (distSq > minDist * minDist) return;
+  const rimPoints = [
+    { x: rimX - 31, y: rimY },
+    { x: rimX + 31, y: rimY },
+  ];
+  let contact = null;
+  let bestDistSq = Infinity;
+  const minDist = b.r + 6;
 
-  const prevNearestX = clamp(b.px, rimX - 31, rimX + 31);
-  const prevDx = b.px - prevNearestX;
-  const prevDy = b.py - rimY;
+  for (const point of rimPoints) {
+    const dx = b.x - point.x;
+    const dy = b.y - point.y;
+    const distSq = dx * dx + dy * dy;
+    if (distSq < bestDistSq) {
+      bestDistSq = distSq;
+      contact = { ...point, dx, dy };
+    }
+  }
+  if (!contact || bestDistSq > minDist * minDist) return;
+
+  const prevDx = b.px - contact.x;
+  const prevDy = b.py - contact.y;
   const wasClear = prevDx * prevDx + prevDy * prevDy >= (minDist - 2) * (minDist - 2);
   if (!wasClear && Math.abs(b.vy) < 2.2) return;
 
-  const dist = Math.max(0.001, Math.sqrt(distSq));
-  const nx = dx / dist || (hoop.side === "left" ? 1 : -1);
-  const ny = dy / dist || -1;
+  const dist = Math.max(0.001, Math.sqrt(bestDistSq));
+  const nx = contact.dx / dist || (hoop.side === "left" ? 1 : -1);
+  const ny = contact.dy / dist || -1;
   const speedIntoRim = b.vx * nx + b.vy * ny;
   if (speedIntoRim >= 0.4) return;
 
-  b.x = nearestX + nx * minDist;
-  b.y = rimY + ny * minDist;
-  b.vx = (b.vx - 1.62 * speedIntoRim * nx) * 0.86;
-  b.vy = (b.vy - 1.62 * speedIntoRim * ny) * 0.82;
-  b.spin += nx * 0.7;
-  state.shake = Math.max(state.shake, 0.18);
+  b.x = contact.x + nx * minDist;
+  b.y = contact.y + ny * minDist;
+  b.vx = (b.vx - 1.25 * speedIntoRim * nx) * 0.62;
+  b.vy = (b.vy - 1.25 * speedIntoRim * ny) * 0.58;
+  b.spin += nx * 0.45;
+  state.shake = Math.max(state.shake, 0.12);
   state.netSide = hoop.side;
-  state.netSwing = Math.max(state.netSwing, 0.26);
-  state.ripples.push({ x: nearestX, y: rimY, r: 7, life: 0.13 });
+  state.netSwing = Math.max(state.netSwing, 0.2);
+  state.ripples.push({ x: contact.x, y: contact.y, r: 7, life: 0.13 });
 }
 
 function scoreHitTest(ball, rimX, rimY, side) {
@@ -250,19 +261,28 @@ function scoreHitTest(ball, rimX, rimY, side) {
   const crossedDownThroughRim = ball.py <= rimY - 16 && ball.y >= rimY - 2 && ball.vy > 0.35;
   const verticalT = Math.abs(ball.y - ball.py) < 0.001 ? 1 : clamp((rimY - ball.py) / (ball.y - ball.py), 0, 1);
   const xAtRim = ball.px + (ball.x - ball.px) * verticalT;
-  const rimMouthMin = rimX - 34;
-  const rimMouthMax = rimX + 34;
+  const rimMouthMin = rimX - 40;
+  const rimMouthMax = rimX + 40;
   const verticalHit = crossedDownThroughRim && xAtRim >= rimMouthMin && xAtRim <= rimMouthMax;
 
-  const hit = horizontalHit || verticalHit;
-  const nearCenter = horizontalHit ? Math.abs(yAtRim - rimY) : Math.abs(xAtRim - rimX);
+  const netGateY = rimY + 18;
+  const crossedNetGate = ball.py <= netGateY && ball.y >= netGateY && ball.vy > 0.35;
+  const netT = Math.abs(ball.y - ball.py) < 0.001 ? 1 : clamp((netGateY - ball.py) / (ball.y - ball.py), 0, 1);
+  const xAtNet = ball.px + (ball.x - ball.px) * netT;
+  const enteredFromAbove = ball.py < rimY + 12;
+  const netGateHit = crossedNetGate && enteredFromAbove && xAtNet >= rimX - 38 && xAtNet <= rimX + 38;
+
+  const hit = horizontalHit || verticalHit || netGateHit;
+  const nearCenter = horizontalHit ? Math.abs(yAtRim - rimY) : Math.min(Math.abs(xAtRim - rimX), Math.abs(xAtNet - rimX));
   return {
     hit,
-    perfect: hit && nearCenter < 10 && Math.abs(ball.vy) < 7.4,
+    perfect: hit && nearCenter < 12 && Math.abs(ball.vy) < 7.4,
     yAtRim,
     xAtRim,
+    xAtNet,
     horizontalHit,
     verticalHit,
+    netGateHit,
   };
 }
 
