@@ -19,12 +19,45 @@ function updateMenu() {
 }
 
 function updateSettings() {
-  if (pressed("KeyW") || pressed("ArrowUp")) G.menu = (G.menu + 2) % 3;
+  if (G.keySetup && G.keySetup.active) { updateKeySetup(); return; }
+  if (pressed("KeyW") || pressed("ArrowUp")) G.menu = (G.menu + 3) % 3;
   if (pressed("KeyS") || pressed("ArrowDown")) G.menu = (G.menu + 1) % 3;
   const delta = (pressed("KeyD") || pressed("ArrowRight") ? 1 : 0) - (pressed("KeyA") || pressed("ArrowLeft") ? 1 : 0);
   if (delta && G.menu === 0) G.settings.ai = clamp(G.settings.ai + delta, 1, 3);
   if (delta && G.menu === 1) G.settings.roundTime = clamp(G.settings.roundTime + delta * 10, 30, 99);
+  if (pressed("Enter") && G.menu === 2) { G.keySetup = { active: true, player: 0, action: "lp", listening: false }; }
   if (pressed("Escape")) { G.state = "title"; G.menu = 0; }
+}
+
+const KEY_ACTIONS = ["lp","lk","hp","hk","sp","su","dodge","charge","switch","pause"];
+const ACTION_LABELS = {lp:"轻拳",lk:"轻脚",hp:"重拳",hk:"重脚",sp:"必杀",su:"超杀",dodge:"闪避",charge:"蓄气",switch:"换人",pause:"暂停"};
+
+function updateKeySetup() {
+  const ks = G.keySetup;
+  if (!ks.listening) {
+    if (pressed("Enter") || pressed("Space")) { ks.listening = true; ks.startFrame = G.frame; }
+    if (pressed("Escape")) { ks.active = false; saveKeyConfig(); return; }
+    if (pressed("Tab")) { ks.player = ks.player ? 0 : 1; }
+    const idx = KEY_ACTIONS.indexOf(ks.action);
+    if (pressed("KeyD") || pressed("ArrowRight")) ks.action = KEY_ACTIONS[(idx + 1) % KEY_ACTIONS.length];
+    if (pressed("KeyA") || pressed("ArrowLeft")) ks.action = KEY_ACTIONS[(idx + KEY_ACTIONS.length - 1) % KEY_ACTIONS.length];
+  } else {
+    // 等待上一帧的Enter/Space松开，避免误绑定
+    if (G.frame - (ks.startFrame || 0) < 6) return;
+    if (KEYS.size === 0) { ks.awaitKey = true; }
+    if (!ks.awaitKey) return;
+    for (const code of KEYS) {
+      if (code === "Escape") { ks.listening = false; ks.awaitKey = false; continue; }
+      const keys = ks.player === 0 ? P1_KEYS : P2_KEYS;
+      keys[ks.action] = code;
+      ks.listening = false; ks.awaitKey = false;
+      const idx = KEY_ACTIONS.indexOf(ks.action);
+      if (idx < KEY_ACTIONS.length - 1) ks.action = KEY_ACTIONS[idx + 1];
+      else if (ks.player === 0) { ks.player = 1; ks.action = KEY_ACTIONS[0]; }
+      else { ks.active = false; saveKeyConfig(); }
+      audio.sfx("select"); break;
+    }
+  }
 }
 
 function tick() {
@@ -60,7 +93,7 @@ function tick() {
 // 键盘事件
 window.addEventListener("keydown", e => {
   KEYS.add(e.code);
-  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.code)) e.preventDefault();
+  if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(e.code)) e.preventDefault();
   audio.init();
 });
 window.addEventListener("keyup", e => KEYS.delete(e.code));

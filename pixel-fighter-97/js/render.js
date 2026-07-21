@@ -21,47 +21,176 @@ function drawBG(){
 }
 
 function drawFighter(f){
-  ctx.save();ctx.globalAlpha=.5;ctx.fillStyle="#030306";ctx.beginPath();ctx.ellipse(f.x,FLOOR+4,f.width*.86,11,0,0,Math.PI*2);ctx.fill();ctx.restore();
-  if(f.maxMode){ctx.save();ctx.globalAlpha=.12+Math.sin(G.frame*.2)*.06;ctx.fillStyle=f.data.trail;ctx.beginPath();ctx.ellipse(f.x,f.y-65,f.width*1.2,f.height*.7,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  // 阴影
+  ctx.save();ctx.globalAlpha=.45;ctx.fillStyle="#030306";ctx.beginPath();ctx.ellipse(f.x,FLOOR+4,f.width*.86,11,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  // 爆气MAX光环
+  if(f.maxMode){ctx.save();ctx.globalAlpha=.14+Math.sin(G.frame*.22)*.07;ctx.fillStyle=f.data.trail;ctx.beginPath();ctx.ellipse(f.x,f.y-65,f.width*1.3,f.height*.75,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  // 受击闪烁
+  if(f.hitStun>0&&G.frame%4<2){ctx.save();ctx.globalAlpha=.6;ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(f.x,f.y-65,f.width*.6,f.height*.5,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  // 角色侧光
+  ctx.save();ctx.globalAlpha=.08;ctx.fillStyle=f.side?"#ff6b5c":"#5bd4ff";ctx.beginPath();ctx.ellipse(f.x,FLOOR-65,f.width*.9,f.height*.6,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  // 残影
   for(const a of f.afterImage){ctx.save();ctx.globalAlpha=a.life/38;drawSprite(f,a.x,a.y,a.color,true);ctx.restore();}
-  if(!(f.invuln>0&&G.frame/3%2|0))drawSprite(f,f.x,f.y,null,false);
-  if(G.training){ctx.strokeStyle="rgba(76,214,255,.45)";const h=f.hurtbox();ctx.strokeRect(h.x,h.y,h.w,h.h);const a=f.attackBox();if(a)ctx.strokeRect(a.w<0?a.x+a.w:a.x,a.y,Math.abs(a.w),a.h);}
+  // 本体
+  const flicker = f.invuln > 0 && Math.floor(G.frame/3)%2===0;
+  if(!flicker) drawSprite(f,f.x,f.y,null,false);
+  // 训练模式判定框
+  if(G.training){ctx.strokeStyle="rgba(76,214,255,.45)";const h=f.hurtbox();ctx.strokeRect(h.x,h.y,h.w,h.h);const a=f.attackBox();if(a){ctx.strokeStyle="rgba(255,70,70,.8)";ctx.strokeRect(a.w<0?a.x+a.w:a.x,a.y,Math.abs(a.w),a.h);}}
+  // 眩晕条
+  if(f.stunGauge>50&&!f.stunned){const pct=f.stunGauge/1000;dRect(f.x-20,f.y-f.height-8,40,4,"#333");dRect(f.x-20,f.y-f.height-8,40*pct,4,pct>.7?"#ff5a57":"#ffd56b");}
 }
 
 function drawSprite(f,x,y,tint,ghost){
   const d=f.data,fl=f.facing<0?-1:1,cr=f.state==="crouch",ht=f.hitStun>0||f.state==="hurt",ak=f.state==="attack";
   const jp=f.y<FLOOR||f.state==="jump",wk=f.state==="walk"||f.state==="run";
-  const bob=Math.sin((G.frame+f.side*12)/(wk?4:14))*(wk?3:1.5);
+  const run=f.state==="run";
   const sc=d.id==="daimon"?1.16:d.id==="maiha"?.96:d.id==="boss"?1.08:1;
   ctx.save();ctx.translate(x|0,(y+bob)|0);ctx.scale(fl*sc,sc);
   const sk=tint||d.skin,bd=tint||d.body,tr=tint||d.trim,hr=tint||d.hair;
-  const ln=ht?-12:ak?8:jp?5:wk?3:0,cy=cr?18:0;
-  const w=d.id==="daimon",sl=d.id==="maiha";
-  const tW=w?50:sl?34:40,tH=cr?46:w?72:64,lH=cr?34:w?60:55,hW=w?35:sl?28:31;
+  const w=d.id==="daimon",sl=d.id==="maiha",bs=d.id==="boss";
+  // 帧动画周期
+  const aFrame = Math.floor(G.frame / (wk?4:run?3:8)) % 4;
+  const bob2 = wk ? Math.sin(G.frame/(run?3:4))*3 : Math.sin(G.frame/14)*1.5;
+  const ln=ht?-14:ak?8:jp?5:wk?(run?4:2):0, cy=cr?20:0;
+  const tW=w?50:sl?34:40,tH=cr?44:w?72:64,lH=cr?32:w?60:55,hW=w?35:sl?28:31;
   const ol=ghost?"rgba(0,0,0,.2)":"#050509";
   const P=(px,py,pw,ph,c)=>{if(ph<0){py+=ph;ph=-ph;}if(pw<0){px+=pw;pw=-pw;}ghost?dRect(px,py,pw,ph,c):dORect(px,py,pw,ph,c,ol);};
-  P(-tW/2+ln,-118+cy,tW,tH,bd);P(-tW/2-2+ln,-116+cy,tW+4,9,tr);P(-tW/2+6+ln,-101+cy,8,38,"rgba(255,255,255,.2)");
-  P(-hW/2+ln,-153+cy,hW,33,sk);P(-hW/2-4+ln,-161+cy,hW+8,16,hr);P(6+ln,-139+cy,5,4,"#101014");
-  if(sl){P(-33+ln,-127+cy,17,58,tr);P(19+ln,-104+cy,13,38,sk);}else if(w){P(-38+ln,-111+cy,19,48,bd);P(20+ln,-111+cy,19,48,bd);}else{P(-34+ln,-108+cy,16,45,bd);P(20+ln,-106+cy,15,43,bd);}
-  const st=wk?Math.sin(G.frame/4)*8:0;
-  P(-24+ln-st*.25,-60+cy,17,lH,sl?tr:bd);P(8+ln+st*.25,-60+cy,17,lH,sl?tr:bd);
-  P(-31+ln-st*.45,-9+cy,26,9,"#111216");P(6+ln+st*.45,-9+cy,28,9,"#111216");
-  if(ak){const m=f.moveData(f.move),act=f.moveFrame>=m.start&&f.moveFrame<m.start+m.active;
-    const ext=act?(f.move==="hk"||f.move==="c_hk"||f.move==="j_hk"?76:f.move==="hp"||f.move==="c_hp"||f.move==="j_hp"?68:54):30;
-    if(["lk","hk","c_lk","c_hk","j_lk","j_hk"].includes(f.move)){P(14+ln,-66+cy,ext,15,bd);P(64+ln,-69+cy,24,12,tr);}
-    else if(f.move==="upper"){P(8+ln,-184+cy,20,65,bd);P(6+ln,-197+cy,25,16,tr);if(!ghost){ctx.globalAlpha=.72;P(23+ln,-190+cy,18,92,tr);ctx.globalAlpha=1;}}
-    else if(f.move==="throw"){P(12+ln,-114+cy,54,18,bd);P(56+ln,-117+cy,18,15,sk);}
-    else if(f.move==="wave"||f.move==="kaiser"){P(14+ln,-110+cy,44,16,bd);P(50+ln,-114+cy,18,18,sk);if(!ghost){ctx.globalAlpha=.45;P(70+ln,-118+cy,30,28,tr);ctx.globalAlpha=1;}}
-    else{P(16+ln,-109+cy,ext,16,bd);P(62+ln,-112+cy,20,16,sk);}
-    if(m.super||m.screenFlash){ctx.globalAlpha=.78;P(-58,-151,116,8,tr);P(-52,-132,104,9,tr);P(-62,-90,124,10,tr);ctx.globalAlpha=1;}
+  // 阴影纹理 - 身体更精细
+  const sh=c=>ghost?c:c+"44";
+  // ─── 腿部（含帧动画） ───
+  const legSwing = wk ? Math.sin(G.frame/(run?3:4)) * (run?10:7) : 0;
+  const legKick = ak && ["lk","hk","c_lk","c_hk","j_lk","j_hk"].includes(f.move);
+  if(!legKick) {
+    // 左腿
+    P(-20+ln-legSwing*.3,-56+cy,15,lH,sl?tr:bd);
+    // 右腿
+    P(6+ln+legSwing*.3,-56+cy,15,lH,sl?tr:bd);
+    // 鞋
+    P(-26+ln-legSwing*.4,-9+cy,22,10,"#111216");
+    P(4+ln+legSwing*.4,-9+cy,24,10,"#111216");
+    // 腿部高光
+    if(!ghost){P(-18+ln-legSwing*.3,-54+cy,4,lH-6,"rgba(255,255,255,.1)");P(8+ln+legSwing*.3,-54+cy,4,lH-6,"rgba(255,255,255,.1)");}
   }
-  if(d.id==="benrei"){P(-27,-168+cy,54,8,"#eef4ff");P(18,-145+cy,16,10,tr);}
-  if(d.id==="ioriha"){P(-25,-165+cy,50,10,hr);P(-23,-74+cy,46,10,"#b21728");}
-  if(d.id==="boss"){P(-34,-168+cy,68,12,hr);P(-31,-123+cy,62,13,tr);}
-  if(f.stunned)for(let i=0;i<3;i++){const sx=Math.sin(G.frame*.12+i*2.1)*20;P(sx-4+ln,-170+cy+i*4,8,8,"#ffd56b");}
-  if(f.blockStun>0){P(-tW/2-8+ln,-108+cy,12,40,bd);P(tW/2-4+ln,-106+cy,12,38,bd);}
-  if(f.victoryPose){P(-tW/2+ln,-140+cy,tW,8,"#ffd56b");P(20+ln,-155+cy,28,8,"#ffd56b");}
-  if(f.maxMode&&G.frame/3%2|0){ctx.globalAlpha=.15;P(-tW/2-10+ln,-160+cy,tW+20,tH+50,tr);ctx.globalAlpha=1;}
+  // ─── 躯干 ───
+  P(-tW/2+ln,-118+cy,tW,tH,bd);
+  // 腰带
+  P(-tW/2+ln,-62+cy,tW,6,d.id==="benrei"?tr:d.id==="ioriha"?"#b21728":w?tr:"#8a7a32");
+  // 衣领/肩带
+  P(-tW/2-2+ln,-118+cy,tW+4,10,tr);
+  // 躯干阴影
+  if(!ghost){P(-tW/2+6+ln,-104+cy,6,tH-14,"rgba(255,255,255,.12)");P(-tW/2+tW-10+ln,-104+cy,6,tH-14,"rgba(0,0,0,.1)");}
+  // ─── 头部 ───
+  P(-hW/2+ln,-155+cy,hW,35,sk);
+  // 头发
+  P(-hW/2-5+ln,-164+cy,hW+10,18,hr);
+  if(!ghost){P(-hW/2+2+ln,-162+cy,hW-4,6,"rgba(255,255,255,.08)");}
+  // 眼睛
+  if(!ht){P(4+ln,-141+cy,4,5,"#101014");P(-8+ln,-141+cy,4,5,"#101014");P(5+ln,-142+cy,2,2,"#fff");}
+  else{P(2+ln,-141+cy,8,4,"#101014");} // 受击X眼
+  // 嘴
+  if(ht) P(-2+ln,-134+cy,10,3,"#a04040");
+  else if(ak) P(0+ln,-134+cy,6,2,"#a07050");
+  // ─── 手臂（含帧动画） ───
+  const armSwing = wk ? Math.sin(G.frame/(run?3:4)+Math.PI) * (run?6:4) : 0;
+  if(!ak) {
+    // 后臂
+    P(-tW/2-12+ln+armSwing*.2,-110+cy,14,w?48:sl?36:42,bd);
+    P(-tW/2-10+ln+armSwing*.2,-66+cy,10,12,sk);
+    // 前臂
+    P(tW/2-2+ln-armSwing*.2,-108+cy,14,w?48:sl?36:42,bd);
+    P(tW/2+ln-armSwing*.2,-64+cy,10,12,sk);
+    // 拳头高光
+    if(!ghost){P(tW/2+1+ln-armSwing*.2,-62+cy,4,4,"rgba(255,255,255,.15)");}
+  }
+  // ─── 防御姿态 ───
+  if(f.blockStun>0){
+    P(-tW/2-6+ln,-120+cy,10,55,bd);P(tW/2-4+ln,-118+cy,10,55,bd);
+    P(-tW/2-4+ln,-120+cy,8,8,tr);P(tW/2-2+ln,-118+cy,8,8,tr);
+    // 格挡火花
+    if(!ghost&&G.frame%4===0){P(tW/2+4+ln,-100+cy,6,6,"#9fd8ff");P(-tW/2-8+ln,-105+cy,5,5,"#9fd8ff");}
+  }
+  // ─── 攻击动作（三阶段） ───
+  if(ak) {
+    const m=f.moveData(f.move);
+    const phase = f.moveFrame < m.start ? 0 : f.moveFrame < m.start+m.active ? 1 : 2;
+    const phaseLabel = ["蓄力","命中","收招"][phase];
+    const windup = phase===0 ? (f.moveFrame/m.start) : 0; // 0-1蓄力进度
+    const recovery = phase===2 ? ((f.moveFrame-m.start-m.active)/m.recover) : 0; // 0-1收招进度
+    // 拳类攻击
+    if(["lp","hp","c_lp","c_hp","j_lp","j_hp"].includes(f.move)){
+      const ext = phase===1 ? (f.move==="hp"||f.move==="c_hp"||f.move==="j_hp"?68:52) : phase===0 ? 20+windup*30 : 50-recovery*30;
+      P(14+ln,-112+cy,ext,14,bd); // 出拳手臂
+      P(12+ext+ln,-114+cy,14,14,sk); // 拳头
+      if(!ghost&&phase===1){P(12+ext+ln,-116+cy,6,6,tr);P(12+ext+4+ln,-112+cy,4,4,"rgba(255,255,255,.3)");} // 拳套
+      // 后臂
+      P(-tW/2-4+ln,-108+cy,12,40,bd);
+      // 蓄力拉回
+      if(phase===0){P(10+ln,-112+cy,20,12,bd);}
+    }
+    // 脚类攻击
+    else if(["lk","hk","c_lk","c_hk","j_lk","j_hk"].includes(f.move)){
+      const ext = phase===1 ? (f.move==="hk"||f.move==="c_hk"||f.move==="j_hk"?76:54) : phase===0 ? 16+windup*28 : 48-recovery*28;
+      P(14+ln,-62+cy,ext,14,bd); // 踢腿
+      P(12+ext+ln,-64+cy,18,12,tr); // 鞋
+      // 后腿
+      P(-20+ln,-56+cy,15,lH,bd);P(-26+ln,-9+cy,22,10,"#111216");
+      // 旋转踢的弧线残影
+      if(!ghost&&phase===1&&(f.move==="hk"||f.move==="c_hk")){ctx.globalAlpha=.2;P(8+ln,-70+cy,ext+10,8,tr);ctx.globalAlpha=1;}
+    }
+    // 升龙拳
+    else if(f.move==="upper"){
+      if(phase===1){P(8+ln,-188+cy,18,68,bd);P(4+ln,-200+cy,22,16,tr);if(!ghost){ctx.globalAlpha=.72;P(22+ln,-194+cy,16,94,tr);ctx.globalAlpha=1;}}
+      else if(phase===0){P(10+ln,-130+cy+windup*40,14,50,bd);}
+      else{P(10+ln,-130+cy,14,50,bd);}
+      P(-28+ln,-92+cy,14,38,bd);
+    }
+    // 投技
+    else if(f.move==="throw"){
+      if(phase===1){P(12+ln,-116+cy,56,18,bd);P(58+ln,-118+cy,16,14,sk);P(-30+ln,-110+cy,12,42,bd);}
+      else{P(14+ln,-112+cy,30,14,bd);}
+    }
+    // 波动拳
+    else if(f.move==="wave"||f.move==="kaiser"){
+      P(14+ln,-112+cy,44,16,bd);P(50+ln,-116+cy,16,16,sk);
+      if(phase===1&&!ghost){ctx.globalAlpha=.45;P(68+ln,-120+cy,28,26,tr);ctx.globalAlpha=1;}
+    }
+    // 默认攻击
+    else{
+      const ext = phase===1 ? 54 : phase===0 ? 16+windup*28 : 40-recovery*20;
+      P(16+ln,-112+cy,ext,16,bd);P(12+ext+ln,-114+cy,18,14,sk);
+    }
+    // 超必杀特效
+    if(m.super||m.screenFlash){
+      ctx.globalAlpha=.78;
+      P(-58,-155,116,10,tr);P(-52,-136,104,10,tr);P(-62,-94,124,12,tr);
+      if(!ghost){ctx.globalAlpha=.3;P(-70,-170,140,140,tr);ctx.globalAlpha=.78;}
+      ctx.globalAlpha=1;
+    }
+  }
+  // ─── 角色独有装饰 ───
+  if(d.id==="kyoji"&&!ghost){P(-12+ln,-168+cy,24,4,tr);P(8+ln,-168+cy,14,4,tr);} // 头带
+  if(d.id==="kyoji"&&!ghost){P(-tW/2-6+ln,-55+cy,8,4,tr);P(tW/2-2+ln,-55+cy,8,4,tr);} // 护腕
+  if(d.id==="benrei"){P(-27,-168+cy,54,8,"#eef4ff");P(18,-145+cy,16,10,tr);if(!ghost){P(-25,-166+cy,50,4,"rgba(255,255,255,.15)");}}
+  if(d.id==="ioriha"){P(-25,-165+cy,50,10,hr);P(-23,-74+cy,46,10,"#b21728");if(!ghost){P(-20,-163+cy,42,3,"rgba(180,30,60,.2)");}} // 紫炎纹
+  if(d.id==="boss"){P(-34,-168+cy,68,12,hr);P(-31,-123+cy,62,13,tr);if(!ghost){P(-32,-166+cy,64,3,"rgba(142,255,210,.15)");}} // 暗月光环
+  if(d.id==="maiha"&&!ghost){P(-30+ln,-127+cy,15,55,tr);P(20+ln,-104+cy,12,36,sk);P(-33+ln,-70+cy,18,8,tr);} // 翎扇/飘带
+  if(d.id==="daimon"&&!ghost){P(-36+ln,-111+cy,17,46,bd);P(20+ln,-111+cy,17,46,bd);P(-38+ln,-68+cy,20,8,"#0c4f50");P(20+ln,-68+cy,20,8,"#0c4f50");} // 柔道服
+  // ─── 眩晕星星 ───
+  if(f.stunned)for(let i=0;i<4;i++){const sx=Math.sin(G.frame*.15+i*1.57)*22,sy=-174+Math.cos(G.frame*.18+i*1.57)*6;dORect(sx-4+ln,sy+cy,8,8,i%2?"#ffd56b":"#fff","#050509");}
+  // ─── 胜利动画 ───
+  if(f.victoryPose){
+    const vBob = Math.sin(f.victoryTimer*.1)*3;
+    P(-tW/2+ln,-145+vBob+cy,tW,8,"#ffd56b");P(18+ln,-160+vBob+cy,26,8,"#ffd56b");
+    // 胜利光环
+    if(!ghost){ctx.globalAlpha=.08+Math.sin(f.victoryTimer*.08)*.04;P(-40+ln,-180+vBob+cy,tW+80,tH+80,tr);ctx.globalAlpha=1;}
+  }
+  // ─── 爆气MAX闪烁 ───
+  if(f.maxMode){
+    const mPulse = Math.sin(G.frame*.25)*.08+.1;
+    if(!ghost){ctx.globalAlpha=mPulse;P(-tW/2-10+ln,-165+cy,tW+20,tH+55,tr);ctx.globalAlpha=1;}
+    // MAX能量粒子
+    if(G.frame%6===0&&!ghost){ctx.globalAlpha=.5;P(rand(-tW/2,tW/2)+ln,-rand(50,160)+cy,4,4,tr);ctx.globalAlpha=1;}
+  }
   ctx.restore();
 }
 
@@ -134,8 +263,24 @@ function drawMoves(){
 
 function drawSettings(){
   drawBG();dRect(0,0,W,H,"rgba(0,0,0,.62)");dText("设置",W/2,60,42,"#ffd56b","center");
-  ["AI难度: "+G.settings.ai,"回合时间: "+G.settings.roundTime,"音效/BGM: 合成街机声"].forEach((o,i)=>{if(i===G.menu)dRect(326,170+i*54,308,36,"#263f60");dText(o,W/2,176+i*54,22,"#fff4cf","center");});
-  dText("W/S选择 A/D调整 ESC返回",W/2,430,18,"#d7c6a4","center");
+  if(G.keySetup&&G.keySetup.active){drawKeySetup();return;}
+  ["AI难度: "+G.settings.ai,"回合时间: "+G.settings.roundTime,"按键自定义"].forEach((o,i)=>{if(i===G.menu)dRect(326,170+i*54,308,36,"#263f60");dText(o,W/2,176+i*54,22,"#fff4cf","center");});
+  dText("W/S选择 A/D调整 ENTER按键设置 ESC返回",W/2,430,18,"#d7c6a4","center");
+}
+
+function drawKeySetup(){
+  const ks=G.keySetup; if(!ks) return;
+  const keys=ks.player===0?P1_KEYS:P2_KEYS;
+  dText("按键自定义 — "+(ks.player===0?"P1":"P2"),W/2,30,32,ks.player===0?"#9fd8ff":"#ffb0a9","center");
+  dText("Tab切换P1/P2 | A/D切换按键 | Enter绑定 | ESC完成",W/2,62,14,"#d7c6a4","center");
+  KEY_ACTIONS.forEach((act,i)=>{
+    const y=90+i*38,isCur=act===ks.action;
+    if(isCur)dRect(120,y-2,720,34,ks.listening?"#5a2a2a":"#263f60");
+    dText(ACTION_LABELS[act]||act,140,y+4,18,isCur?"#fff":"#fff4cf");
+    dText(keys[act]||"—",340,y+4,18,isCur?(ks.listening?"#ff8a80":"#ffd56b"):"#aaa");
+    if(isCur&&ks.listening)dText("← 按任意键绑定",520,y+4,18,"#ff8a80");
+    else if(isCur)dText("← Enter开始绑定",520,y+4,18,"#ffd56b");
+  });
 }
 
 function drawResults(){

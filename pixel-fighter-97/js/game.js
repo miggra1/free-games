@@ -30,8 +30,10 @@ function finishRound(winner) {
   if (G.training) { G.p1.hp = 1000; G.p2.hp = 1000; G.time = 999 * 60; return; }
   if (winner === G.p1) G.p1Wins++; else G.p2Wins++;
   if (winner === G.p1) G.p1.victoryPose = true; else G.p2.victoryPose = true;
-  winner === G.p1 ? audio.sfx("win") : audio.sfx("lose");
-  G.winner = winner; G.message = winner === G.p1 ? "PLAYER 1 WINS" : "PLAYER 2 WINS";
+  const perfect = winner.hp >= winner.maxHp * .95;
+  G.winner = winner;
+  if (perfect) { G.message = "PERFECT!"; audio.sfx("perfect"); }
+  else { G.message = winner === G.p1 ? "PLAYER 1 WINS" : "PLAYER 2 WINS"; winner === G.p1 ? audio.sfx("win") : audio.sfx("lose"); }
   G.messageTimer = 130; G.state = "between";
 }
 
@@ -40,7 +42,10 @@ function updateFight() {
   if (G.hitStop > 0) { G.hitStop--; return; }
   if (G.slow > 0 && G.frame % 2 === 0) { G.slow--; return; }
   G.time--;
-  if (G.time > 0 && G.time % 60 === 0 && G.time / 60 <= 5) audio.sfx("countdown");
+  if (G.time > 0 && G.time % 60 === 0) {
+    const sec = G.time / 60;
+    if (sec <= 5 && sec > 0) audio.sfx(sec === 1 ? "countdown_final" : "countdown");
+  }
   audio.music(G.frame, G.stageIdx, G.time < 900);
   G.p1.tick(G.p2); G.p2.tick(G.p1);
   // 推挤

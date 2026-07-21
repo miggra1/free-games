@@ -135,4 +135,20 @@ const STAGES = [
 
 boot("Data loaded");
 
-const G = { frame: 0, state: "title", mode: "arcade", menu: 0, selectCursor: [0, 3], chosen: [[], []], orderCursor: [0, 0], orderPhase: [false, false], p1: null, p2: null, round: 1, time: ROUND_TIME * 60, message: "READY", messageTimer: 0, hitStop: 0, slow: 0, shake: 0, flash: 0, projectiles: [], effects: [], aiLevel: 2, training: false, arcadeStage: 1, finalBoss: false, winner: null, stageIdx: 0, paused: false, pauseMenu: 0, screenFlashColor: null, p1Wins: 0, p2Wins: 0, settings: { roundTime: 60, ai: 2, sound: true } };
+// 按键自定义 - 从 localStorage 加载
+function loadKeyConfig() {
+  try {
+    const saved = localStorage.getItem("pf97_keys");
+    if (saved) {
+      const cfg = JSON.parse(saved);
+      if (cfg.p1) Object.assign(P1_KEYS, cfg.p1);
+      if (cfg.p2) Object.assign(P2_KEYS, cfg.p2);
+    }
+  } catch (e) { }
+}
+function saveKeyConfig() {
+  try { localStorage.setItem("pf97_keys", JSON.stringify({ p1: P1_KEYS, p2: P2_KEYS })); } catch (e) { }
+}
+loadKeyConfig();
+
+const G = { frame: 0, state: "title", mode: "arcade", menu: 0, selectCursor: [0, 3], chosen: [[], []], orderCursor: [0, 0], orderPhase: [false, false], p1: null, p2: null, round: 1, time: ROUND_TIME * 60, message: "READY", messageTimer: 0, hitStop: 0, slow: 0, shake: 0, flash: 0, projectiles: [], effects: [], aiLevel: 2, training: false, arcadeStage: 1, finalBoss: false, winner: null, stageIdx: 0, paused: false, pauseMenu: 0, screenFlashColor: null, p1Wins: 0, p2Wins: 0, settings: { roundTime: 60, ai: 2, sound: true }, keySetup: { active: false, player: 0, action: "", listening: false } };
