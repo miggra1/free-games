@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>格斗皇 97 - free小游戏</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="cabinet">
+      <canvas id="game" width="960" height="540" aria-label="格斗皇97像素格斗游戏"></canvas>
+      <div id="bootStatus" class="boot-status">Loading...</div>
+      <div class="scanlines" aria-hidden="true"></div>
+      <div id="mobileControls" class="mobile-controls" aria-label="触屏操作">
+        <div class="pad">
+          <button data-touch="left">←</button>
+          <button data-touch="up">↑</button>
+          <button data-touch="right">→</button>
+          <button data-touch="down">↓</button>
+        </div>
+        <div class="actions">
+          <button data-touch="lp">轻拳</button>
+          <button data-touch="hp">重拳</button>
+          <button data-touch="lk">轻脚</button>
+          <button data-touch="hk">重脚</button>
+          <button data-touch="sp">必杀</button>
+          <button data-touch="su">超杀</button>
+        </div>
+      </div>
+    </main>
+    <script src="script.js?v=20260721-fix4"></script>
+  </body>
+</html>

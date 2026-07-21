@@ -1,7 +1,7 @@
 const searchInput = document.querySelector("#gameSearch");
 const filterButtons = document.querySelectorAll("[data-filter]");
-const cards = document.querySelectorAll("[data-game-card]");
-const gridCards = document.querySelectorAll(".game-grid [data-game-card]");
+const cards = Array.from(document.querySelectorAll("[data-game-card]"));
+const gridCards = Array.from(document.querySelectorAll(".game-grid [data-game-card]"));
 const resultCount = document.querySelector("#resultCount");
 
 let activeFilter = "all";
@@ -11,7 +11,7 @@ function normalize(value) {
 }
 
 function updateCards() {
-  const query = normalize(searchInput.value);
+  const query = normalize(searchInput && searchInput.value);
   let visible = 0;
 
   for (const card of cards) {
@@ -21,10 +21,10 @@ function updateCards() {
     const matchesSearch = !query || title.includes(query) || tags.includes(query);
     const show = matchesFilter && matchesSearch;
     card.classList.toggle("hidden", !show);
-    if (show && Array.from(gridCards).includes(card)) visible += 1;
+    if (show && gridCards.includes(card)) visible += 1;
   }
 
-  resultCount.textContent = `${visible} 款游戏`;
+  if (resultCount) resultCount.textContent = visible + " games";
 }
 
 for (const button of filterButtons) {
@@ -35,5 +35,5 @@ for (const button of filterButtons) {
   });
 }
 
-searchInput.addEventListener("input", updateCards);
+if (searchInput) searchInput.addEventListener("input", updateCards);
 updateCards();
