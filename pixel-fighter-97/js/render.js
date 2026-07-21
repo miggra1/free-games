@@ -45,12 +45,12 @@ function drawSprite(f,x,y,tint,ghost){
   const jp=f.y<FLOOR||f.state==="jump",wk=f.state==="walk"||f.state==="run";
   const run=f.state==="run";
   const sc=d.id==="daimon"?1.16:d.id==="maiha"?.96:d.id==="boss"?1.08:1;
+  const bob = wk ? Math.sin(G.frame/(run?3:4))*3 : Math.sin(G.frame/14)*1.5;
   ctx.save();ctx.translate(x|0,(y+bob)|0);ctx.scale(fl*sc,sc);
   const sk=tint||d.skin,bd=tint||d.body,tr=tint||d.trim,hr=tint||d.hair;
   const w=d.id==="daimon",sl=d.id==="maiha",bs=d.id==="boss";
   // 帧动画周期
   const aFrame = Math.floor(G.frame / (wk?4:run?3:8)) % 4;
-  const bob2 = wk ? Math.sin(G.frame/(run?3:4))*3 : Math.sin(G.frame/14)*1.5;
   const ln=ht?-14:ak?8:jp?5:wk?(run?4:2):0, cy=cr?20:0;
   const tW=w?50:sl?34:40,tH=cr?44:w?72:64,lH=cr?32:w?60:55,hW=w?35:sl?28:31;
   const ol=ghost?"rgba(0,0,0,.2)":"#050509";
@@ -250,7 +250,7 @@ function drawOrder(){
     tm.forEach((ci,i)=>{const c=CHARACTERS[ci],y=140+i*90;dRect(bx+40,y,280,78,G.orderCursor[p]===i&&!G.orderPhase[p]?"#263f60":"#11131d");
       drawSelPort(c,bx+100,y+68);dText(c.name,bx+150,y+12,20,cl);dText(c.role,bx+150,y+38,14,"#fff4cf");dText("第"+(i+1)+"位",bx+150,y+56,14,i===0?"#ffd56b":"#888");
       if(G.orderCursor[p]===i&&!G.orderPhase[p]){ctx.strokeStyle=cl;ctx.lineWidth=3;ctx.strokeRect(bx+38,y-2,284,82);}});
-    dText(G.orderPhase[p]?"已确认":"A/D选位 U确认",bx+180,y+88,14,G.orderPhase[p]?"#4a4":"#d7c6a4","center");
+    dText(G.orderPhase[p]?"已确认":"A/D选位 U确认",bx+180,140+tm.length*90+8,14,G.orderPhase[p]?"#4a4":"#d7c6a4","center");
   }
   dText("ESC返回选人",W/2,490,18,"#d7c6a4","center");
 }
