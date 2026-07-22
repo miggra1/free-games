@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Miggra 创作后台</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <aside class="side-rail" aria-label="后台导航">
+        <a class="brand-mark" href="/free-games/">M</a>
+        <a class="rail-link active" href="#studio">创作</a>
+        <a class="rail-link" href="#library">作品</a>
+        <a class="rail-link" href="#scores">数据</a>
+        <a class="rail-link" href="#publish">发布</a>
+      </aside>
+
+      <section class="workspace">
+        <header class="admin-topbar">
+          <div>
+            <span>Miggra 后台</span>
+            <h1>创作空间</h1>
+          </div>
+          <nav class="quick-actions" aria-label="快捷入口">
+            <a href="/free-games/">前台大厅</a>
+            <a href="https://supabase.com/dashboard/project/etaedrixhwtcfykczram/editor/17603?schema=public">数据库</a>
+            <a href="https://github.com/miggra1/free-games">GitHub</a>
+          </nav>
+        </header>
+
+        <section class="metric-row" aria-label="今日概览">
+          <div class="metric-tile">
+            <span>已上线</span>
+            <strong id="gameCount">14</strong>
+          </div>
+          <div class="metric-tile">
+            <span>云端记录</span>
+            <strong id="scoreCount">--</strong>
+          </div>
+          <div class="metric-tile">
+            <span>草稿状态</span>
+            <strong id="draftState">未保存</strong>
+          </div>
+        </section>
+
+        <section class="studio-grid" id="studio">
+          <form class="draft-panel" id="draftForm">
+            <div class="panel-head">
+              <span>新作品草稿</span>
+              <button type="submit">保存草稿</button>
+            </div>
+            <label>
+              <span>游戏名称</span>
+              <input id="draftTitle" name="title" type="text" placeholder="例如：烈火三分王" />
+            </label>
+            <label>
+              <span>分类</span>
+              <select id="draftCategory" name="category">
+                <option>动作</option>
+                <option>赛车</option>
+                <option>益智</option>
+                <option>策略</option>
+                <option>双人</option>
+              </select>
+            </label>
+            <label>
+              <span>访问路径</span>
+              <input id="draftRoute" name="route" type="text" placeholder="/new-game/" />
+            </label>
+            <label class="wide">
+              <span>一句话卖点</span>
+              <textarea id="draftPitch" name="pitch" rows="4" placeholder="玩法核心、节奏、胜负条件"></textarea>
+            </label>
+          </form>
+
+          <section class="preview-panel" aria-label="草稿预览">
+            <div class="panel-head">
+              <span>前台预览</span>
+              <a href="/free-games/">查看大厅</a>
+            </div>
+            <article class="preview-card">
+              <div class="preview-art" id="previewArt">M</div>
+              <span id="previewCategory">动作</span>
+              <strong id="previewTitle">新游戏</strong>
+              <p id="previewPitch">填写草稿后，这里会同步成前台卡片的视觉节奏。</p>
+            </article>
+          </section>
+        </section>
+
+        <section class="content-grid">
+          <section class="library-panel" id="library">
+            <div class="panel-head">
+              <span>作品队列</span>
+              <a href="/free-games/">全部游戏</a>
+            </div>
+            <div class="game-list" id="gameList"></div>
+          </section>
+
+          <section class="score-panel" id="scores">
+            <div class="panel-head">
+              <span>云端分数</span>
+              <a href="https://supabase.com/dashboard/project/etaedrixhwtcfykczram/editor/17603?schema=public">打开表</a>
+            </div>
+            <div class="score-list" id="scoreList">
+              <p>读取中</p>
+            </div>
+          </section>
+
+          <section class="publish-panel" id="publish">
+            <div class="panel-head">
+              <span>发布检查</span>
+              <button id="resetChecklist" type="button">重置</button>
+            </div>
+            <label><input type="checkbox" data-check="cover" /> 封面已更新</label>
+            <label><input type="checkbox" data-check="mobile" /> 手机尺寸已检查</label>
+            <label><input type="checkbox" data-check="score" /> 云端分数已测试</label>
+            <label><input type="checkbox" data-check="git" /> Git 已提交推送</label>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="/shared/supabase-scores.js?v=supabase-1"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
