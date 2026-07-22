@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合金弹头 · 浏览器复刻版</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; background:#0a0a12; overflow:hidden;
+    font-family:"Courier New",monospace; user-select:none; }
+  #wrap { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+  canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges;
+    background:#000; box-shadow:0 0 60px rgba(255,150,40,.15), 0 0 0 4px #1a1a24, 0 0 0 8px #0d0d14; }
+  #scan { position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+  #scan::after { content:""; position:absolute; inset:0;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45) 100%); }
+  #hint { position:fixed; left:0; right:0; bottom:8px; text-align:center; z-index:3;
+    color:#6a6a80; font-size:12px; letter-spacing:1px; }
+  #hint b { color:#e8a040; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="scan"></div>
+  </div>
+  <div id="hint"><b>方向键/WASD</b> 移动·下蹲&ensp;<b>Z/J</b> 射击&ensp;<b>X/K</b> 跳跃&ensp;<b>C/L</b> 手雷&ensp;<b>Enter</b> 开始·暂停&ensp;<b>M</b> 静音&ensp;·&ensp;支持手柄</div>
+  <script src="js/sprites.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

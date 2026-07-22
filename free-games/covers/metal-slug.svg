@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="合金弹头游戏封面">
+  <defs>
+    <linearGradient id="msSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#2b1a12"/>
+      <stop offset=".5" stop-color="#4a2c17"/>
+      <stop offset=".8" stop-color="#7a4520"/>
+      <stop offset="1" stop-color="#9a5a26"/>
+    </linearGradient>
+    <radialGradient id="msBoom" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff6c8"/>
+      <stop offset=".35" stop-color="#ffc23e"/>
+      <stop offset=".7" stop-color="#f26b1d"/>
+      <stop offset="1" stop-color="#f26b1d" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="msGlow">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="960" height="540" fill="url(#msSky)"/>
+
+  <!-- 远山与废墟剪影 -->
+  <g fill="#3a2415" opacity=".85">
+    <path d="M0 300 L120 220 L230 290 L340 210 L470 300 L470 540 L0 540Z"/>
+    <path d="M520 300 L660 200 L780 280 L880 230 L960 290 L960 540 L520 540Z"/>
+  </g>
+  <g fill="#241610" opacity=".9">
+    <rect x="60" y="250" width="46" height="150"/>
+    <rect x="72" y="226" width="22" height="26"/>
+    <rect x="820" y="240" width="58" height="170"/>
+    <rect x="838" y="212" width="20" height="30"/>
+  </g>
+  <!-- 硝烟 -->
+  <g fill="#5a5a52" opacity=".35">
+    <ellipse cx="120" cy="180" rx="60" ry="34"/>
+    <ellipse cx="160" cy="140" rx="44" ry="26"/>
+    <ellipse cx="850" cy="170" rx="66" ry="36"/>
+    <ellipse cx="810" cy="128" rx="40" ry="24"/>
+  </g>
+
+  <!-- 爆炸光团 -->
+  <circle cx="705" cy="330" r="150" fill="url(#msBoom)" filter="url(#msGlow)"/>
+  <g fill="#ffd66b">
+    <rect x="690" y="180" width="10" height="60" transform="rotate(-20 695 210)"/>
+    <rect x="780" y="240" width="10" height="54" transform="rotate(38 785 267)"/>
+    <rect x="620" y="230" width="10" height="50" transform="rotate(-64 625 255)"/>
+  </g>
+
+  <!-- 地面 -->
+  <rect x="0" y="400" width="960" height="140" fill="#33231a"/>
+  <rect x="0" y="400" width="960" height="14" fill="#4a3423"/>
+  <g fill="#241811">
+    <rect x="40" y="452" width="90" height="12"/>
+    <rect x="300" y="470" width="120" height="12"/>
+    <rect x="640" y="458" width="100" height="12"/>
+    <rect x="840" y="476" width="80" height="12"/>
+  </g>
+
+  <!-- SV-001 像素坦克 -->
+  <g transform="translate(120 318)">
+    <ellipse cx="110" cy="96" rx="120" ry="16" fill="#000" opacity=".4"/>
+    <!-- 履带 -->
+    <rect x="0" y="58" width="220" height="40" fill="#2e2e26"/>
+    <g fill="#4c4c3a">
+      <circle cx="24" cy="78" r="13"/>
+      <circle cx="62" cy="78" r="13"/>
+      <circle cx="100" cy="78" r="13"/>
+      <circle cx="138" cy="78" r="13"/>
+      <circle cx="176" cy="78" r="13"/>
+      <circle cx="208" cy="78" r="10"/>
+    </g>
+    <!-- 车体 -->
+    <rect x="12" y="26" width="196" height="38" fill="#6b7a3f"/>
+    <rect x="12" y="26" width="196" height="10" fill="#8a9a52"/>
+    <!-- 炮塔 -->
+    <rect x="96" y="2" width="76" height="30" fill="#6b7a3f"/>
+    <rect x="96" y="2" width="76" height="8" fill="#8a9a52"/>
+    <rect x="168" y="12" width="88" height="10" fill="#3f4726"/>
+    <rect x="250" y="10" width="14" height="14" fill="#2c3118"/>
+    <!-- 舱盖与细节 -->
+    <rect x="110" y="-8" width="30" height="12" fill="#556230"/>
+    <rect x="24" y="36" width="26" height="14" fill="#556230"/>
+    <rect x="60" y="36" width="18" height="14" fill="#3f4726"/>
+  </g>
+  <!-- 炮口火光 -->
+  <g transform="translate(392 322)">
+    <rect x="0" y="0" width="46" height="14" fill="#ffe89a" filter="url(#msGlow)"/>
+    <rect x="40" y="-6" width="26" height="26" fill="#ffb62e" filter="url(#msGlow)"/>
+    <rect x="62" y="-2" width="18" height="18" fill="#f26b1d" opacity=".9"/>
+  </g>
+  <!-- 飞行的炮弹 -->
+  <g fill="#ffd66b" filter="url(#msGlow)">
+    <rect x="500" y="312" width="26" height="8"/>
+    <rect x="566" y="296" width="26" height="8"/>
+  </g>
+
+  <!-- 像素士兵（向右开火） -->
+  <g transform="translate(452 348)">
+    <ellipse cx="26" cy="66" rx="34" ry="9" fill="#000" opacity=".4"/>
+    <!-- 腿 -->
+    <rect x="12" y="40" width="12" height="26" fill="#3a3f28"/>
+    <rect x="30" y="40" width="12" height="26" fill="#3a3f28"/>
+    <rect x="8" y="62" width="18" height="7" fill="#22190f"/>
+    <rect x="28" y="62" width="18" height="7" fill="#22190f"/>
+    <!-- 身体 -->
+    <rect x="10" y="16" width="34" height="26" fill="#5a6b34"/>
+    <rect x="10" y="16" width="34" height="7" fill="#74873f"/>
+    <!-- 头与头带 -->
+    <rect x="16" y="-2" width="22" height="18" fill="#e8b07a"/>
+    <rect x="14" y="-4" width="26" height="7" fill="#c23b2a"/>
+    <rect x="38" y="-4" width="12" height="5" fill="#c23b2a"/>
+    <rect x="30" y="6" width="6" height="4" fill="#22190f"/>
+    <!-- 手臂与枪 -->
+    <rect x="40" y="20" width="16" height="9" fill="#e8b07a"/>
+    <rect x="50" y="18" width="46" height="8" fill="#2b2b2b"/>
+    <rect x="88" y="16" width="14" height="4" fill="#4a4a4a"/>
+    <rect x="52" y="26" width="10" height="8" fill="#1d1d1d"/>
+  </g>
+  <!-- 士兵枪口火光 -->
+  <g transform="translate(556 362)">
+    <rect x="0" y="-7" width="22" height="14" fill="#ffe89a" filter="url(#msGlow)"/>
+    <rect x="18" y="-4" width="12" height="8" fill="#f26b1d"/>
+  </g>
+
+  <!-- 掉落的手雷 -->
+  <g transform="translate(640 230) rotate(24)">
+    <rect x="0" y="0" width="16" height="18" fill="#3f4726"/>
+    <rect x="3" y="-5" width="10" height="6" fill="#8a8a8a"/>
+  </g>
+
+  <!-- 标题 -->
+  <g transform="translate(54 66)">
+    <text x="0" y="0" font-family="'Courier New',monospace" font-size="76" font-weight="bold"
+      fill="#1a0f08" stroke="#1a0f08" stroke-width="10" letter-spacing="6" transform="translate(6 66)">合金弹头</text>
+    <text x="0" y="66" font-family="'Courier New',monospace" font-size="76" font-weight="bold"
+      fill="#ffd66b" stroke="#7a3a10" stroke-width="3" letter-spacing="6">合金弹头</text>
+    <text x="4" y="112" font-family="'Courier New',monospace" font-size="24" font-weight="bold"
+      fill="#f2e3c2" letter-spacing="10">METAL SLUG · 浏览器复刻版</text>
+    <rect x="4" y="128" width="330" height="6" fill="#c23b2a"/>
+  </g>
+
+  <!-- 操作提示牌 -->
+  <g transform="translate(600 448)">
+    <rect x="0" y="0" width="316" height="56" fill="#14100b" opacity=".82"/>
+    <rect x="0" y="0" width="316" height="56" fill="none" stroke="#e8a040" stroke-width="3"/>
+    <text x="18" y="36" font-family="'Courier New',monospace" font-size="20" font-weight="bold"
+      fill="#ffd66b" letter-spacing="2">WASD 移动 · J 射击 · K 跳跃</text>
+  </g>
+
+  <!-- 像素颗粒 -->
+  <g fill="#000" opacity=".12">
+    <rect x="0" y="0" width="960" height="2"/>
+    <rect x="0" y="120" width="960" height="2"/>
+    <rect x="0" y="240" width="960" height="2"/>
+    <rect x="0" y="360" width="960" height="2"/>
+    <rect x="0" y="480" width="960" height="2"/>
+  </g>
+</svg>
