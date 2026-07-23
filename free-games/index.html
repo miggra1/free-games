@@ -1,162 +1,497 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>free小游戏</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <main class="portal">
-      <header class="hero">
-        <div class="brand-block">
-          <strong>free小游戏</strong>
-          <span>打开就玩，适合电脑和本地双人同屏的小游戏大厅</span>
-        </div>
-        <div class="hero-actions" aria-label="管理入口">
-          <a class="admin-entry" href="../">战队首页</a>
-          <a class="admin-entry" href="../admin/">创作后台</a>
-        </div>
-        <label class="search-box">
-          <span>搜索</span>
-          <input id="gameSearch" type="search" placeholder="搜索赛车、塔防、黄金矿工..." autocomplete="off" />
-        </label>
-        <nav class="category-tabs" aria-label="游戏分类">
-          <button class="active" type="button" data-filter="all">全部</button>
-          <button type="button" data-filter="duo">双人</button>
-          <button type="button" data-filter="action">动作</button>
-          <button type="button" data-filter="strategy">策略</button>
-          <button type="button" data-filter="puzzle">益智</button>
-          <button type="button" data-filter="racing">赛车</button>
-        </nav>
-      </header>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>free小游戏 · 国风水墨大厅</title>
+<style>
+  /* ==================== 配色变量（同战队页国风水墨金） ==================== */
+  :root{
+    --bg:      #0c0a08;
+    --bg2:     #14110c;
+    --gold:    #d9a441;
+    --gold-lt: #f2ce84;
+    --gold-dp: #8a6220;
+    --ink:     #ece4d3;
+    --dim:     #9a8f7a;
+    --card-bg: #16130e;
+    --line:    rgba(217,164,65,.2);
+  }
 
-      <section class="cover-hero" aria-label="主推游戏">
-        <a class="cover-main" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
-          <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
-          <div>
-            <i>主推竞速</i>
-            <h1>速度与激情</h1>
-            <p>高速公路狂飙，氮气加速穿过车流和障碍，挑战更高速度和更长距离。</p>
-          </div>
-        </a>
-        <a class="cover-side" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
-          <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
-          <div><i>双人合作</i><b>双人黄金矿工</b></div>
-        </a>
-        <a class="cover-side" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
-          <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
-          <div><i>策略塔防</i><b>皇城突袭塔防</b></div>
-        </a>
-      </section>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;line-height:1.7;
+  }
+  .brush{font-family:"STXingkai","STKaiti","KaiTi","STFangsong",serif}
 
-      <section class="game-section" id="hot">
-        <div class="section-title">
-          <h2>游戏大厅</h2>
-          <span id="resultCount">16 款游戏</span>
-        </div>
+  /* ==================== 背景层 ==================== */
+  .ink-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .ink-bg svg{width:100%;height:100%}
+  .mist{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:1}
+  .mist-a{width:640px;height:380px;left:-160px;bottom:-80px;background:rgba(220,220,225,.10)}
+  .mist-b{width:520px;height:320px;right:-140px;bottom:8%;background:rgba(220,220,225,.07)}
+  .mist-c{width:480px;height:300px;left:30%;bottom:-120px;background:rgba(220,220,225,.06)}
+  .watermark{
+    position:fixed;left:50%;bottom:2%;transform:translateX(-50%);
+    font-size:clamp(48px,8vw,100px);font-weight:400;letter-spacing:6px;
+    color:rgba(236,228,211,.04);white-space:nowrap;z-index:1;pointer-events:none;
+  }
 
-        <div class="game-grid">
-          <a class="game-card featured" href="../metal-slug/" data-game-card data-tags="action" data-title="合金弹头 射击 街机 像素 横版闯关 手雷">
-            <img src="covers/metal-slug.svg" alt="合金弹头像素射击游戏封面" />
-            <i>街机射击</i>
-            <b>合金弹头</b>
-            <span>横版闯关、步枪手雷、像素坦克大战，支持手柄</span>
-          </a>
-          <a class="game-card featured" href="../pixel-fighter-97/" data-game-card data-tags="duo action" data-title="格斗皇 97 拳皇 街机 像素 格斗 双人 人机">
-            <img src="covers/pixel-fighter-97.svg" alt="格斗皇97像素街机格斗游戏封面" />
-            <i>街机格斗</i>
-            <b>格斗皇 97</b>
-            <span>三人组队、选人、必杀超杀、连招取消、AI街机挑战和本地双人对战</span>
-          </a>
-          <a class="game-card featured" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
-            <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
-            <i>双人</i>
-            <b>双人黄金矿工</b>
-            <span>两名矿工同时放钩，抓金块钻石，合作冲关</span>
-          </a>
-          <a class="game-card featured" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
-            <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
-            <i>塔防</i>
-            <b>皇城突袭塔防</b>
-            <span>每关重新布防，防御工事可升级，守住皇城</span>
-          </a>
-          <a class="game-card featured" href="../zhaoyun-adou/" data-game-card data-tags="strategy" data-title="赵云与阿斗 三国 文字 合成">
-            <img src="covers/zhaoyun-adou.png" alt="赵云与阿斗游戏截图" />
-            <i>三国</i>
-            <b>赵云与阿斗</b>
-            <span>文字合成、武将召唤、策略布阵保护阿斗</span>
-          </a>
-          <a class="game-card featured alien-card" href="../alien-brawler/" data-game-card data-tags="action" data-title="狂扁外星人 3D 动作 连击 射击">
-            <img src="covers/alien-brawler.svg" alt="狂扁外星人3D游戏封面" />
-            <i>3D动作</i>
-            <b>狂扁外星人 3D</b>
-            <span>街区场景、连击、能量炮、手雷和 Boss 波</span>
-          </a>
-          <a class="game-card featured" href="../fire-basketball/" data-game-card data-tags="action sports" data-title="烈火篮球 篮球 投篮 火焰 连击">
-            <img src="covers/fire-basketball.svg" alt="烈火篮球游戏封面" />
-            <i>体育动作</i>
-            <b>烈火篮球</b>
-            <span>拖拽投篮、左右篮筐、烈火轨迹和完美连击</span>
-          </a>
-          <a class="game-card featured speed-card" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
-            <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
-            <i>单人赛车</i>
-            <b>速度与激情</b>
-            <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
-          </a>
-          <a class="game-card" href="../angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟 弹弓">
-            <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
-            <i>弹弓</i>
-            <b>愤怒的小鸟</b>
-            <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
-          </a>
-          <a class="game-card" href="../racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车">
-            <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
-            <i>竞速</i>
-            <b>双人分屏赛车</b>
-            <span>换挡、氮气、撞车、障碍和结算页</span>
-          </a>
-          <a class="game-card" href="../two-player-battle/" data-game-card data-tags="duo action" data-title="双人竞技场">
-            <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
-            <i>双人</i>
-            <b>双人竞技场</b>
-            <span>半场限制，子弹反弹一次</span>
-          </a>
-          <a class="game-card" href="../frontline-shooter/" data-game-card data-tags="action" data-title="前线守卫战 射击">
-            <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
-            <i>射击</i>
-            <b>前线守卫战</b>
-            <span>第一人称射击，武器逐关升级</span>
-          </a>
-          <a class="game-card" href="../armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗">
-            <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
-            <i>格斗</i>
-            <b>铠甲动漫格斗</b>
-            <span>四角色选择，技能连招对战</span>
-          </a>
-          <a class="game-card" href="../maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫">
-            <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
-            <i>闯关</i>
-            <b>趣味迷宫</b>
-            <span>寻找路线，挑战迷宫</span>
-          </a>
-          <a class="game-card link-card" href="../link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看">
-            <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
-            <i>益智</i>
-            <b>水果连连看</b>
-            <span>相同水果连线消除，最多两次转弯</span>
-          </a>
-          <a class="game-card" href="../match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐">
-            <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
-            <i>消除</i>
-            <b>宝石消消乐</b>
-            <span>关卡目标、掉落动画、四连五连生成道具</span>
-          </a>
-        </div>
-      </section>
-    </main>
+  .wrap{position:relative;z-index:2;width:min(1320px,100%);margin:0 auto;padding:0 20px}
 
-    <script src="script.js?v=cover-flow-speed-1"></script>
-  </body>
+  /* ==================== 顶部导航 ==================== */
+  .top-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 0;border-bottom:1px solid rgba(217,164,65,.12);
+    margin-bottom:10px;
+  }
+  .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .logo .seal{
+    width:34px;height:34px;border:2px solid var(--gold);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold);font-size:14px;font-weight:700;
+    box-shadow:0 0 14px rgba(217,164,65,.25);
+  }
+  .logo .name{font-size:20px;color:var(--ink);letter-spacing:2px}
+  .logo .name b{color:var(--gold);font-weight:400}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .nav-links a{
+    color:var(--dim);text-decoration:none;font-size:14px;letter-spacing:3px;
+    transition:color .3s;position:relative;
+  }
+  .nav-links a:hover{color:var(--gold-lt)}
+  .nav-links a::after{
+    content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;
+    background:linear-gradient(90deg,var(--gold),transparent);transition:width .35s;
+  }
+  .nav-links a:hover::after{width:100%}
+  .nav-cta{
+    padding:8px 20px;border:1px solid var(--gold);border-radius:4px;
+    color:var(--gold) !important;font-size:13px;letter-spacing:3px;
+    transition:background .3s,color .3s;
+  }
+  .nav-cta:hover{background:var(--gold);color:#171208 !important}
+  .nav-cta::after{display:none}
+
+  /* ==================== Hero 标题区 ==================== */
+  .game-hero{text-align:center;padding:36px 0 20px}
+  .game-hero .en-tag{color:var(--dim);font-size:12px;letter-spacing:8px;text-transform:uppercase;margin-bottom:10px}
+  .game-hero h1{
+    font-size:clamp(48px,8vw,96px);font-weight:400;line-height:1.15;letter-spacing:6px;
+  }
+  .game-hero h1 .g{
+    background:linear-gradient(160deg,var(--gold-lt) 20%,var(--gold) 60%,var(--gold-dp));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 0 40px rgba(217,164,65,.2);
+  }
+  .game-hero .sub{color:var(--dim);margin-top:12px;font-size:14px;letter-spacing:5px}
+
+  /* ==================== 搜索 + 分类 ==================== */
+  .toolbar{
+    display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
+    margin:28px 0 24px;
+  }
+  .search-box{
+    position:relative;display:flex;align-items:center;
+    border:1px solid rgba(217,164,65,.3);border-radius:4px;overflow:hidden;
+    background:rgba(22,19,14,.8);
+  }
+  .search-box span{
+    color:var(--dim);font-size:12px;padding:0 14px;letter-spacing:2px;white-space:nowrap;
+  }
+  .search-box input{
+    min-width:200px;min-height:40px;border:none;padding:0 14px 0 0;
+    background:transparent;color:var(--ink);font:inherit;font-size:14px;outline:none;
+    letter-spacing:1px;
+  }
+  .search-box input::placeholder{color:rgba(154,143,122,.45)}
+
+  .category-tabs{display:flex;flex-wrap:wrap;gap:8px}
+  .category-tabs button{
+    min-height:36px;padding:0 18px;border:1px solid rgba(217,164,65,.25);border-radius:4px;
+    background:rgba(22,19,14,.7);color:var(--dim);font:inherit;font-size:13px;
+    letter-spacing:2px;cursor:pointer;transition:all .25s;
+  }
+  .category-tabs button:hover{color:var(--gold-lt);border-color:var(--gold)}
+  .category-tabs button.active, .category-tabs button:focus-visible{
+    background:rgba(217,164,65,.14);border-color:var(--gold);color:var(--gold);outline:none;
+  }
+
+  /* ==================== 主推封面区 ==================== */
+  .cover-hero{
+    display:grid;grid-template-columns:minmax(0,1.75fr) minmax(260px,0.72fr);
+    grid-template-rows:repeat(2,minmax(190px,1fr));gap:14px;margin-bottom:28px;
+  }
+  .cover-hero a{
+    position:relative;overflow:hidden;border-radius:6px;text-decoration:none;
+    border:1px solid rgba(217,164,65,.4);
+    box-shadow:0 14px 40px rgba(0,0,0,.5);
+    transition:transform .3s ease-out,border-color .3s,box-shadow .3s;
+  }
+  .cover-hero a:hover{border-color:var(--gold-lt);box-shadow:0 22px 54px rgba(0,0,0,.55),0 0 28px rgba(217,164,65,.18)}
+  .cover-hero img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .3s ease-out}
+  .cover-hero a:hover img{transform:scale(1.04)}
+  .cover-main{grid-row:1/span 2;min-height:470px}
+  /* 封面文字叠加层 */
+  .cover-main::after, .cover-side::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(12,10,8,.1) 20%,rgba(12,10,8,.94));
+  }
+  .cover-main div, .cover-side div{position:absolute;z-index:2;inset:auto 0 0;padding:24px}
+  .cover-main i, .cover-side i, .game-card .tag{
+    display:inline-block;min-height:26px;padding:0 10px;border-radius:3px;
+    font-style:normal;font-size:12px;font-weight:700;letter-spacing:2px;
+    background:rgba(217,164,65,.2);color:var(--gold-lt);border:1px solid rgba(217,164,65,.3);
+  }
+  .cover-main h1{margin:10px 0 6px;font-size:clamp(38px,5vw,56px);line-height:1;letter-spacing:4px}
+  .cover-main p{max-width:640px;color:var(--dim);font-size:15px;letter-spacing:1px}
+  .cover-side b{display:block;margin-top:9px;font-size:22px;letter-spacing:2px}
+  .cover-hero a.hidden{display:none}
+
+  /* ==================== 分区标题 ==================== */
+  .sec-bar{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+    margin-bottom:22px;
+  }
+  .sec-bar h2{font-size:34px;font-weight:400;letter-spacing:8px;color:var(--ink)}
+  .sec-bar .ink-line{
+    flex:1;height:2px;min-width:60px;align-self:center;
+    background:linear-gradient(90deg,var(--line),var(--gold),transparent);
+    border-radius:1px;margin-left:16px;
+  }
+  .sec-bar .count{color:var(--dim);font-size:13px;letter-spacing:3px}
+
+  /* ==================== 游戏卡片网格 ==================== */
+  .game-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .game-card{
+    display:grid;grid-template-rows:142px auto auto auto;align-content:start;gap:8px;
+    padding:12px;border:1px solid rgba(217,164,65,.28);border-radius:6px;
+    background:var(--card-bg);color:var(--ink);text-decoration:none;
+    box-shadow:0 10px 28px rgba(0,0,0,.4);
+    transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s;
+    overflow:hidden;position:relative;
+  }
+  .game-card:hover{
+    transform:translateY(-5px);border-color:var(--gold-lt);
+    box-shadow:0 18px 42px rgba(0,0,0,.5),0 0 24px rgba(217,164,65,.16);
+  }
+  /* 卡片内水墨晕染（悬停时微显） */
+  .game-card::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+    background:
+      radial-gradient(ellipse 70% 40% at 20% 20%, rgba(217,164,65,.04) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 36% at 80% 70%, rgba(217,164,65,.03) 0%, transparent 70%);
+    opacity:0;transition:opacity .35s;
+  }
+  .game-card:hover::before{opacity:1}
+
+  .game-card img{
+    width:100%;height:100%;min-height:0;display:block;object-fit:cover;
+    border-radius:4px;border:1px solid rgba(255,255,255,.08);background:#111317;
+    transition:transform .25s ease-out;
+  }
+  .game-card:hover img{transform:scale(1.03)}
+
+  .game-card .tag{font-size:11px;min-height:22px;padding:0 8px;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.22);color:var(--gold-lt)}
+  .game-card b{font-size:18px;color:var(--ink);letter-spacing:2px;font-weight:600;line-height:1.2}
+  .game-card span{color:var(--dim);font-size:13px;line-height:1.5;letter-spacing:1px}
+
+  .game-card.featured{grid-column:span 2;grid-template-rows:240px auto auto auto}
+  .game-card.hidden{display:none}
+
+  /* ==================== 页脚 ==================== */
+  footer{
+    text-align:center;padding:36px 20px;margin-top:48px;
+    border-top:1px solid rgba(217,164,65,.12);
+    color:var(--dim);font-size:13px;letter-spacing:3px;
+  }
+  footer b{color:var(--gold);font-weight:400}
+
+  /* ==================== 滚动入场 ==================== */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.visible{opacity:1;transform:none}
+
+  /* ==================== 响应式 ==================== */
+  @media (max-width:960px){
+    .top-nav{flex-wrap:wrap;gap:12px}
+    .nav-links{gap:14px}
+    .nav-links a{font-size:12px;letter-spacing:1px}
+    .cover-hero{grid-template-columns:1fr;grid-template-rows:auto}
+    .cover-main{grid-row:auto;min-height:340px}
+    .cover-side{min-height:200px}
+    .game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .game-card.featured{grid-column:auto}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 12px}
+    .nav-links{flex-wrap:wrap;justify-content:center}
+    .toolbar{flex-direction:column}
+    .search-box input{min-width:160px}
+    .game-grid{grid-template-columns:1fr}
+    .cover-hero a{min-height:180px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== 背景：金色水墨笔触（SVG湍流，同战队页） ========== -->
+<div class="ink-bg">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="gStroke" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f2ce84" stop-opacity=".9"/>
+        <stop offset=".5" stop-color="#d9a441" stop-opacity=".8"/>
+        <stop offset="1" stop-color="#8a6220" stop-opacity=".65"/>
+      </linearGradient>
+      <filter id="inkEdge">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="4" seed="12" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="42"/>
+      </filter>
+      <filter id="inkEdge2">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" seed="24" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="28"/>
+      </filter>
+      <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+    </defs>
+    <g filter="url(#inkEdge)" opacity=".85">
+      <path d="M1500 120 C1150 180 980 300 760 430 C560 548 380 640 60 720 L-40 760 C300 700 620 640 860 520 C1080 410 1290 260 1520 190 Z" fill="url(#gStroke)"/>
+      <path d="M1480 230 C1200 300 1020 400 830 510 C660 608 480 680 200 740 L140 770 C460 720 720 660 920 560 C1120 460 1320 330 1500 290 Z" fill="url(#gStroke)" opacity=".65"/>
+    </g>
+    <g filter="url(#inkEdge2)" stroke="url(#gStroke)" fill="none" stroke-linecap="round">
+      <path d="M1420 90 C1100 200 900 330 700 470 C520 596 340 690 120 760" stroke-width="7" opacity=".5"/>
+      <path d="M1460 170 C1180 260 980 380 790 500 C620 610 450 690 240 745" stroke-width="4" opacity=".35"/>
+    </g>
+    <g filter="url(#inkEdge)" opacity=".7">
+      <path d="M-60 830 C180 780 340 800 520 850 C640 885 760 900 900 890 L900 940 L-60 940 Z" fill="url(#gStroke)"/>
+    </g>
+    <g fill="#d9a441" filter="url(#soft)">
+      <circle cx="1180" cy="180" r="4" opacity=".7"/>
+      <circle cx="1240" cy="140" r="2.6" opacity=".5"/>
+      <circle cx="980" cy="330" r="3" opacity=".45"/>
+      <circle cx="620" cy="560" r="2.4" opacity=".45"/>
+      <circle cx="300" cy="700" r="3.4" opacity=".55"/>
+      <circle cx="180" cy="760" r="2" opacity=".45"/>
+    </g>
+  </svg>
+</div>
+<div class="mist mist-a"></div>
+<div class="mist mist-b"></div>
+<div class="mist mist-c"></div>
+<div class="watermark brush">free小游戏</div>
+
+<!-- ========== 内容层 ========== -->
+<div class="wrap">
+  <!-- 导航 -->
+  <nav class="top-nav">
+    <a class="logo" href="./">
+      <span class="seal brush">游</span>
+      <span class="name brush">free<b>小游戏</b></span>
+    </a>
+    <div class="nav-links">
+      <a href="../">战队首页</a>
+      <a href="#grid">游戏大厅</a>
+      <a href="../admin/">创作后台</a>
+      <a class="nav-cta" href="../">Free、恒谊</a>
+    </div>
+  </nav>
+
+  <!-- Hero 标题 -->
+  <div class="game-hero">
+    <p class="en-tag">Browser Arcade · Play Instantly</p>
+    <h1 class="brush">free<span class="g">小游戏</span></h1>
+    <p class="sub">打开就玩 · 无需下载 · 双人同屏 · 像素街机</p>
+  </div>
+
+  <!-- 搜索 + 分类 -->
+  <div class="toolbar">
+    <label class="search-box">
+      <span>搜索</span>
+      <input id="gameSearch" type="search" placeholder="合金弹头、黄金矿工、赛车..." autocomplete="off" />
+    </label>
+    <nav class="category-tabs">
+      <button class="active" type="button" data-filter="all">全部</button>
+      <button type="button" data-filter="duo">双人</button>
+      <button type="button" data-filter="action">动作</button>
+      <button type="button" data-filter="strategy">策略</button>
+      <button type="button" data-filter="puzzle">益智</button>
+      <button type="button" data-filter="racing">赛车</button>
+    </nav>
+  </div>
+
+  <!-- 主推封面区 -->
+  <section class="cover-hero" aria-label="主推游戏">
+    <a class="cover-main" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
+      <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+      <div>
+        <i>主推竞速</i>
+        <h1>速度与激情</h1>
+        <p>高速公路狂飙，氮气加速穿过车流和障碍，挑战更高速度和更长距离。</p>
+      </div>
+    </a>
+    <a class="cover-side" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
+      <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
+      <div><i>双人合作</i><b>双人黄金矿工</b></div>
+    </a>
+    <a class="cover-side" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+      <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+      <div><i>策略塔防</i><b>皇城突袭塔防</b></div>
+    </a>
+  </section>
+
+  <!-- 游戏大厅 -->
+  <section id="grid">
+    <div class="sec-bar">
+      <h2 class="brush">游戏大厅</h2>
+      <div class="ink-line"></div>
+      <span class="count" id="resultCount">16 款游戏</span>
+    </div>
+
+    <div class="game-grid">
+      <a class="game-card featured" href="../metal-slug/" data-game-card data-tags="action" data-title="合金弹头 射击 街机 像素 横版闯关 手雷">
+        <img src="covers/metal-slug.svg" alt="合金弹头像素射击游戏封面" />
+        <span class="tag">街机射击</span>
+        <b>合金弹头</b>
+        <span>横版闯关、步枪手雷、像素坦克大战，支持手柄</span>
+      </a>
+      <a class="game-card featured" href="../pixel-fighter-97/" data-game-card data-tags="duo action" data-title="格斗皇 97 拳皇 街机 像素 格斗 双人 人机">
+        <img src="covers/pixel-fighter-97.svg" alt="格斗皇97像素街机格斗游戏封面" />
+        <span class="tag">街机格斗</span>
+        <b>格斗皇 97</b>
+        <span>三人组队、选人、必杀超杀、连招取消、AI街机挑战和本地双人对战</span>
+      </a>
+      <a class="game-card featured" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
+        <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
+        <span class="tag">双人</span>
+        <b>双人黄金矿工</b>
+        <span>两名矿工同时放钩，抓金块钻石，合作冲关</span>
+      </a>
+      <a class="game-card featured" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
+        <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
+        <span class="tag">塔防</span>
+        <b>皇城突袭塔防</b>
+        <span>每关重新布防，防御工事可升级，守住皇城</span>
+      </a>
+      <a class="game-card featured" href="../zhaoyun-adou/" data-game-card data-tags="strategy" data-title="赵云与阿斗 三国 文字 合成">
+        <img src="covers/zhaoyun-adou.png" alt="赵云与阿斗游戏截图" />
+        <span class="tag">三国</span>
+        <b>赵云与阿斗</b>
+        <span>文字合成、武将召唤、策略布阵保护阿斗</span>
+      </a>
+      <a class="game-card featured" href="../alien-brawler/" data-game-card data-tags="action" data-title="狂扁外星人 3D 动作 连击 射击">
+        <img src="covers/alien-brawler.svg" alt="狂扁外星人3D游戏封面" />
+        <span class="tag">3D动作</span>
+        <b>狂扁外星人 3D</b>
+        <span>街区场景、连击、能量炮、手雷和 Boss 波</span>
+      </a>
+      <a class="game-card featured" href="../fire-basketball/" data-game-card data-tags="action sports" data-title="烈火篮球 篮球 投篮 火焰 连击">
+        <img src="covers/fire-basketball.svg" alt="烈火篮球游戏封面" />
+        <span class="tag">体育动作</span>
+        <b>烈火篮球</b>
+        <span>拖拽投篮、左右篮筐、烈火轨迹和完美连击</span>
+      </a>
+      <a class="game-card featured" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
+        <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
+        <span class="tag">单人赛车</span>
+        <b>速度与激情</b>
+        <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
+      </a>
+      <a class="game-card" href="../angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟 弹弓">
+        <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
+        <span class="tag">弹弓</span>
+        <b>愤怒的小鸟</b>
+        <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
+      </a>
+      <a class="game-card" href="../racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车">
+        <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
+        <span class="tag">竞速</span>
+        <b>双人分屏赛车</b>
+        <span>换挡、氮气、撞车、障碍和结算页</span>
+      </a>
+      <a class="game-card" href="../two-player-battle/" data-game-card data-tags="duo action" data-title="双人竞技场">
+        <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
+        <span class="tag">双人</span>
+        <b>双人竞技场</b>
+        <span>半场限制，子弹反弹一次</span>
+      </a>
+      <a class="game-card" href="../frontline-shooter/" data-game-card data-tags="action" data-title="前线守卫战 射击">
+        <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
+        <span class="tag">射击</span>
+        <b>前线守卫战</b>
+        <span>第一人称射击，武器逐关升级</span>
+      </a>
+      <a class="game-card" href="../armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗">
+        <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
+        <span class="tag">格斗</span>
+        <b>铠甲动漫格斗</b>
+        <span>四角色选择，技能连招对战</span>
+      </a>
+      <a class="game-card" href="../maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫">
+        <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
+        <span class="tag">闯关</span>
+        <b>趣味迷宫</b>
+        <span>寻找路线，挑战迷宫</span>
+      </a>
+      <a class="game-card" href="../link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看">
+        <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
+        <span class="tag">益智</span>
+        <b>水果连连看</b>
+        <span>相同水果连线消除，最多两次转弯</span>
+      </a>
+      <a class="game-card" href="../match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐">
+        <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
+        <span class="tag">消除</span>
+        <b>宝石消消乐</b>
+        <span>关卡目标、掉落动画、四连五连生成道具</span>
+      </a>
+    </div>
+  </section>
+
+  <footer>
+    <b>free小游戏</b> · 打开就玩的像素街机大厅 · <b>Free、恒谊</b> 战队出品
+  </footer>
+</div>
+
+<script>
+(function(){
+  const searchInput = document.getElementById("gameSearch");
+  const filterButtons = document.querySelectorAll("[data-filter]");
+  const cards = Array.from(document.querySelectorAll("[data-game-card]"));
+  const gridCards = Array.from(document.querySelectorAll(".game-grid [data-game-card]"));
+  const resultCount = document.getElementById("resultCount");
+  let activeFilter = "all";
+
+  function normalize(v){ return String(v||"").trim().toLowerCase(); }
+
+  function updateCards(){
+    const query = normalize(searchInput && searchInput.value);
+    let visible = 0;
+    for(const card of cards){
+      const tags = normalize(card.dataset.tags);
+      const title = normalize(card.dataset.title);
+      const matchesFilter = activeFilter === "all" || tags.includes(activeFilter);
+      const matchesSearch = !query || title.includes(query) || tags.includes(query);
+      const show = matchesFilter && matchesSearch;
+      card.classList.toggle("hidden", !show);
+      if(show && gridCards.includes(card)) visible++;
+    }
+    if(resultCount) resultCount.textContent = visible + " 款游戏";
+  }
+
+  for(const btn of filterButtons){
+    btn.addEventListener("click", function(){
+      activeFilter = this.dataset.filter;
+      filterButtons.forEach(b => b.classList.toggle("active", b === this));
+      updateCards();
+    });
+  }
+
+  if(searchInput) searchInput.addEventListener("input", updateCards);
+  updateCards();
+})();
+</script>
+</body>
 </html>
