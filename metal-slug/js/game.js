@@ -43,19 +43,27 @@
   function startGame() {
     ENT.reset();
     GAME.score = 0; GAME.hostages = 0; GAME.camX = 0;
+    LEVEL.stage = 1;
     ENT.player = new ENT.Player(60);
-    LEVEL.setup();
+    LEVEL.setup(1);
     GAME.state = "start"; GAME.t = 0;
     AudioSys.bgm.start("field");
   }
 
   GAME.missionComplete = function () {
-    GAME.state = "complete"; GAME.compT = 0;
     ENT.ebullets = [];
     AudioSys.bgm.stop();
     AudioSys.sfx.missionClear();
-    setTimeout(() => AudioSys.voice("Mission Complete!"), 600);
-  };
+    if (LEVEL.stage < LEVEL.totalStages) {
+      // 还有下一关 → 进入关卡过渡
+      GAME.state = "stageclear"; GAME.compT = 0;
+      setTimeout(() => AudioSys.voice("Mission Complete!"), 600);
+    } else {
+      // 最后一关 → 游戏通关
+      GAME.state = "complete"; GAME.compT = 0;
+      setTimeout(() => AudioSys.voice("Mission Complete!"), 600);
+    }
+  }
 
   function respawn() {
     const p = ENT.player;
@@ -116,7 +124,7 @@
         if (GAME.contT % 60 === 0 && GAME.contT > 0) AudioSys.sfx.countTick();
         if (Input.pressed("start") && GAME.credits > 0) {
           GAME.credits--;
-          ENT.player.lives = 2;
+          ENT.player.lives = 3;
           ENT.player.grenades = Math.max(ENT.player.grenades, 6);
           ENT.ebullets = [];
           respawn();
@@ -132,6 +140,29 @@
       case "gameover":
         if (GAME.t > 200) { GAME.state = "title"; GAME.t = 0; GAME.credits = 0; }
         break;
+
+      case "stageclear": {
+        GAME.compT++;
+        ENT.update();
+        if (GAME.compT === 120 && GAME.hostages > 0) {
+          const bonus = GAME.hostages * 1000;
+          GAME.addScore(bonus, GAME.camX + GAME.VW / 2, 120);
+          AudioSys.sfx.hostage();
+        }
+        if (GAME.compT > 240 && Input.pressed("start")) {
+          // 进入下一关
+          LEVEL.stage++;
+          ENT.reset();
+          GAME.camX = 0;
+          ENT.player.reset(60);
+          ENT.player.lives = Math.max(3, ENT.player.lives);
+          ENT.player.grenades = Math.max(ENT.player.grenades, 10);
+          LEVEL.setup(LEVEL.stage);
+          GAME.state = "start"; GAME.t = 0;
+          AudioSys.bgm.start("field");
+        }
+        break;
+      }
 
       case "complete": {
         GAME.compT++;
@@ -205,7 +236,7 @@
         drawText(g, "METAL", 76, 64, "#ffe040", 6);
         drawText(g, "SLUG", 254, 96, "#c03028", 6);
         drawText(g, "SLUG", 256, 94, "#ffe040", 6);
-        drawText(g, "BROWSER REMAKE - MISSION 1", GAME.VW / 2 - textWidth("BROWSER REMAKE - MISSION 1", 1) / 2, 140, "#c0b0a0", 1);
+        drawText(g, "BROWSER REMAKE - " + LEVEL.totalStages + " MISSIONS", GAME.VW / 2 - textWidth("BROWSER REMAKE - 3 MISSIONS", 1) / 2, 140, "#c0b0a0", 1);
         if (Math.floor(t / 30) % 2 === 0)
           drawText(g, "PRESS ENTER TO START", GAME.VW / 2 - textWidth("PRESS ENTER TO START", 2) / 2, 180, "#ffffff", 2);
         drawText(g, "CREDIT " + GAME.credits, 8, GAME.VH - 16, "#ffe080", 1);
@@ -218,7 +249,8 @@
         R(g, 0, 0, GAME.VW, GAME.VH, "#000000");
         const a = Math.min(1, GAME.t / 40);
         g.globalAlpha = a;
-        drawText(g, "MISSION 1", GAME.VW / 2 - textWidth("MISSION 1", 4) / 2, 100, "#e8e8e8", 4);
+        const mLabel = "MISSION " + LEVEL.stage;
+        drawText(g, mLabel, GAME.VW / 2 - textWidth(mLabel, 4) / 2, 100, "#e8e8e8", 4);
         if (GAME.t > 40)
           drawText(g, "START!", GAME.VW / 2 - textWidth("START!", 3) / 2, 150, "#ffe040", 3);
         g.globalAlpha = 1;
@@ -227,7 +259,8 @@
 
       case "play":
       case "pause":
-      case "complete": {
+      case "complete":
+      case "stageclear": {
         LEVEL.drawBackground(g, GAME.camX, ENT.time);
         g.save();
         const shx = (Math.random() - 0.5) * ENT.shake, shy = (Math.random() - 0.5) * ENT.shake;
@@ -237,6 +270,7 @@
         for (const h of ENT.hostages) h.draw(g);
         for (const i of ENT.items) i.draw(g, ENT.time);
         for (const e of ENT.enemies) e.draw(g, ENT.time);
+        for (const v of ENT.vehicles) v.draw(g);
         if (LEVEL.boss) LEVEL.boss.draw(g);
         if (ENT.player) ENT.player.draw(g);
         for (const b of ENT.bullets) b.draw(g, ENT.time);
@@ -265,6 +299,23 @@
           }
           if (GAME.compT > 300 && Math.floor(GAME.t / 30) % 2 === 0)
             drawText(g, "PRESS ENTER", GAME.VW / 2 - textWidth("PRESS ENTER", 1) / 2, 220, "#ffffff", 1);
+        }
+        if (GAME.state === "stageclear") {
+          const a = Math.min(1, GAME.compT / 60);
+          g.globalAlpha = a * 0.75;
+          R(g, 0, 90, GAME.VW, 80, "#0a0a14");
+          g.globalAlpha = 1;
+          const mLabel = "MISSION " + LEVEL.stage;
+          drawText(g, mLabel, GAME.VW / 2 - textWidth(mLabel, 4) / 2, 100, "#ffe040", 4);
+          drawText(g, "COMPLETE!", GAME.VW / 2 - textWidth("COMPLETE!", 4) / 2, 130, "#ffe040", 4);
+          if (GAME.compT > 120) {
+            drawText(g, "POW BONUS " + GAME.hostages + "x1000", GAME.VW / 2 - textWidth("POW BONUS 0x0000", 1) / 2, 180, "#a0e080", 1);
+            drawText(g, "TOTAL " + String(GAME.score).padStart(8, "0"), GAME.VW / 2 - textWidth("TOTAL 00000000", 1) / 2, 194, "#ffe8c0", 1);
+          }
+          if (GAME.compT > 240 && Math.floor(GAME.t / 30) % 2 === 0) {
+            const nxt = "PRESS ENTER FOR MISSION " + (LEVEL.stage + 1);
+            drawText(g, nxt, GAME.VW / 2 - textWidth(nxt, 1) / 2, 220, "#ffffff", 1);
+          }
         }
         break;
       }

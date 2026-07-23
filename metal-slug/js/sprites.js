@@ -67,6 +67,8 @@
     rocket:  { hair:null,      hat:"#6a4a8a",  skin:"#d8a880", shirt:"#5a4a6a", shirtD:"#473a52", pants:"#4a4258", pantsD:"#3a3444", boots:"#33302a", pack:null },
     grenadier:{hair:null,      hat:"#8a6a2a",  skin:"#e0b088", shirt:"#7a5a30", shirtD:"#5f4626", pants:"#5e4a2e", pantsD:"#4a3a24", boots:"#33302a", pack:null },
     hostage: { hair:"#e8d878", hat:null,       skin:"#eec39a", shirt:"#e8e8e8", shirtD:"#c0c0c0", pants:"#e8e8e8", pantsD:"#c0c0c0", boots:"#d8d8d8", pack:null },
+    sniper:   { hair:null, hat:"#2a3a5a", skin:"#d8a880", shirt:"#3a4a6a", shirtD:"#2a3a50", pants:"#2a3a4a", pantsD:"#1a2a3a", boots:"#2a2a30", pack:null },
+    kamikaze: { hair:null, hat:"#8a2a2a", skin:"#e0a080", shirt:"#a03030", shirtD:"#802020", pants:"#5a2020", pantsD:"#401010", boots:"#2a1010", pack:"#c04030" },
   };
 
   /* ---------- 人形角色绘制 ----------
@@ -203,5 +205,53 @@
     drawItemBox(g, x, y, kind, t);
   }
 
-  window.SPR = { drawText, textWidth, R, drawFighter, drawItemBox, drawGrenade, drawParachute, PAL };
+  /* ---------- SV-001 合金弹头坦克载具 ---------- */
+  function drawVehicle(g, v) {
+    const x = Math.round(v.x), y = Math.round(v.y), d = v.dir || 1;
+    const ph = v.phase || 0;
+    const dmg = 1 - (v.hp / v.maxHp);
+    g.save();
+    g.translate(x, y);
+    g.scale(d, 1);
+    // 履带
+    R(g, -20, -12, 40, 12, "#2e3338");
+    for (let i = 0; i < 5; i++) {
+      const tx = -18 + ((i * 8 + ph * 2) % 36);
+      R(g, tx, -10, 4, 8, "#454c54");
+    }
+    R(g, -18, -10, 6, 6, "#1e2226"); R(g, 12, -10, 6, 6, "#1e2226");
+    // 车体
+    R(g, -18, -28, 36, 18, dmg > 0.5 ? "#5a4a3a" : "#5a624a");
+    R(g, -18, -28, 36, 3, dmg > 0.5 ? "#4a3a2a" : "#6a7258");
+    R(g, -16, -22, 8, 6, "#2e3338"); R(g, 6, -22, 8, 6, "#2e3338");
+    R(g, -20, -16, 4, 4, "#6a7060"); // 前灯
+    if (Math.floor(ph / 20) % 2 === 0) R(g, -19, -15, 3, 3, "#ffe040");
+    // 炮塔
+    R(g, -10, -36, 22, 10, dmg > 0.5 ? "#42423a" : "#505444");
+    R(g, -10, -36, 22, 2, "#33332c");
+    R(g, 2, -40, 6, 4, "#33332c"); // 舱盖
+    // 主炮(指向玩家瞄准方向)
+    const ang = v.cannonAng || 0;
+    const cl = 22;
+    g.strokeStyle = "#3a3f36"; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(-6, -30); g.lineTo(-6 + Math.cos(ang) * cl, -30 + Math.sin(ang) * cl); g.stroke();
+    g.strokeStyle = "#23261f"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(-6, -28); g.lineTo(-6 + Math.cos(ang) * cl, -28 + Math.sin(ang) * cl); g.stroke();
+    // 天线
+    R(g, 8, -44, 1, 10, "#2a2d28");
+    if (Math.floor(ph / 16) % 2 === 0) R(g, 7, -46, 3, 3, "#ff4030");
+    // 载具中有人时画头露出舱口
+    if (v.occupied) {
+      R(g, 2, -42, 5, 5, "#eec39a"); // 头
+      R(g, 2, -44, 5, 2, "#e8c860"); // 头发
+    }
+    // 受击白闪
+    if (v.flash > 0) {
+      g.save(); g.globalAlpha = v.flash / 5; g.globalCompositeOperation = "lighter";
+      R(g, -20, -36, 40, 28, "#ffffff"); g.restore();
+    }
+    g.restore();
+  }
+
+  window.SPR = { drawText, textWidth, R, drawFighter, drawItemBox, drawGrenade, drawParachute, drawVehicle, PAL };
 })();

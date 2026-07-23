@@ -18,7 +18,7 @@
 
   const ENT = {
     bullets: [], ebullets: [], enemies: [], items: [], hostages: [],
-    parts: [], floats: [], barrels: [],
+    parts: [], floats: [], barrels: [], vehicles: [],
     shake: 0, time: 0,
     player: null, groundY: 232,
   };
@@ -62,7 +62,11 @@
       if (Math.abs(LEVEL.boss.x - x) < r && Math.abs(LEVEL.boss.y - y) < r) LEVEL.boss.takeHit(3);
     }
     if (hurtPlayer !== false && ENT.player && ENT.player.alive && ENT.player.invuln <= 0) {
-      if (Math.abs(ENT.player.x - x) < r * 0.75 && Math.abs(ENT.player.y - y) < r) ENT.player.die();
+      if (Math.abs(ENT.player.x - x) < r * 0.75 && Math.abs(ENT.player.y - y) < r) {
+        // 玩家在载具中时,爆炸伤害载具
+        if (ENT.player.inVehicle) ENT.player.inVehicle.takeHit(1);
+        else ENT.player.die();
+      }
     }
     // 爆炸冲击波光圈
     ENT.parts.push({ x, y: y - 6, vx: 0, vy: 0, life: 10, maxLife: 10, color: "#fff0c0", size: 8 * s, grav: 0, ring: true });
@@ -70,7 +74,7 @@
 
   /* ---------------- 玩家 ---------------- */
   class Player {
-    constructor(x) { this.reset(x); this.lives = 2; this.grenades = 10; }
+    constructor(x) { this.reset(x); this.lives = 3; this.grenades = 10; }
     reset(x) {
       this.x = x; this.y = ENT.groundY; this.vy = 0; this.dir = 1;
       this.alive = true; this.deadT = 0; this.invuln = 100;
@@ -78,6 +82,7 @@
       this.shotCd = 0; this.meleeT = 0; this.throwT = 0;
       this.weapon = "pistol"; this.ammo = Infinity;
       this.pose = "idle"; this.aim = "mid";
+      this.inVehicle = null;
     }
     get wtype() { return WEAPONS[this.weapon]; }
     giveWeapon(kind) {
@@ -89,6 +94,12 @@
     }
     die() {
       if (!this.alive || this.invuln > 0) return;
+      // 载具替玩家挡伤害
+      if (this.inVehicle) {
+        this.inVehicle.takeHit(1);
+        this.invuln = 40;
+        return;
+      }
       this.alive = false; this.deadT = 110;
       AudioSys.sfx.playerDie();
       spawnExplosion(this.x, this.y - 8, 0.9, false);
@@ -96,8 +107,56 @@
     }
     update() {
       if (!this.alive) { if (this.deadT > 0) this.deadT--; return; }
-      const w = this.wtype;
       this.invuln = Math.max(0, this.invuln - 1);
+
+      // 载具模式:玩家控制载具,不执行常规逻辑
+      if (this.inVehicle) {
+        const v = this.inVehicle;
+        if (v.dead) { this.inVehicle = null; }
+        else {
+          v.update(this);
+          // 同步玩家位置到载具
+          this.x = v.x; this.y = v.y; this.dir = v.dir;
+          this.phase = v.phase;
+          // 退出载具:按跳跃键
+          if (Input.pressed("jump")) {
+            v.occupied = false;
+            this.inVehicle = null;
+            this.x = v.x + 24 * (this.dir >= 0 ? 1 : -1);
+            this.y = ENT.groundY;
+            this.vy = 0; this.onGround = true;
+            this.invuln = 30;
+            AudioSys.sfx.click();
+          }
+          // 瞄准方向(载具中也可8方向)
+          const up = Input.held("up");
+          const downAir = Input.held("down") && !v.onGround;
+          const holdingLR = Input.held("left") || Input.held("right");
+          if (up && holdingLR) this.aim = "up-fwd";
+          else if (downAir && holdingLR) this.aim = "down-fwd";
+          else if (up) this.aim = "up";
+          else if (downAir) this.aim = "down";
+          else this.aim = "mid";
+          this.pose = "idle";
+          return;
+        }
+      }
+
+      // 检测附近有未占据的载具且按了跳跃键 → 进入
+      if (Input.pressed("jump") && this.onGround) {
+        for (const v of ENT.vehicles) {
+          if (!v.dead && !v.occupied && Math.abs(v.x - this.x) < 30 && Math.abs(v.y - this.y) < 30) {
+            v.occupied = true;
+            this.inVehicle = v;
+            this.invuln = 20;
+            AudioSys.sfx.click();
+            AudioSys.voice("Vehicle!");
+            return;
+          }
+        }
+      }
+
+      const w = this.wtype;
       this.shotCd = Math.max(0, this.shotCd - 1);
       this.meleeT = Math.max(0, this.meleeT - 1);
       this.throwT = Math.max(0, this.throwT - 1);
@@ -122,8 +181,15 @@
       const camL = GAME.camX + 6, camR = GAME.camX + GAME.VW - 6;
       this.x = Math.max(camL, Math.min(camR, this.x));
 
-      // 瞄准方向
-      this.aim = Input.held("up") ? "up" : (Input.held("down") && !this.onGround) ? "down" : "mid";
+      // 瞄准方向(8方向: up/mid/down/up-fwd/down-fwd)
+      const up = Input.held("up");
+      const downAir = Input.held("down") && !this.onGround;
+      const holdingLR = Input.held("left") || Input.held("right");
+      if (up && holdingLR && !this.crouch) this.aim = "up-fwd";
+      else if (downAir && holdingLR) this.aim = "down-fwd";
+      else if (up) this.aim = "up";
+      else if (downAir) this.aim = "down";
+      else this.aim = "mid";
 
       // 近战判定:射击键 + 近身敌人
       const wantFire = w.auto ? Input.held("fire") : Input.pressed("fire");
@@ -174,6 +240,8 @@
       let vx = 0, vy = 0;
       if (this.aim === "up") vy = -w.speed;
       else if (this.aim === "down") vy = w.speed;
+      else if (this.aim === "up-fwd") { vx = this.dir * w.speed * 0.7; vy = -w.speed * 0.7; }
+      else if (this.aim === "down-fwd") { vx = this.dir * w.speed * 0.7; vy = w.speed * 0.7; }
       else vx = this.dir * w.speed;
       const bx = this.x + (vx !== 0 ? this.dir * 12 : 2), by = vy !== 0 ? this.y - 20 : gy;
       // 枪口火光
@@ -182,7 +250,7 @@
       if (this.weapon === "S") {
         for (let i = -2; i <= 2; i++) {
           const sp = 6 + Math.random();
-          const base = vx !== 0 ? (vx > 0 ? 0 : Math.PI) : (vy > 0 ? Math.PI / 2 : -Math.PI / 2);
+          const base = Math.atan2(vy, vx);
           ENT.bullets.push(new Bullet(bx, by, Math.cos(base + i * 0.16) * sp, Math.sin(base + i * 0.16) * sp, "pellet", 1));
         }
       } else if (this.weapon === "F") {
@@ -198,6 +266,7 @@
     }
     draw(g) {
       if (!this.alive) return;
+      if (this.inVehicle) return; // 在载具中不画玩家(载具draw会画舱口里的头)
       if (this.invuln > 0 && Math.floor(this.invuln / 4) % 2 === 0) return; // 无敌闪烁
       drawFighter(g, { x: this.x, y: this.y, dir: this.dir, pose: this.pose, phase: this.phase, pal: "player", aim: this.aim });
     }
@@ -248,11 +317,11 @@
         const b = LEVEL.boss;
         if (this.x > b.x - 34 && this.x < b.x + 34 && this.y > b.y - 52 && this.y < b.y) {
           if (this.kind === "grenade" || this.kind === "rocket") {
-            b.takeHit(this.kind === "rocket" ? 5 : 4);
+            b.takeHit(this.kind === "rocket" ? 5 : 4, this.y);
             this.explode();
             return;
           }
-          b.takeHit(this.dmg);
+          b.takeHit(this.dmg, this.y);
           if (!this.pierce) { this.dead = true; return; }
         }
       }
@@ -304,7 +373,13 @@
       }
       const p = ENT.player;
       if (p && p.alive && p.invuln <= 0 && Math.abs(p.x - this.x) < 7 && this.y > p.y - 22 && this.y < p.y) {
-        p.die(); this.dead = true;
+        // 玩家在载具中时,子弹打中载具
+        if (p.inVehicle) {
+          p.inVehicle.takeHit(1);
+          this.dead = true;
+        } else {
+          p.die(); this.dead = true;
+        }
       }
     }
     draw(g) {
@@ -326,6 +401,8 @@
     shield:    { hp: 4, speed: 0.38, score: 200, pal: "shield" },
     rocket:    { hp: 2, speed: 0.3,  score: 200, pal: "rocket" },
     grenadier: { hp: 2, speed: 0.45, score: 200, pal: "grenadier" },
+    sniper:    { hp: 2, speed: 0.2,  score: 300, pal: "sniper" },
+    kamikaze:  { hp: 1, speed: 1.2,  score: 150, pal: "kamikaze" },
   };
   class Enemy {
     constructor(type, x, y) {
@@ -433,6 +510,32 @@
             const power = Math.min(3.2, adx / 60);
             ENT.ebullets.push(new EBullet(this.x, this.y - 18, this.dir * power * 0.8, -3.2, "grenadeE"));
             AudioSys.sfx.throwG();
+          }
+          break;
+        case "sniper":
+          // 狙击手:保持远距离 250px,每 200 帧射一发高速精准子弹
+          if (adx < 200) this.x -= this.dir * this.cfg.speed;
+          else if (adx > 320) this.x += this.dir * this.cfg.speed;
+          this.state = adx < 200 ? "walk" : "attack";
+          if (this.t <= 0 && adx < 400) {
+            this.t = 200;
+            const ty = (p ? p.y - 12 : this.y - 12), dy = ty - (this.y - 14);
+            const sp = 4.5, len = Math.max(1, Math.hypot(dx, dy));
+            ENT.ebullets.push(new EBullet(this.x + this.dir * 8, this.y - 14, dx / len * sp, dy / len * sp, "shot"));
+            AudioSys.sfx.shot("L");
+            ENT.addPart(this.x + this.dir * 10, this.y - 14, this.dir, 0, 5, "#ffe080", 3, 0);
+          }
+          break;
+        case "kamikaze":
+          // 自爆兵:快速冲向玩家,距离 < 25 时自爆
+          this.x += this.dir * this.cfg.speed;
+          this.state = "walk";
+          if (adx < 25 && p && p.alive) {
+            // 自爆
+            this.dying = true; this.dieT = 5; this.dead = true;
+            spawnExplosion(this.x, this.y - 8, 0.9, true);
+            AudioSys.sfx.enemyDie();
+            GAME.addScore(this.cfg.score, this.x, this.y - 22);
           }
           break;
       }
@@ -557,11 +660,100 @@
     }
   }
 
+  /* ---------------- 载具:SV-001 合金弹头坦克 ---------------- */
+  class Vehicle {
+    constructor(x) {
+      this.x = x; this.y = ENT.groundY;
+      this.hp = 3; this.maxHp = 3; this.dir = 1;
+      this.occupied = false; this.cannonCd = 0;
+      this.phase = 0; this.flash = 0; this.dead = false;
+      this.vy = 0; this.onGround = true; this.cannonAng = 0;
+    }
+    update(player) {
+      this.phase += 0.3;
+      this.flash = Math.max(0, this.flash - 1);
+      this.cannonCd = Math.max(0, this.cannonCd - 1);
+      if (!this.occupied) return;
+      // 被玩家占据时:跟随玩家移动
+      const mx = (Input.held("left") ? -1 : 0) + (Input.held("right") ? 1 : 0);
+      if (mx !== 0) this.dir = mx > 0 ? 1 : -1;
+      this.x += mx * 2.2;
+      this.phase += Math.abs(mx) * 1.5;
+      // 跳跃(跳跃力比步行低)
+      if (Input.pressed("jump") && this.onGround) {
+        this.vy = -7.5; this.onGround = false; AudioSys.sfx.jump();
+      }
+      this.vy += 0.5; this.y += this.vy;
+      if (this.y >= ENT.groundY) { this.y = ENT.groundY; this.vy = 0; this.onGround = true; }
+      // 屏幕内活动范围
+      const camL = GAME.camX + 10, camR = GAME.camX + GAME.VW - 10;
+      this.x = Math.max(camL, Math.min(camR, this.x));
+      // 碾压小兵:碰到敌人直接杀死
+      for (const e of ENT.enemies) {
+        if (!e.dying && Math.abs(e.x - this.x) < 24 && Math.abs(e.y - this.y) < 30) {
+          e.takeHit(10, this.dir, "melee");
+        }
+      }
+      // 开炮
+      if (Input.held("fire") && this.cannonCd <= 0) {
+        this.fireCannon(player);
+      }
+      // 更新炮塔角度(基于玩家瞄准方向)
+      const aim = player ? player.aim : "mid";
+      if (aim === "up") this.cannonAng = -Math.PI / 2;
+      else if (aim === "down") this.cannonAng = Math.PI / 2;
+      else if (aim === "up-fwd") this.cannonAng = -Math.PI / 4;
+      else if (aim === "down-fwd") this.cannonAng = Math.PI / 4;
+      else this.cannonAng = 0;
+    }
+    fireCannon(player) {
+      this.cannonCd = 25;
+      AudioSys.sfx.shot("R");
+      const aim = player.aim || "mid";
+      let vx = 0, vy = 0;
+      const sp = 5;
+      if (aim === "up") vy = -sp;
+      else if (aim === "down") vy = sp;
+      else if (aim === "up-fwd") { vx = this.dir * sp * 0.7; vy = -sp * 0.7; }
+      else if (aim === "down-fwd") { vx = this.dir * sp * 0.7; vy = sp * 0.7; }
+      else vx = this.dir * sp;
+      const bx = this.x + (vx !== 0 ? this.dir * 14 : 2), by = this.y - 22;
+      ENT.bullets.push(new Bullet(bx, by, vx, vy, "rocket", 3));
+      // 枪口火光
+      addPart(bx, by, vx * 0.1, vy * 0.1, 6, "#ffe080", 5, 0);
+      addPart(bx, by, 0, 0, 4, "#ffffff", 3, 0);
+    }
+    takeHit(dmg) {
+      this.hp -= dmg; this.flash = 4;
+      if (this.hp <= 0) {
+        // 爆炸并弹射玩家
+        spawnExplosion(this.x, this.y - 12, 1.5, false);
+        if (this.occupied) {
+          const p = ENT.player;
+          if (p) {
+            p.inVehicle = null;
+            p.reset(this.x + 30);
+            p.invuln = 80;
+          }
+          this.occupied = false;
+        }
+        this.dead = true;
+      }
+    }
+    draw(g) {
+      SPR.drawVehicle(g, this);
+    }
+  }
+
   /* ---------------- 统一更新与绘制 ---------------- */
   ENT.update = function () {
     ENT.time++;
     for (const arr of [ENT.bullets, ENT.ebullets, ENT.enemies, ENT.items, ENT.hostages, ENT.barrels]) {
       for (const o of arr) o.update();
+    }
+    // 载具更新:被占据的载具已由 Player.update() 驱动,这里只更新空闲载具
+    for (const v of ENT.vehicles) {
+      if (!v.occupied) v.update(null);
     }
     for (const p of ENT.parts) {
       p.life--; p.x += p.vx; p.y += p.vy; p.vy += p.grav;
@@ -576,6 +768,7 @@
     ENT.items = ENT.items.filter(i => !i.dead);
     ENT.hostages = ENT.hostages.filter(h => !h.dead);
     ENT.barrels = ENT.barrels.filter(b => !b.dead);
+    ENT.vehicles = ENT.vehicles.filter(v => !v.dead);
     ENT.shake *= 0.86;
     if (ENT.shake < 0.1) ENT.shake = 0;
   };
@@ -602,11 +795,12 @@
   ENT.reset = function () {
     ENT.bullets = []; ENT.ebullets = []; ENT.enemies = []; ENT.items = [];
     ENT.hostages = []; ENT.parts = []; ENT.floats = []; ENT.barrels = [];
+    ENT.vehicles = [];
     ENT.shake = 0; ENT.time = 0;
   };
 
   ENT.Player = Player; ENT.Enemy = Enemy; ENT.Item = Item; ENT.Hostage = Hostage;
-  ENT.Barrel = Barrel; ENT.EBullet = EBullet; ENT.WEAPONS = WEAPONS;
+  ENT.Barrel = Barrel; ENT.EBullet = EBullet; ENT.WEAPONS = WEAPONS; ENT.Vehicle = Vehicle;
   ENT.spawnExplosion = spawnExplosion; ENT.addFloat = addFloat; ENT.addPart = addPart;
 
   window.ENT = ENT;
