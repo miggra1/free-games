@@ -1,12 +1,433 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=/free-games/" />
-    <title>free小游戏</title>
-  </head>
-  <body>
-    <a href="/free-games/">进入 free小游戏</a>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free、恒谊 · 王者荣耀战队</title>
+<style>
+  /* ==================== 配色变量 ==================== */
+  :root{
+    --bg:      #0c0a08;   /* 宣纸黑 */
+    --bg2:     #14110c;
+    --gold:    #d9a441;   /* 水墨金 */
+    --gold-lt: #f2ce84;
+    --gold-dp: #8a6220;
+    --ink:     #ece4d3;   /* 墨色文字 */
+    --dim:     #9a8f7a;
+    --card-bg: #16130e;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;line-height:1.7;
+  }
+  /* 中文书法字体栈（行楷→楷体回退） */
+  .brush{font-family:"STXingkai","STKaiti","KaiTi","STFangsong",serif}
+
+  /* ==================== 背景层 ==================== */
+  .ink-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .ink-bg svg{width:100%;height:100%}
+  /* 白色烟雾 */
+  .mist{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:1}
+  .mist-a{width:640px;height:380px;left:-160px;bottom:-80px;background:rgba(220,220,225,.10)}
+  .mist-b{width:520px;height:320px;right:-140px;bottom:8%;background:rgba(220,220,225,.07)}
+  .mist-c{width:480px;height:300px;left:30%;bottom:-120px;background:rgba(220,220,225,.06)}
+  /* 底部水印 */
+  .watermark{
+    position:fixed;left:50%;bottom:2%;transform:translateX(-50%);
+    font-size:clamp(60px,9vw,120px);font-weight:400;letter-spacing:8px;
+    color:rgba(236,228,211,.05);white-space:nowrap;z-index:1;pointer-events:none;
+  }
+
+  main,nav,footer{position:relative;z-index:2}
+
+  /* ==================== 顶部导航 ==================== */
+  nav{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 48px;border-bottom:1px solid rgba(217,164,65,.12);
+  }
+  .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+  /* 印章式 logo 图标 */
+  .logo .seal{
+    width:34px;height:34px;border:2px solid var(--gold);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold);font-size:15px;font-weight:700;
+    box-shadow:0 0 14px rgba(217,164,65,.25);
+  }
+  .logo .name{font-size:20px;color:var(--ink);letter-spacing:2px}
+  .logo .name b{color:var(--gold);font-weight:400}
+  .nav-links{display:flex;gap:34px;align-items:center}
+  .nav-links a{
+    color:var(--dim);text-decoration:none;font-size:14px;letter-spacing:3px;
+    transition:color .3s;position:relative;
+  }
+  .nav-links a:hover{color:var(--gold-lt)}
+  /* 导航项悬停金色下划墨线 */
+  .nav-links a::after{
+    content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;
+    background:linear-gradient(90deg,var(--gold),transparent);transition:width .35s;
+  }
+  .nav-links a:hover::after{width:100%}
+  .nav-cta{
+    padding:8px 22px;border:1px solid var(--gold);border-radius:4px;
+    color:var(--gold) !important;font-size:13px;letter-spacing:3px;
+    transition:background .3s,color .3s;
+  }
+  .nav-cta:hover{background:var(--gold);color:#171208 !important}
+  .nav-cta::after{display:none}
+
+  /* ==================== Hero 区 ==================== */
+  .hero{
+    min-height:88vh;display:flex;flex-direction:column;justify-content:center;
+    padding:40px 8vw;position:relative;
+  }
+  .hero .en-tag{
+    color:var(--dim);font-size:13px;letter-spacing:8px;margin-bottom:18px;
+    text-transform:uppercase;
+  }
+  .hero h1{
+    font-size:clamp(72px,11vw,160px);font-weight:400;line-height:1.1;
+    color:var(--ink);letter-spacing:4px;
+    text-shadow:0 0 40px rgba(217,164,65,.25);
+  }
+  .hero h1 .g{
+    background:linear-gradient(160deg,var(--gold-lt) 20%,var(--gold) 60%,var(--gold-dp));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero .motto{
+    margin-top:26px;color:var(--dim);font-size:clamp(15px,1.8vw,19px);letter-spacing:6px;
+  }
+  .hero .motto b{color:var(--gold);font-weight:400}
+  /* 按钮组 */
+  .hero .actions{display:flex;gap:18px;margin-top:42px;flex-wrap:wrap}
+  .hero .cta{
+    display:inline-block;width:fit-content;
+    padding:14px 46px;font-size:16px;letter-spacing:6px;text-decoration:none;
+    color:#171208;background:linear-gradient(120deg,var(--gold-lt),var(--gold));
+    border-radius:3px;box-shadow:0 6px 26px rgba(217,164,65,.3);
+    transition:transform .3s,box-shadow .3s;
+  }
+  .hero .cta:hover{transform:translateY(-3px);box-shadow:0 12px 34px rgba(217,164,65,.45)}
+  /* 次要按钮：游戏大厅入口 */
+  .hero .cta-ghost{
+    display:inline-block;width:fit-content;
+    padding:14px 40px;font-size:16px;letter-spacing:6px;text-decoration:none;
+    color:var(--gold);border:1px solid var(--gold);border-radius:3px;
+    transition:background .3s,color .3s,transform .3s;
+  }
+  .hero .cta-ghost:hover{background:rgba(217,164,65,.12);transform:translateY(-3px)}
+
+  /* ==================== 小节标题 ==================== */
+  section{padding:90px 6vw;max-width:1360px;margin:0 auto}
+  .sec-head{text-align:center;margin-bottom:60px}
+  .sec-head .en{color:var(--dim);font-size:12px;letter-spacing:7px;text-transform:uppercase}
+  .sec-head h2{
+    font-size:clamp(34px,4.6vw,52px);font-weight:400;color:var(--ink);
+    letter-spacing:10px;margin-top:12px;
+  }
+  .sec-head .ink-line{
+    width:120px;height:3px;margin:22px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent);
+    border-radius:2px;
+  }
+
+  /* ==================== 滚动入场 ==================== */
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.visible{opacity:1;transform:none}
+
+  /* ==================== 成员竖版卡片 ==================== */
+  .member-row{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:18px;
+  }
+  .mcard{
+    position:relative;aspect-ratio:3/4.4;border-radius:6px;overflow:hidden;
+    border:1px solid rgba(217,164,65,.45);
+    background:var(--card-bg);
+    box-shadow:0 10px 30px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.4);
+    transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s,border-color .45s;
+  }
+  .mcard:hover{transform:translateY(-10px);border-color:var(--gold-lt);
+    box-shadow:0 22px 50px rgba(0,0,0,.6),0 0 30px rgba(217,164,65,.28)}
+  /* 卡片内水墨晕染底（CSS 多层墨点，深浅由 --mk 控制） */
+  .mcard .wash{position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 70% 46% at 30% 26%, rgba(0,0,0,calc(.5 * var(--mk,1))) 0%, transparent 70%),
+      radial-gradient(ellipse 56% 40% at 72% 40%, rgba(40,36,28,calc(.8 * var(--mk,1))) 0%, transparent 72%),
+      radial-gradient(ellipse 80% 50% at 50% 78%, rgba(0,0,0,calc(.62 * var(--mk,1))) 0%, transparent 74%),
+      radial-gradient(ellipse 40% 26% at 62% 12%, rgba(60,54,40,calc(.5 * var(--mk,1))) 0%, transparent 70%);
+  }
+  /* 肖像区：大书法首字 */
+  .mcard .glyph{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:clamp(44px,4.6vw,64px);color:rgba(236,228,211,.92);
+    text-shadow:0 2px 18px rgba(0,0,0,.8);padding-bottom:22%;
+  }
+  /* 右侧竖排题字 */
+  .mcard .verse{
+    position:absolute;top:12px;right:10px;
+    writing-mode:vertical-rl;font-size:11px;letter-spacing:5px;
+    color:rgba(217,164,65,.85);
+  }
+  /* 队长角标 */
+  .mcard .cap-tag{
+    position:absolute;top:0;left:0;padding:4px 10px;font-size:11px;letter-spacing:2px;
+    background:linear-gradient(120deg,var(--gold-lt),var(--gold));color:#171208;
+    border-radius:6px 0 8px 0;font-weight:700;
+  }
+  /* 底部位置标签条 */
+  .mcard .foot{
+    position:absolute;left:0;right:0;bottom:0;padding:10px 12px;
+    display:flex;align-items:flex-end;justify-content:space-between;
+    background:linear-gradient(180deg,transparent,rgba(10,8,5,.9) 55%);
+  }
+  .mcard .foot .who .nm{font-size:17px;letter-spacing:2px;color:var(--ink)}
+  .mcard .foot .who .ps{font-size:10px;letter-spacing:2px;color:var(--gold);margin-top:2px}
+  /* 右下角小金印 */
+  .mcard .chop{
+    width:26px;height:26px;flex:none;border-radius:3px;
+    background:linear-gradient(135deg,var(--gold-lt),var(--gold-dp));
+    color:#171208;font-size:10px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;letter-spacing:0;
+    box-shadow:0 0 10px rgba(217,164,65,.4);
+  }
+
+  /* ==================== 口号区 ==================== */
+  .slogan{text-align:center;padding:120px 20px}
+  .slogan h2{
+    font-size:clamp(38px,6vw,68px);font-weight:400;letter-spacing:14px;
+    background:linear-gradient(90deg,var(--gold-dp),var(--gold-lt),var(--gold-dp));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    text-shadow:0 0 30px rgba(217,164,65,.2);
+  }
+  .slogan p{margin-top:22px;color:var(--dim);letter-spacing:5px;font-size:14px}
+
+  footer{
+    text-align:center;padding:32px 20px;color:var(--dim);font-size:13px;letter-spacing:3px;
+    border-top:1px solid rgba(217,164,65,.12);
+  }
+  footer b{color:var(--gold);font-weight:400}
+
+  /* ==================== 响应式 ==================== */
+  @media (max-width:1180px){.member-row{grid-template-columns:repeat(4,1fr)}}
+  @media (max-width:820px){
+    nav{padding:16px 22px}
+    .nav-links{display:none}
+    .member-row{grid-template-columns:repeat(2,1fr)}
+    .hero h1{font-size:clamp(58px,16vw,90px)}
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== 背景：金色水墨大笔触（SVG + 湍流纹理模拟飞白） ========== -->
+<div class="ink-bg">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <!-- 金色渐变 -->
+      <linearGradient id="gStroke" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f2ce84" stop-opacity=".95"/>
+        <stop offset=".5" stop-color="#d9a441" stop-opacity=".85"/>
+        <stop offset="1" stop-color="#8a6220" stop-opacity=".7"/>
+      </linearGradient>
+      <!-- 湍流位移：让笔触边缘呈水墨毛边 -->
+      <filter id="inkEdge">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="4" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="42"/>
+      </filter>
+      <filter id="inkEdge2">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" seed="19" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="30"/>
+      </filter>
+      <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+    </defs>
+
+    <!-- 右上→左下 主大笔触（多层叠加模拟飞白） -->
+    <g filter="url(#inkEdge)" opacity=".9">
+      <path d="M1500 120 C1150 180 980 300 760 430 C560 548 380 640 60 720 L-40 760 C300 700 620 640 860 520 C1080 410 1290 260 1520 190 Z" fill="url(#gStroke)"/>
+      <path d="M1480 230 C1200 300 1020 400 830 510 C660 608 480 680 200 740 L140 770 C460 720 720 660 920 560 C1120 460 1320 330 1500 290 Z" fill="url(#gStroke)" opacity=".7"/>
+    </g>
+    <!-- 飞白细笔 -->
+    <g filter="url(#inkEdge2)" stroke="url(#gStroke)" fill="none" stroke-linecap="round">
+      <path d="M1420 90 C1100 200 900 330 700 470 C520 596 340 690 120 760" stroke-width="7" opacity=".55"/>
+      <path d="M1460 170 C1180 260 980 380 790 500 C620 610 450 690 240 745" stroke-width="4" opacity=".4"/>
+      <path d="M1360 40 C1080 140 880 260 690 390" stroke-width="5" opacity=".35"/>
+    </g>
+    <!-- 左下角次笔触 -->
+    <g filter="url(#inkEdge)" opacity=".75">
+      <path d="M-60 830 C180 780 340 800 520 850 C640 885 760 900 900 890 L900 940 L-60 940 Z" fill="url(#gStroke)"/>
+    </g>
+    <!-- 顶部点缀小笔触 -->
+    <g filter="url(#inkEdge2)" opacity=".5">
+      <path d="M380 -20 C520 40 640 60 820 50 C900 46 980 30 1060 10 L1080 -30 Z" fill="url(#gStroke)"/>
+    </g>
+    <!-- 墨点洒金 -->
+    <g fill="#d9a441" filter="url(#soft)">
+      <circle cx="1180" cy="180" r="4" opacity=".8"/>
+      <circle cx="1240" cy="140" r="2.6" opacity=".6"/>
+      <circle cx="980" cy="330" r="3" opacity=".5"/>
+      <circle cx="620" cy="560" r="2.4" opacity=".5"/>
+      <circle cx="300" cy="700" r="3.4" opacity=".6"/>
+      <circle cx="180" cy="760" r="2" opacity=".5"/>
+    </g>
+  </svg>
+</div>
+
+<!-- 白烟雾 -->
+<div class="mist mist-a"></div>
+<div class="mist mist-b"></div>
+<div class="mist mist-c"></div>
+<!-- 底部水印 -->
+<div class="watermark brush">Free、恒谊</div>
+
+<!-- ========== 顶部导航 ========== -->
+<nav>
+  <a class="logo" href="#top">
+    <span class="seal brush">恒</span>
+    <span class="name brush">Free<b>、恒谊</b></span>
+  </a>
+  <div class="nav-links">
+    <a href="#top">首页</a>
+    <a href="#members">战队成员</a>
+    <a href="free-games/">游戏大厅</a>
+    <a href="#culture">战队文化</a>
+    <a href="#join">加入我们</a>
+    <a class="nav-cta" href="free-games/">进入大厅</a>
+  </div>
+</nav>
+
+<main id="top">
+  <!-- ========== Hero：书法大标题 + 按钮组 ========== -->
+  <section class="hero" style="max-width:none">
+    <p class="en-tag">Honor of Kings · Esports Team</p>
+    <h1 class="brush">Free<span class="g">、恒谊</span></h1>
+    <p class="motto">自由不羁 · <b>恒久并肩</b></p>
+    <div class="actions">
+      <a class="cta brush" href="#members">了解战队</a>
+      <a class="cta-ghost brush" href="free-games/">进入游戏大厅</a>
+    </div>
+  </section>
+
+  <!-- ========== 战队成员 ========== -->
+  <section id="members">
+    <div class="sec-head reveal">
+      <p class="en">Team Members</p>
+      <h2 class="brush">战队成员</h2>
+      <div class="ink-line"></div>
+    </div>
+    <div class="member-row">
+      <!-- 队长：久涵 -->
+      <div class="mcard reveal" style="--mk:1.15">
+        <span class="cap-tag">队长</span>
+        <div class="wash"></div>
+        <div class="glyph brush">久</div>
+        <p class="verse brush">久经沙场 涵养全局</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">久涵</div><div class="ps">打野 · 核心指挥</div></div>
+          <span class="chop">恒</span>
+        </div>
+      </div>
+      <!-- 祈夜 -->
+      <div class="mcard reveal" style="--mk:.9">
+        <div class="wash"></div>
+        <div class="glyph brush">祈</div>
+        <p class="verse brush">夜尽天明 祈者必胜</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">祈夜</div><div class="ps">中路 · 法师</div></div>
+          <span class="chop">谊</span>
+        </div>
+      </div>
+      <!-- 长意 -->
+      <div class="mcard reveal" style="--mk:1.05">
+        <div class="wash"></div>
+        <div class="glyph brush">长</div>
+        <p class="verse brush">长锋所向 意至必达</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">长意</div><div class="ps">对抗路 · 战士</div></div>
+          <span class="chop">恒</span>
+        </div>
+      </div>
+      <!-- 羽麟 -->
+      <div class="mcard reveal" style="--mk:.85">
+        <div class="wash"></div>
+        <div class="glyph brush">羽</div>
+        <p class="verse brush">羽化登仙 麟跃九天</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">羽麟</div><div class="ps">发育路 · 射手</div></div>
+          <span class="chop">谊</span>
+        </div>
+      </div>
+      <!-- 冬瓜神 -->
+      <div class="mcard reveal" style="--mk:1.1">
+        <div class="wash"></div>
+        <div class="glyph brush">冬</div>
+        <p class="verse brush">憨厚表象 一锤定乾坤</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">冬瓜神</div><div class="ps">坦边 · 先锋</div></div>
+          <span class="chop">恒</span>
+        </div>
+      </div>
+      <!-- 星将 -->
+      <div class="mcard reveal" style="--mk:.95">
+        <div class="wash"></div>
+        <div class="glyph brush">星</div>
+        <p class="verse brush">星辰列阵 将指皆胜局</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">星将</div><div class="ps">游走 · 辅助</div></div>
+          <span class="chop">谊</span>
+        </div>
+      </div>
+      <!-- 毕维斯 -->
+      <div class="mcard reveal" style="--mk:1">
+        <div class="wash"></div>
+        <div class="glyph brush">毕</div>
+        <p class="verse brush">毕其功于一役 维斯不破</p>
+        <div class="foot">
+          <div class="who"><div class="nm brush">毕维斯</div><div class="ps">全能 · 自由人</div></div>
+          <span class="chop">恒</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 战队文化（口号区） ========== -->
+  <section class="slogan" id="culture">
+    <h2 class="brush reveal">自由不羁 · 恒久并肩</h2>
+    <p class="reveal">以自由之心作战，以恒久之谊同行 —— 这是 Free、恒谊 的战队信条</p>
+  </section>
+
+  <!-- ========== 加入我们 ========== -->
+  <section id="join" style="text-align:center;padding-top:0">
+    <div class="sec-head reveal">
+      <p class="en">Join Us</p>
+      <h2 class="brush">加入我们</h2>
+      <div class="ink-line"></div>
+    </div>
+    <p class="reveal" style="color:var(--dim);max-width:56ch;margin:0 auto;letter-spacing:2px">
+      如果你也热爱王者峡谷，认同「自由不羁，恒久并肩」的信念，欢迎与 Free、恒谊 并肩作战。
+      期待下一位伙伴的名字，写进这幅水墨长卷。
+    </p>
+  </section>
+</main>
+
+<footer><b>Free、恒谊</b> 战队 · 2026</footer>
+
+<script>
+/* 滚动入场动画：元素进入视口时淡入上移 */
+(function(){
+  const io = new IntersectionObserver(entries => {
+    for(const e of entries){
+      if(e.isIntersecting){
+        e.target.classList.add("visible");
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: .15 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+})();
+</script>
+</body>
 </html>
