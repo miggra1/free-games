@@ -196,7 +196,7 @@
   class Boss {
     constructor(x) {
       this.x = x; this.y = ENT.groundY;
-      this.hp = 260; this.maxHp = 260;
+      this.hp = 140; this.maxHp = 140;
       this.state = "enter"; this.t = 0;
       this.atkCd = 120; this.pattern = 0; this.subT = 0; this.subN = 0;
       this.tread = 0; this.flash = 0; this.cannonGlow = 0;
@@ -227,8 +227,8 @@
         case "fight": {
           this.t++;
           this.cannonGlow = Math.max(0, this.cannonGlow - 1);
-          // 车体碾压判定
-          if (p && p.alive && p.invuln <= 0 && Math.abs(p.x - this.x) < 34 && p.y > this.y - 46) p.die();
+          // 车体碾压判定(仅冲撞攻击阶段)
+          if (p && p.alive && p.invuln <= 0 && this.pattern === 2 && this.subT <= 55 && this.subT > 25 && Math.abs(p.x - this.x) < 34 && p.y > this.y - 46) p.die();
           // 缓慢逼近
           if (this.subT <= 0 && p && Math.abs(p.x - this.x) > 130) this.vx = (p.x < this.x ? -0.25 : 0.25);
           else if (this.subT <= 0) this.vx = 0;
@@ -251,7 +251,7 @@
               if (this.pattern === 0) { this.subT = 80; this.cannonGlow = 40; }   // 曲射炮弹
               else if (this.pattern === 1) { this.subT = 90; }                    // 机枪扫射
               else { this.subT = 70; this.chargeDir = p && p.x < this.x ? -1 : 1; } // 冲撞
-              this.atkCd = Math.max(60, 130 - (1 - this.hp / this.maxHp) * 70);
+              this.atkCd = 130;
             }
           }
           break;
@@ -285,22 +285,30 @@
           ENT.addPart(sx - 4, sy, -1, -1, 8, "#ffe080", 4, 0);
         }
       } else if (this.pattern === 1) {
-        // 机枪扫射
-        if (this.subT % 9 === 0 && this.subN < 8) {
+        // 机枪扫射(降低密度,加散射)
+        if (this.subT % 14 === 0 && this.subN < 5) {
           this.subN++;
           const sx = this.x - 34, sy = this.y - 20;
           const dy = (p ? p.y - 10 : sy) - sy, dx = px - sx;
           const len = Math.max(1, Math.hypot(dx, dy)), sp = 3.1;
-          ENT.ebullets.push(new ENT.EBullet(sx, sy, dx / len * sp, dy / len * sp, "shot"));
+          const ang = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.28;
+          ENT.ebullets.push(new ENT.EBullet(sx, sy, Math.cos(ang) * sp, Math.sin(ang) * sp, "shot"));
           AudioSys.sfx.shot("H");
           ENT.addPart(sx - 3, sy, -0.5, 0, 4, "#ffe080", 3, 0);
         }
       } else {
-        // 冲撞
-        if (this.subT > 40) {
+        // 冲撞(前摇预警→冲撞→停止)
+        if (this.subT > 55) {
+          // 前摇预警:震动+白闪+尘土
+          this.vx = 0; this.flash = 2;
+          if (Math.random() < 0.5) ENT.addPart(this.x + (Math.random()-0.5)*60, this.y - 40, 0, -1, 10, "#ffe040", 2, 0);
+        } else if (this.subT > 25) {
+          // 冲撞
           this.vx = this.chargeDir * 2.6; this.x += this.vx;
           if (Math.random() < 0.5) ENT.addPart(this.x - this.chargeDir * 36, this.y - 2, -this.chargeDir, -0.5, 14, "#9a8a70", 3, 0);
-        } else this.vx = 0;
+        } else {
+          this.vx = 0;
+        }
         this.x = Math.max(LEVEL.bossLockX + 60, Math.min(LEVEL.bossLockX + GAME.VW - 50, this.x));
       }
     }

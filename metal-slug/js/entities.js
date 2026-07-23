@@ -57,6 +57,10 @@
     for (const b of ENT.barrels) {
       if (!b.dead && Math.abs(b.x - x) < r && Math.abs(b.y - y) < r) b.hp = 0;
     }
+    // Boss 也受爆炸溅射伤害
+    if (LEVEL.boss && LEVEL.boss.hittable() && !LEVEL.boss.dead) {
+      if (Math.abs(LEVEL.boss.x - x) < r && Math.abs(LEVEL.boss.y - y) < r) LEVEL.boss.takeHit(3);
+    }
     if (hurtPlayer !== false && ENT.player && ENT.player.alive && ENT.player.invuln <= 0) {
       if (Math.abs(ENT.player.x - x) < r * 0.75 && Math.abs(ENT.player.y - y) < r) ENT.player.die();
     }
@@ -243,7 +247,11 @@
       if (LEVEL.boss && LEVEL.boss.hittable() && !this.dead) {
         const b = LEVEL.boss;
         if (this.x > b.x - 34 && this.x < b.x + 34 && this.y > b.y - 52 && this.y < b.y) {
-          if (this.kind === "grenade" || this.kind === "rocket") { this.explode(); return; }
+          if (this.kind === "grenade" || this.kind === "rocket") {
+            b.takeHit(this.kind === "rocket" ? 5 : 4);
+            this.explode();
+            return;
+          }
           b.takeHit(this.dmg);
           if (!this.pierce) { this.dead = true; return; }
         }
