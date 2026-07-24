@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五子棋 · Gomoku</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#1a1510; --panel:#241e16; --panel2:#2e261c;
+    --gold:#d4a556; --gold-lt:#f0c878; --gold-dp:#8a6a30;
+    --ink:#e8dcc8; --dim:#8a7a60;
+    --line:rgba(212,165,86,.2);
+  }
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","STKaiti",serif;
+    display:flex; justify-content:center; align-items:flex-start;
+    min-height:100vh; padding:20px; gap:20px;
+    overflow-x:hidden;
+  }
+
+  /* ========== 棋盘区 ========== */
+  .board-area{
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+  }
+  canvas#board{
+    border-radius:4px;
+    box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 80px rgba(212,165,86,.08);
+    cursor:crosshair;
+  }
+
+  /* ========== 侧面板 ========== */
+  .side-panel{
+    width:240px; display:flex; flex-direction:column; gap:10px;
+    max-height:calc(100vh - 40px); overflow-y:auto;
+  }
+  .panel-section{
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:6px; padding:12px 14px;
+  }
+  .panel-mode{font-size:15px; color:var(--gold); letter-spacing:2px; margin-bottom:6px}
+  .panel-round,.panel-score{font-size:12px; color:var(--dim); margin-top:4px}
+
+  .player{transition:border-color .3s, box-shadow .3s}
+  .player.active{border-color:var(--gold); box-shadow:0 0 16px rgba(212,165,86,.15)}
+  .player-label{display:flex; align-items:center; gap:8px; font-size:14px; margin-bottom:8px}
+  .piece-icon{
+    width:16px; height:16px; border-radius:50%; display:inline-block; flex:none;
+  }
+  .piece-icon.black{background:radial-gradient(circle at 35% 35%,#555,#111)}
+  .piece-icon.white{background:radial-gradient(circle at 35% 35%,#fff,#c0b8a8); border:1px solid #999}
+  .player-timer{font-size:24px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums}
+  .player-byo{font-size:11px; color:#ff6040; margin-top:4px}
+
+  .eval-label{font-size:12px; color:var(--dim); margin-bottom:6px}
+  .eval-bar{
+    width:100%; height:8px; background:#1a1510; border-radius:4px; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .eval-fill{
+    height:100%; background:linear-gradient(90deg,#333,#d4a556);
+    border-radius:4px; transition:width .5s;
+  }
+  .eval-text{font-size:11px; color:var(--dim); margin-top:4px; text-align:center}
+
+  .ai-thinking{
+    text-align:center; font-size:13px; color:var(--gold);
+    padding:8px; background:var(--panel2); border-radius:6px;
+    border:1px solid var(--line);
+  }
+  .dots span{animation:blink 1s infinite; display:inline-block}
+  .dots span:nth-child(2){animation-delay:.3s}
+  .dots span:nth-child(3){animation-delay:.6s}
+  @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+  .panel-btns{display:flex; flex-wrap:wrap; gap:6px}
+  .btn{
+    flex:1; min-width:60px; padding:8px 4px; border:1px solid var(--line);
+    border-radius:4px; background:var(--panel2); color:var(--ink);
+    font:inherit; font-size:12px; cursor:pointer; text-align:center;
+    transition:all .2s; letter-spacing:1px;
+  }
+  .btn:hover{border-color:var(--gold); background:rgba(212,165,86,.1); color:var(--gold-lt)}
+  .btn.small{min-width:50px; font-size:11px; padding:6px 4px}
+
+  /* ========== 弹层/菜单 ========== */
+  .overlay{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(10,8,5,.85); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .menu-box{
+    background:var(--panel); border:1px solid var(--gold-dp);
+    border-radius:12px; padding:40px 48px; text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(212,165,86,.1);
+    max-width:420px; width:90%;
+  }
+  .menu-title{
+    font-size:36px; color:var(--gold); letter-spacing:12px;
+    font-weight:400; margin-bottom:8px;
+    text-shadow:0 0 30px rgba(212,165,86,.3);
+  }
+  .menu-sub{font-size:13px; color:var(--dim); letter-spacing:3px; margin-bottom:24px}
+  .menu-desc{font-size:14px; color:var(--ink); line-height:1.8; margin-bottom:20px; text-align:left}
+  .menu-group{display:flex; flex-direction:column; gap:10px; margin-bottom:16px}
+  .menu-btn{
+    padding:14px 32px; border:1px solid var(--gold-dp); border-radius:6px;
+    background:linear-gradient(160deg,var(--panel2),var(--panel));
+    color:var(--gold); font:inherit; font-size:16px; letter-spacing:4px;
+    cursor:pointer; transition:all .25s;
+  }
+  .menu-btn:hover{
+    background:linear-gradient(160deg,rgba(212,165,86,.2),var(--panel2));
+    border-color:var(--gold); transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(212,165,86,.2);
+  }
+  .menu-btn.small{font-size:13px; padding:10px 24px; letter-spacing:2px}
+  .menu-rules{font-size:12px; color:var(--dim); margin-top:8px}
+  .menu-rules select{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:4px; padding:4px 8px; font:inherit; font-size:12px;
+  }
+
+  .settings-list{
+    display:flex; flex-direction:column; gap:12px;
+    text-align:left; margin-bottom:20px; font-size:14px;
+  }
+  .settings-list label{display:flex; align-items:center; gap:8px; cursor:pointer}
+  .settings-list select{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line);
+    border-radius:4px; padding:4px 8px; font:inherit; font-size:13px;
+  }
+  .settings-list input[type="checkbox"]{
+    width:16px; height:16px; accent-color:var(--gold);
+  }
+
+  /* ========== 响应式 ========== */
+  @media (max-width:800px){
+    body{flex-direction:column; align-items:center; padding:10px}
+    .side-panel{width:100%; max-width:480px; flex-direction:row; flex-wrap:wrap}
+    .panel-section{flex:1; min-width:140px}
+    canvas#board{max-width:calc(100vw - 20px); max-height:calc(100vw - 20px)}
+  }
+</style>
+</head>
+<body>
+
+<div class="board-area">
+  <canvas id="board"></canvas>
+</div>
+<div class="side-panel" id="side-panel"></div>
+<div class="overlay" id="overlay"></div>
+
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/render.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
+<script>
+  GAME.init();
+</script>
+</body>
+</html>
