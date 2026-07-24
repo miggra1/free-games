@@ -1,34 +1,42 @@
 /* ============================================================
  * ai.js — 五子棋 AI 引擎
- * 棋型评分 / 极大极小搜索 / Alpha-Beta剪枝 / 置换表 / 迭代加深 / VCF
+ * 棋型评分 / 极大极小搜索 / Alpha-Beta 剪枝 / 置换表 / 迭代加深
+ * ============================================================
+ * 2026-07-24: 重写搜索主循环，真正遍历候选点而非只评估第一步；
+ *             优化评估函数与着法排序；大师难度显著增强。
  * ============================================================ */
 (function () {
   "use strict";
   const SIZE = 15, EMPTY = 0, BLACK = 1, WHITE = 2;
-  const DIRS = [[1,0],[0,1],[1,1],[1,-1]];
+  const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
 
-  /* ---------------- 棋型评分表 ---------------- */
-  const SCORE = {
-    five:      100000,
-    liveFour:  10000,
-    rushFour:  1000,
-    liveThree: 1000,
-    sleepThree: 100,
-    liveTwo:   100,
-    rushTwo:   10,
-    liveOne:   1,
+  const WIN_SCORE = 100000000;
+  const PAT_VAL = {
+    five:       100000000,
+    liveFour:   1000000,
+    rushFour:   25000,
+    liveThree:  12000,
+    sleepThree: 600,
+    liveTwo:    250,
+    rushTwo:    30,
+    liveOne:    2,
   };
 
   /* ---------------- Zobrist 哈希 ---------------- */
   const zobrist = [];
   for (let i = 0; i < SIZE * SIZE; i++) {
-    zobrist.push([BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)), BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER))]);
+    zobrist.push([
+      BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)),
+      BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER))
+    ]);
   }
   function hashBoard(grid) {
     let h = 0n;
-    for (let y = 0; y < SIZE; y++)
-      for (let x = 0; x < SIZE; x++)
+    for (let y = 0; y < SIZE; y++) {
+      for (let x = 0; x < SIZE; x++) {
         if (grid[y][x] !== EMPTY) h ^= zobrist[y * SIZE + x][grid[y][x] - 1];
+      }
+    }
     return h.toString(36);
   }
 
@@ -41,173 +49,253 @@
     TT.set(key, { val, depth, flag, bestMove });
   }
 
-  /* ---------------- 局面评估 ---------------- */
-  // 评估某点在某方向上对某方的棋型得分
-  function evalPointDir(grid, x, y, dx, dy, p) {
-    let count = 1, openEnds = 0, blockEnds = 0;
+  /* ---------------- 局面工具 ---------------- */
+  function inBoard(x, y) { return x >= 0 && x < SIZE && y >= 0 && y < SIZE; }
+
+  function analyzeDir(grid, x, y, dx, dy, p) {
+    let count = 1, openEnds = 0;
     for (let i = 1; i < SIZE; i++) {
       const nx = x + dx * i, ny = y + dy * i;
-      if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) break;
-      if (grid[ny][nx] === p) count++;
-      else if (grid[ny][nx] === EMPTY) { openEnds++; break; }
-      else { blockEnds++; break; }
-    }
-    for (let i = 1; i < SIZE; i++) {
-      const nx = x - dx * i, ny = y - dy * i;
-      if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) break;
+      if (!inBoard(nx, ny)) break;
       if (grid[ny][nx] === p) count++;
       else if (grid[ny][nx] === EMPTY) { openEnds++; break; }
       else break;
     }
-    if (count >= 5) return SCORE.five;
-    if (count === 4) return openEnds === 2 ? SCORE.liveFour : openEnds === 1 ? SCORE.rushFour : 0;
-    if (count === 3) return openEnds === 2 ? SCORE.liveThree : openEnds === 1 ? SCORE.sleepThree : 0;
-    if (count === 2) return openEnds === 2 ? SCORE.liveTwo : openEnds === 1 ? SCORE.rushTwo : 0;
-    return openEnds > 0 ? SCORE.liveOne : 0;
+    for (let i = 1; i < SIZE; i++) {
+      const nx = x - dx * i, ny = y - dy * i;
+      if (!inBoard(nx, ny)) break;
+      if (grid[ny][nx] === p) count++;
+      else if (grid[ny][nx] === EMPTY) { openEnds++; break; }
+      else break;
+    }
+    return { count, openEnds };
   }
 
-  // 局面总评估（正数表示 p 方优势）
-  function evaluate(grid, p) {
-    const opp = p === BLACK ? WHITE : BLACK;
-    let pScore = 0, oppScore = 0;
+  function getPattern(grid, x, y, dx, dy, p) {
+    const a = analyzeDir(grid, x, y, dx, dy, p);
+    if (a.count >= 5) return "five";
+    if (a.count === 4) return a.openEnds === 2 ? "liveFour" : a.openEnds === 1 ? "rushFour" : null;
+    if (a.count === 3) return a.openEnds === 2 ? "liveThree" : a.openEnds === 1 ? "sleepThree" : null;
+    if (a.count === 2) return a.openEnds === 2 ? "liveTwo" : a.openEnds === 1 ? "rushTwo" : null;
+    return a.openEnds > 0 ? "liveOne" : null;
+  }
+
+  /* ---------------- 禁手检查（黑棋） ---------------- */
+  function isForbiddenMove(grid, x, y, p, ruleMode) {
+    if (ruleMode === "free" || p !== BLACK) return false;
+    if (grid[y][x] !== EMPTY) return false;
+    grid[y][x] = BLACK;
+    let threeCount = 0, fourCount = 0, overline = false;
+    for (const [dx, dy] of DIRS) {
+      const a = analyzeDir(grid, x, y, dx, dy, BLACK);
+      if (a.count > 5) overline = true;
+      else if (a.count === 5) { /* 五连不算禁手 */ }
+      else if (a.count === 4 && a.openEnds >= 1) fourCount++;
+      else if (a.count === 3 && a.openEnds === 2) threeCount++;
+    }
+    grid[y][x] = EMPTY;
+    return overline || fourCount >= 2 || threeCount >= 2;
+  }
+
+  /* ---------------- 局面评估 ---------------- */
+  function patternScore(grid, p) {
+    let score = 0;
     const visited = new Set();
+    let liveThree = 0, rushFour = 0, liveFour = 0;
     for (let y = 0; y < SIZE; y++) {
       for (let x = 0; x < SIZE; x++) {
-        const c = grid[y][x];
-        if (c === EMPTY) continue;
+        if (grid[y][x] !== p) continue;
         for (const [dx, dy] of DIRS) {
-          const prevX = x - dx, prevY = y - dy;
-          if (prevX >= 0 && prevX < SIZE && prevY >= 0 && prevY < SIZE && grid[prevY][prevX] === c) continue;
-          const key = `${c},${x},${y},${dx},${dy}`;
+          const px = x - dx, py = y - dy;
+          if (inBoard(px, py) && grid[py][px] === p) continue;
+          const key = `${x},${y},${dx},${dy}`;
           if (visited.has(key)) continue;
           visited.add(key);
-          const s = evalPointDir(grid, x, y, dx, dy, c);
-          if (c === p) pScore += s; else oppScore += s;
+          const pat = getPattern(grid, x, y, dx, dy, p);
+          if (!pat) continue;
+          score += PAT_VAL[pat];
+          if (pat === "liveThree") liveThree++;
+          else if (pat === "rushFour") rushFour++;
+          else if (pat === "liveFour") liveFour++;
         }
       }
     }
-    return pScore - oppScore;
+    // 多线威胁奖励
+    if (liveThree >= 2) score += 200000;
+    if (rushFour >= 2) score += 50000;
+    if (liveFour >= 1 && (liveThree + rushFour) >= 1) score += 20000;
+    return score;
+  }
+
+  function evaluate(grid, rootPlayer) {
+    const opp = rootPlayer === BLACK ? WHITE : BLACK;
+    return patternScore(grid, rootPlayer) - patternScore(grid, opp);
+  }
+
+  /* ---------------- 着点威胁评估（用于着法生成与排序） ---------------- */
+  function pointThreat(grid, x, y, p) {
+    if (grid[y][x] !== EMPTY) return -1;
+    let s = 0;
+    grid[y][x] = p;
+    for (const [dx, dy] of DIRS) {
+      const pat = getPattern(grid, x, y, dx, dy, p);
+      if (pat) s += PAT_VAL[pat];
+    }
+    grid[y][x] = EMPTY;
+    return s;
+  }
+
+  function moveHeuristic(grid, x, y, p) {
+    const opp = p === BLACK ? WHITE : BLACK;
+    const atk = pointThreat(grid, x, y, p);
+    const def = pointThreat(grid, x, y, opp);
+    return atk + def * 1.25;
   }
 
   /* ---------------- 生成候选着点 ---------------- */
-  // 只考虑已有棋子附近的空位（减少搜索量）
-  function genMoves(grid, p) {
+  function boardHasStone(grid) {
+    for (let y = 0; y < SIZE; y++)
+      for (let x = 0; x < SIZE; x++)
+        if (grid[y][x] !== EMPTY) return true;
+    return false;
+  }
+
+  function generateMoves(grid, player, limit, ruleMode) {
+    if (!boardHasStone(grid)) return [{ x: 7, y: 7, score: 0 }];
     const moves = [];
     const seen = new Set();
-    const range = 2; // 搜索半径
     for (let y = 0; y < SIZE; y++) {
       for (let x = 0; x < SIZE; x++) {
         if (grid[y][x] === EMPTY) continue;
-        for (let dy = -range; dy <= range; dy++) {
-          for (let dx = -range; dx <= range; dx++) {
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
             const nx = x + dx, ny = y + dy;
-            if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) continue;
+            if (!inBoard(nx, ny)) continue;
             if (grid[ny][nx] !== EMPTY) continue;
             const key = ny * SIZE + nx;
             if (seen.has(key)) continue;
             seen.add(key);
-            // 简单评分排序
-            let score = 0;
-            for (const [ddx, ddy] of DIRS) {
-              score += evalPointDir(grid, nx, ny, ddx, ddy, p);
-            }
+            if (isForbiddenMove(grid, nx, ny, player, ruleMode)) continue;
+            const score = moveHeuristic(grid, nx, ny, player);
             moves.push({ x: nx, y: ny, score });
           }
         }
       }
     }
-    // 按评分降序排列
     moves.sort((a, b) => b.score - a.score);
-    return moves;
+    return moves.slice(0, limit);
+  }
+
+  /* ---------------- 胜负判定 ---------------- */
+  function isWinningMove(grid, x, y, p) {
+    if (grid[y][x] !== EMPTY) return false;
+    grid[y][x] = p;
+    let win = false;
+    for (const [dx, dy] of DIRS) {
+      let cnt = 1;
+      for (let i = 1; i < 5; i++) {
+        const nx = x + dx * i, ny = y + dy * i;
+        if (!inBoard(nx, ny) || grid[ny][nx] !== p) break;
+        cnt++;
+      }
+      for (let i = 1; i < 5; i++) {
+        const nx = x - dx * i, ny = y - dy * i;
+        if (!inBoard(nx, ny) || grid[ny][nx] !== p) break;
+        cnt++;
+      }
+      if (cnt >= 5) { win = true; break; }
+    }
+    grid[y][x] = EMPTY;
+    return win;
   }
 
   /* ---------------- Alpha-Beta 搜索 ---------------- */
-  let searchDepth = 4, searchStart = 0, searchLimit = 3000; // 时间限制 ms
+  let searchStart = 0, searchLimit = 5000;
   let nodesSearched = 0;
+  let AI_ABORT = false;
+  let RULE_MODE = "free";
 
-  function alphabeta(grid, depth, alpha, beta, p, isMax, ply) {
+  function searchMoveLimit(depth, isRoot) {
+    if (isRoot) return depth <= 2 ? 24 : depth <= 4 ? 28 : 32;
+    return depth <= 1 ? 16 : depth <= 3 ? 20 : 24;
+  }
+
+  function alphabeta(grid, depth, alpha, beta, player, isMax, rootPlayer) {
+    if (AI_ABORT) return evaluate(grid, rootPlayer);
     nodesSearched++;
-    if (Date.now() - searchStart > searchLimit) return isMax ? -999999 : 999999; // 超时
+    // 每 1024 个节点检查一次时间，防止单次分支超时过长
+    if ((nodesSearched & 1023) === 0 && Date.now() - searchStart > searchLimit) {
+      AI_ABORT = true;
+      return evaluate(grid, rootPlayer);
+    }
+
     const key = hashBoard(grid);
     const ttEntry = ttGet(key);
+    const oldAlpha = alpha, oldBeta = beta;
     if (ttEntry && ttEntry.depth >= depth) {
       if (ttEntry.flag === 0) return ttEntry.val;
       if (ttEntry.flag === 1 && ttEntry.val >= beta) return ttEntry.val;
       if (ttEntry.flag === 2 && ttEntry.val <= alpha) return ttEntry.val;
     }
-    if (depth === 0) return evaluate(grid, isMax ? p : (p === BLACK ? WHITE : BLACK));
 
-    const opp = p === BLACK ? WHITE : BLACK;
-    const moves = genMoves(grid, p);
+    if (depth <= 0) return evaluate(grid, rootPlayer);
+
+    const opp = player === BLACK ? WHITE : BLACK;
+    const moves = generateMoves(grid, player, searchMoveLimit(depth, false), RULE_MODE);
+    if (moves.length === 0) return evaluate(grid, rootPlayer);
+
     let bestMove = null;
-
     if (isMax) {
       let best = -Infinity;
       for (const m of moves) {
-        grid[m.y][m.x] = p;
-        // 检查是否五连
-        let win = false;
-        for (const [dx, dy] of DIRS) {
-          let cnt = 1;
-          for (let i = 1; i < 5; i++) { const nx = m.x + dx * i, ny = m.y + dy * i; if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE || grid[ny][nx] !== p) break; cnt++; }
-          for (let i = 1; i < 5; i++) { const nx = m.x - dx * i, ny = m.y - dy * i; if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE || grid[ny][nx] !== p) break; cnt++; }
-          if (cnt >= 5) { win = true; break; }
+        grid[m.y][m.x] = player;
+        let val;
+        if (isWinningMove(grid, m.x, m.y, player)) {
+          val = WIN_SCORE + depth;
+        } else {
+          val = alphabeta(grid, depth - 1, alpha, beta, opp, false, rootPlayer);
         }
-        if (win) { grid[m.y][m.x] = EMPTY; return SCORE.five + depth; }
-        const val = alphabeta(grid, depth - 1, alpha, beta, opp, false, ply + 1);
         grid[m.y][m.x] = EMPTY;
+        if (AI_ABORT) return evaluate(grid, rootPlayer);
         if (val > best) { best = val; bestMove = m; }
         if (best > alpha) alpha = best;
-        if (beta <= alpha) break; // 剪枝
+        if (beta <= alpha) break;
       }
-      ttSet(key, best, depth, best <= alpha ? 2 : 0, bestMove);
+      let flag = 0;
+      if (best >= oldBeta) flag = 1;
+      else if (best <= oldAlpha) flag = 2;
+      ttSet(key, best, depth, flag, bestMove);
       return best;
     } else {
       let best = Infinity;
       for (const m of moves) {
-        grid[m.y][m.x] = p;
-        let win = false;
-        for (const [dx, dy] of DIRS) {
-          let cnt = 1;
-          for (let i = 1; i < 5; i++) { const nx = m.x + dx * i, ny = m.y + dy * i; if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE || grid[ny][nx] !== p) break; cnt++; }
-          for (let i = 1; i < 5; i++) { const nx = m.x - dx * i, ny = m.y - dy * i; if (nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE || grid[ny][nx] !== p) break; cnt++; }
-          if (cnt >= 5) { win = true; break; }
+        grid[m.y][m.x] = player;
+        let val;
+        if (isWinningMove(grid, m.x, m.y, player)) {
+          val = -(WIN_SCORE + depth);
+        } else {
+          val = alphabeta(grid, depth - 1, alpha, beta, opp, true, rootPlayer);
         }
-        if (win) { grid[m.y][m.x] = EMPTY; return -(SCORE.five + depth); }
-        const val = alphabeta(grid, depth - 1, alpha, beta, opp, true, ply + 1);
         grid[m.y][m.x] = EMPTY;
+        if (AI_ABORT) return evaluate(grid, rootPlayer);
         if (val < best) { best = val; bestMove = m; }
         if (best < beta) beta = best;
         if (beta <= alpha) break;
       }
-      ttSet(key, best, depth, best >= beta ? 1 : 0, bestMove);
+      let flag = 0;
+      if (best <= oldAlpha) flag = 2;
+      else if (best >= oldBeta) flag = 1;
+      ttSet(key, best, depth, flag, bestMove);
       return best;
     }
   }
 
-  /* ---------------- VCF 检测（连续冲四） ---------------- */
-  function hasVCF(grid, p) {
-    // 简化: 检查是否存在活四或双冲四
-    for (let y = 0; y < SIZE; y++) {
-      for (let x = 0; x < SIZE; x++) {
-        if (grid[y][x] !== EMPTY) continue;
-        for (const [dx, dy] of DIRS) {
-          grid[y][x] = p;
-          const s = evalPointDir(grid, x, y, dx, dy, p);
-          grid[y][x] = EMPTY;
-          if (s >= SCORE.rushFour) return { x, y };
-        }
-      }
-    }
-    return null;
-  }
-
   /* ---------------- 难度配置 ---------------- */
   const DIFFICULTY = {
-    beginner: { depth: 1, timeLimit: 500,  randomness: 0.4, name: "新手" },
-    normal:   { depth: 2, timeLimit: 1000, randomness: 0.2, name: "普通" },
-    hard:     { depth: 4, timeLimit: 3000, randomness: 0.05, name: "困难" },
-    master:   { depth: 6, timeLimit: 5000, randomness: 0,   name: "大师" },
+    beginner: { depth: 1, timeLimit: 400,  randomness: 0.45, name: "新手" },
+    normal:   { depth: 2, timeLimit: 1000, randomness: 0.18, name: "普通" },
+    hard:     { depth: 4, timeLimit: 3000, randomness: 0.04, name: "困难" },
+    master:   { depth: 6, timeLimit: 6000, randomness: 0,    name: "大师" },
   };
 
   /* ---------------- AI 主入口 ---------------- */
@@ -219,37 +307,88 @@
     think(grid, player, difficulty, callback) {
       const cfg = DIFFICULTY[difficulty] || DIFFICULTY.normal;
       AI.thinking = true;
+      AI_ABORT = false;
       searchStart = Date.now();
       searchLimit = cfg.timeLimit;
       nodesSearched = 0;
+      RULE_MODE = (typeof BOARD !== "undefined" && BOARD.ruleMode) ? BOARD.ruleMode : "free";
       TT.clear();
 
-      // 迭代加深
-      let bestMove = null;
-      let bestVal = -Infinity;
-      for (let d = 1; d <= cfg.depth; d++) {
-        searchDepth = d;
-        const moves = genMoves(grid, player);
-        if (moves.length === 0) {
-          // 棋盘空，下天元
-          bestMove = { x: 7, y: 7 };
-          break;
-        }
-        // 取评分最高的一步
-        const m = moves[0];
-        grid[m.y][m.x] = player;
-        const val = alphabeta(grid, d - 1, -Infinity, Infinity, player === BLACK ? WHITE : BLACK, false, 0);
-        grid[m.y][m.x] = EMPTY;
-        if (val > bestVal) { bestVal = val; bestMove = m; }
-        if (Date.now() - searchStart > searchLimit) break;
+      // 空棋盘直接下天元
+      if (!boardHasStone(grid)) {
+        AI.thinkTime = Date.now() - searchStart;
+        AI.thinking = false;
+        if (callback) callback({ x: 7, y: 7 });
+        return;
       }
 
-      // 低难度拟人化失误
+      const opp = player === BLACK ? WHITE : BLACK;
+      let candidates = generateMoves(grid, player, 40, RULE_MODE);
+
+      // 1. 自己能直接五连，立刻下
+      for (const m of candidates) {
+        if (isWinningMove(grid, m.x, m.y, player)) {
+          AI.thinkTime = Date.now() - searchStart;
+          AI.thinking = false;
+          if (callback) callback({ x: m.x, y: m.y });
+          return;
+        }
+      }
+
+      // 2. 对手有 immediate 五连威胁，必须堵；若只有一处则强制作答
+      const blocks = [];
+      for (const m of candidates) {
+        if (isWinningMove(grid, m.x, m.y, opp)) blocks.push(m);
+      }
+      if (blocks.length === 1) {
+        AI.thinkTime = Date.now() - searchStart;
+        AI.thinking = false;
+        if (callback) callback({ x: blocks[0].x, y: blocks[0].y });
+        return;
+      }
+
+      // 3. 迭代加深主搜索
+      let bestMove = candidates[0] || { x: 7, y: 7 };
+      let bestVal = -Infinity;
+      let completedDepth = 0;
+
+      for (let d = 1; d <= cfg.depth; d++) {
+        let curBest = null;
+        let curVal = -Infinity;
+        const limit = searchMoveLimit(d, true);
+        const movesThisDepth = candidates.slice(0, limit);
+
+        for (const m of movesThisDepth) {
+          if (isForbiddenMove(grid, m.x, m.y, player, RULE_MODE)) continue;
+          grid[m.y][m.x] = player;
+          let val;
+          if (isWinningMove(grid, m.x, m.y, player)) {
+            val = WIN_SCORE + d;
+          } else {
+            val = alphabeta(grid, d - 1, -Infinity, Infinity, opp, false, player);
+          }
+          grid[m.y][m.x] = EMPTY;
+          if (AI_ABORT) break;
+          if (val > curVal) { curVal = val; curBest = m; }
+          if (Date.now() - searchStart > searchLimit) { AI_ABORT = true; break; }
+        }
+
+        if (AI_ABORT) break;
+        if (curBest) {
+          bestMove = curBest;
+          bestVal = curVal;
+          completedDepth = d;
+          // 下一轮把当前最佳排在最前，增强剪枝
+          candidates = [curBest, ...candidates.filter(c => c !== curBest)];
+        }
+      }
+
+      // 4. 低难度拟人化失误
       if (cfg.randomness > 0 && Math.random() < cfg.randomness) {
-        const moves = genMoves(grid, player);
-        if (moves.length > 1) {
-          const idx = Math.min(moves.length - 1, 1 + Math.floor(Math.random() * 3));
-          bestMove = moves[idx];
+        const backup = generateMoves(grid, player, 8, RULE_MODE);
+        if (backup.length > 1) {
+          const idx = Math.min(backup.length - 1, 1 + Math.floor(Math.random() * 3));
+          bestMove = backup[idx];
         }
       }
 
@@ -266,7 +405,7 @@
 
     // 推荐最佳着手（用于练习模式）
     suggestMove(grid, player, callback) {
-      const moves = genMoves(grid, player);
+      const moves = generateMoves(grid, player, 12, (typeof BOARD !== "undefined" && BOARD.ruleMode) ? BOARD.ruleMode : "free");
       if (moves.length === 0) { callback({ x: 7, y: 7 }); return; }
       callback(moves[0]);
     },
