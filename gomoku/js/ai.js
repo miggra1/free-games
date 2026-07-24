@@ -216,8 +216,8 @@
   let RULE_MODE = "free";
 
   function searchMoveLimit(depth, isRoot) {
-    if (isRoot) return depth <= 2 ? 24 : depth <= 4 ? 28 : 32;
-    return depth <= 1 ? 16 : depth <= 3 ? 20 : 24;
+    if (isRoot) return depth <= 2 ? 14 : depth <= 4 ? 18 : 22;
+    return depth <= 1 ? 10 : depth <= 3 ? 14 : 18;
   }
 
   function alphabeta(grid, depth, alpha, beta, player, isMax, rootPlayer) {
@@ -292,10 +292,10 @@
 
   /* ---------------- 难度配置 ---------------- */
   const DIFFICULTY = {
-    beginner: { depth: 1, timeLimit: 400,  randomness: 0.45, name: "新手" },
-    normal:   { depth: 2, timeLimit: 1000, randomness: 0.18, name: "普通" },
-    hard:     { depth: 4, timeLimit: 3000, randomness: 0.04, name: "困难" },
-    master:   { depth: 6, timeLimit: 6000, randomness: 0,    name: "大师" },
+    beginner: { depth: 1, timeLimit: 250,  randomness: 0.45, name: "新手" },
+    normal:   { depth: 2, timeLimit: 600,  randomness: 0.18, name: "普通" },
+    hard:     { depth: 4, timeLimit: 1800, randomness: 0.04, name: "困难" },
+    master:   { depth: 5, timeLimit: 3500, randomness: 0,    name: "大师" },
   };
 
   /* ---------------- AI 主入口 ---------------- */
