@@ -31,6 +31,7 @@ const state = {
   particles: [],
   ripples: [],
   stuckFrames: 0,
+  blackGoldMode: 0, // 0=普通, 1=5连黑金, 2=10连黑金
   last: 0,
 };
 
@@ -89,6 +90,7 @@ function reset() {
   state.particles = [];
   state.ripples = [];
   state.stuckFrames = 0;
+  state.blackGoldMode = 0;
   spawnBall();
   tip.textContent = "60 秒挑战，点一下起跳";
 }
@@ -165,7 +167,7 @@ resultDialog?.addEventListener("close", () => {
 function update(delta) {
   state.shake = Math.max(0, state.shake - delta * 4);
   state.netSwing = Math.max(0, state.netSwing - delta * 2.8);
-  state.fire = Math.max(0, state.fire - delta * 0.18);
+  state.fire = state.blackGoldMode ? 1 : Math.max(0, state.fire - delta * 0.18);
   state.messageLife = Math.max(0, state.messageLife - delta);
 
   if (state.ended) {
@@ -193,7 +195,7 @@ function update(delta) {
   b.y += b.vy;
   b.spin += b.vx * 0.045;
 
-  state.trails.push({ x: b.x, y: b.y, life: state.fire > 0 ? 0.62 : 0.3, fire: state.fire > 0 });
+  state.trails.push({ x: b.x, y: b.y, life: state.fire > 0 ? 0.62 : 0.3, fire: state.fire > 0, blackGoldMode: state.blackGoldMode });
 
   // 卡死检测：本帧位移过小就累加，连续多帧位移过小就强制 miss
   const movedX = b.x - b.px;
@@ -237,8 +239,10 @@ function miss() {
   if (state.ended) return;
   state.combo = 0;
   state.fire = 0;
+  state.blackGoldMode = 0;
   state.shake = Math.max(state.shake, 0.25);
   showMessage("失误", 0.55);
+  tip.textContent = "60 秒挑战，点一下起跳";
   spawnBall();
 }
 
@@ -260,8 +264,23 @@ function checkScore() {
   saveFireBasketballScore(state.score);
   state.fire = Math.min(1, state.fire + (perfect ? 0.5 : 0.27));
   state.shake = perfect ? 0.65 : 0.36;
-  showMessage(perfect ? `完美 x${Math.max(2, state.combo)}` : `命中 +1`, 1.05);
-  burst(rimX, rimY, perfect ? 36 : 20, perfect);
+
+  // 黑金模式触发
+  const oldMode = state.blackGoldMode;
+  if (state.combo >= 10) state.blackGoldMode = 2;
+  else if (state.combo >= 5) state.blackGoldMode = 1;
+  if (state.blackGoldMode > oldMode) {
+    const isTen = state.blackGoldMode === 2;
+    state.shake = Math.max(state.shake, isTen ? 1.0 : 0.75);
+    state.fire = 1;
+    showMessage(isTen ? "⚫ 黑金 x10 ⚫" : "⚡ 黑金 x5 ⚡", isTen ? 1.8 : 1.5);
+    burst(rimX, rimY, isTen ? 80 : 50, true, isTen ? "blackGold10" : "blackGold5");
+    tip.textContent = isTen ? "黑金神话！全力输出！" : "黑金觉醒！继续连击！";
+  } else {
+    showMessage(perfect ? `完美 x${Math.max(2, state.combo)}` : `命中 +1`, 1.05);
+    burst(rimX, rimY, perfect ? 36 : 20, perfect, state.blackGoldMode ? (state.blackGoldMode === 2 ? "blackGold10" : "blackGold5") : "");
+  }
+
   state.netSide = state.side;
   state.netSwing = 1;
 
@@ -282,6 +301,7 @@ function endRound() {
   state.ended = true;
   state.combo = 0;
   state.fire = 0;
+  state.blackGoldMode = 0;
   state.shake = Math.max(state.shake, 0.45);
   showMessage("时间到", 1);
   saveFireBasketballScore(state.score);
@@ -507,17 +527,25 @@ function updateEffects(delta) {
   state.particles = state.particles.filter((p) => p.life > 0);
 }
 
-function burst(x, y, count, hot) {
+function burst(x, y, count, hot, theme = "") {
+  const isBlackGold5 = theme === "blackGold5";
+  const isBlackGold10 = theme === "blackGold10";
   for (let i = 0; i < count; i += 1) {
     const a = Math.random() * Math.PI * 2;
-    const s = 1 + Math.random() * (hot ? 6 : 3);
+    const s = isBlackGold10 ? 2 + Math.random() * 8 : isBlackGold5 ? 1.5 + Math.random() * 6 : 1 + Math.random() * (hot ? 6 : 3);
     state.particles.push({
       x, y,
       vx: Math.cos(a) * s,
       vy: Math.sin(a) * s,
-      r: hot ? 2 + Math.random() * 4 : 1 + Math.random() * 2,
-      life: hot ? 0.8 : 0.45,
-      color: hot ? (Math.random() > 0.4 ? "#ff6a22" : "#ffd15c") : "#ffffff",
+      r: isBlackGold10 ? 3 + Math.random() * 5 : isBlackGold5 ? 2 + Math.random() * 4 : hot ? 2 + Math.random() * 4 : 1 + Math.random() * 2,
+      life: isBlackGold10 ? 1.2 : isBlackGold5 ? 0.95 : hot ? 0.8 : 0.45,
+      color: isBlackGold10
+        ? (Math.random() > 0.5 ? "#000000" : (Math.random() > 0.3 ? "#ffd15c" : "#ffffff"))
+        : isBlackGold5
+        ? (Math.random() > 0.5 ? "#111111" : "#ffd15c")
+        : hot
+        ? (Math.random() > 0.4 ? "#ff6a22" : "#ffd15c")
+        : "#ffffff",
     });
   }
 }
@@ -535,6 +563,7 @@ function draw() {
   drawBall();
   drawParticles();
   drawHud();
+  drawComboBadge();
   drawTextFx();
   ctx.restore();
 }
@@ -569,8 +598,8 @@ function drawHud() {
   ctx.textAlign = "center";
   ctx.fillText(state.score, 151, 47);
   ctx.fillText(`最高 ${state.best}`, W - 134, 47);
-  ctx.fillStyle = "#ffd15c";
-  ctx.font = "900 15px Microsoft YaHei";
+  ctx.fillStyle = state.blackGoldMode ? "#ffdf5a" : "#ffd15c";
+  ctx.font = `900 ${state.blackGoldMode ? 17 : 15}px Microsoft YaHei`;
   ctx.fillText(`x${state.combo}`, W / 2, 40);
   ctx.fillStyle = "#ffffff";
   ctx.font = "800 12px Microsoft YaHei";
@@ -582,6 +611,24 @@ function drawHud() {
   ctx.fillStyle = seconds <= 10 ? "#fff" : "#18120a";
   ctx.font = "900 16px Microsoft YaHei";
   ctx.fillText(`${seconds}s`, W / 2, 102);
+}
+
+function drawComboBadge() {
+  if (state.blackGoldMode === 2) {
+    ctx.fillStyle = "rgba(255,215,80,0.16)";
+    ctx.strokeStyle = "rgba(255,215,80,0.7)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(W / 2, 40, 34 + Math.sin(Date.now() / 140) * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  } else if (state.blackGoldMode === 1) {
+    ctx.strokeStyle = "rgba(255,215,80,0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(W / 2, 40, 30, 0, Math.PI * 2);
+    ctx.stroke();
+  }
 }
 
 function drawAvatar(x, y, color, text) {
@@ -690,13 +737,25 @@ function drawHoop(hoop) {
 function drawTrails() {
   for (const t of state.trails) {
     const alpha = Math.max(0, t.life / (t.fire ? 0.62 : 0.3));
-    const grad = ctx.createRadialGradient(t.x, t.y, 2, t.x, t.y, t.fire ? 38 : 20);
-    grad.addColorStop(0, t.fire ? `rgba(255,225,82,${alpha})` : `rgba(255,255,255,${alpha * .35})`);
-    grad.addColorStop(0.45, t.fire ? `rgba(255,95,24,${alpha * .75})` : `rgba(255,132,42,${alpha * .25})`);
-    grad.addColorStop(1, "rgba(255,80,0,0)");
+    const radius = t.blackGoldMode === 2 ? 52 : t.blackGoldMode === 1 ? 44 : (t.fire ? 38 : 20);
+    const grad = ctx.createRadialGradient(t.x, t.y, 2, t.x, t.y, radius);
+    if (t.blackGoldMode === 2) {
+      grad.addColorStop(0, `rgba(255,215,80,${alpha})`);
+      grad.addColorStop(0.25, `rgba(0,0,0,${alpha * .9})`);
+      grad.addColorStop(0.6, `rgba(255,215,80,${alpha * .75})`);
+      grad.addColorStop(1, "rgba(255,215,80,0)");
+    } else if (t.blackGoldMode === 1) {
+      grad.addColorStop(0, `rgba(255,215,80,${alpha})`);
+      grad.addColorStop(0.4, `rgba(15,15,20,${alpha * .85})`);
+      grad.addColorStop(1, "rgba(255,215,80,0)");
+    } else {
+      grad.addColorStop(0, t.fire ? `rgba(255,225,82,${alpha})` : `rgba(255,255,255,${alpha * .35})`);
+      grad.addColorStop(0.45, t.fire ? `rgba(255,95,24,${alpha * .75})` : `rgba(255,132,42,${alpha * .25})`);
+      grad.addColorStop(1, "rgba(255,80,0,0)");
+    }
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(t.x, t.y, t.fire ? 36 : 20, 0, Math.PI * 2);
+    ctx.arc(t.x, t.y, radius, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -719,22 +778,42 @@ function drawBall() {
   ctx.save();
   ctx.translate(b.x, b.y);
   ctx.rotate(b.spin);
+  const bgMode = state.blackGoldMode;
   if (state.fire > 0) {
-    const flame = ctx.createRadialGradient(0, 0, 8, 0, 0, 42);
-    flame.addColorStop(0, "rgba(255,238,96,.9)");
-    flame.addColorStop(0.5, "rgba(255,87,22,.5)");
-    flame.addColorStop(1, "rgba(255,50,0,0)");
+    const flame = ctx.createRadialGradient(0, 0, 8, 0, 0, bgMode === 2 ? 54 : bgMode === 1 ? 48 : 42);
+    if (bgMode === 2) {
+      flame.addColorStop(0, "rgba(255,215,80,.95)");
+      flame.addColorStop(0.28, "rgba(0,0,0,.85)");
+      flame.addColorStop(0.55, "rgba(255,215,80,.55)");
+      flame.addColorStop(1, "rgba(255,215,80,0)");
+    } else if (bgMode === 1) {
+      flame.addColorStop(0, "rgba(255,215,80,.9)");
+      flame.addColorStop(0.5, "rgba(30,30,30,.5)");
+      flame.addColorStop(1, "rgba(255,215,80,0)");
+    } else {
+      flame.addColorStop(0, "rgba(255,238,96,.9)");
+      flame.addColorStop(0.5, "rgba(255,87,22,.5)");
+      flame.addColorStop(1, "rgba(255,50,0,0)");
+    }
     ctx.fillStyle = flame;
     ctx.beginPath();
-    ctx.arc(0, 0, 44, 0, Math.PI * 2);
+    ctx.arc(0, 0, bgMode === 2 ? 54 : bgMode === 1 ? 48 : 44, 0, Math.PI * 2);
     ctx.fill();
   }
-  ctx.fillStyle = "#f36b21";
+  // 10连额外脉冲环
+  if (bgMode === 2) {
+    ctx.strokeStyle = "rgba(255,215,80,0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 62 + Math.sin(Date.now() / 120) * 4, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = bgMode ? "#121214" : "#f36b21";
   ctx.beginPath();
   ctx.arc(0, 0, b.r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "#7b2d12";
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = bgMode ? "#ffd15c" : "#7b2d12";
+  ctx.lineWidth = bgMode ? 3.5 : 2.5;
   ctx.beginPath();
   ctx.arc(0, 0, b.r, 0, Math.PI * 2);
   ctx.moveTo(-b.r, 0);
@@ -744,6 +823,13 @@ function drawBall() {
   ctx.arc(-b.r * .55, 0, b.r * .65, -Math.PI / 2, Math.PI / 2);
   ctx.arc(b.r * .55, 0, b.r * .65, Math.PI / 2, Math.PI * 1.5);
   ctx.stroke();
+  // 黑金版高光
+  if (bgMode) {
+    ctx.fillStyle = "rgba(255,215,80,0.22)";
+    ctx.beginPath();
+    ctx.arc(-b.r * 0.4, -b.r * 0.4, b.r * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.restore();
 }
 
