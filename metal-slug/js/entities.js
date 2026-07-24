@@ -494,7 +494,7 @@
           }
           break;
         case "rocket":
-          if (adx < 60) this.x -= this.dir * this.cfg.speed;   // 保持距离
+          if (adx < 60 && this.x > GAME.camX + 20) this.x -= this.dir * this.cfg.speed;   // 保持距离
           else if (adx > 220) this.x += this.dir * this.cfg.speed;
           if (this.t <= 0 && adx < 300) {
             this.t = 170 + Math.random() * 60;
@@ -504,7 +504,7 @@
           break;
         case "grenadier":
           if (adx > 200) this.x += this.dir * this.cfg.speed;
-          else if (adx < 70) this.x -= this.dir * this.cfg.speed;
+          else if (adx < 70 && this.x > GAME.camX + 20) this.x -= this.dir * this.cfg.speed;
           if (this.t <= 0 && adx < 260) {
             this.t = 140 + Math.random() * 60;
             const power = Math.min(3.2, adx / 60);
@@ -514,7 +514,7 @@
           break;
         case "sniper":
           // 狙击手:保持远距离 250px,每 200 帧射一发高速精准子弹
-          if (adx < 200) this.x -= this.dir * this.cfg.speed;
+          if (adx < 200 && this.x > GAME.camX + 20) this.x -= this.dir * this.cfg.speed;
           else if (adx > 320) this.x += this.dir * this.cfg.speed;
           this.state = adx < 200 ? "walk" : "attack";
           if (this.t <= 0 && adx < 400) {
@@ -529,6 +529,7 @@
         case "kamikaze":
           // 自爆兵:快速冲向玩家,距离 < 25 时自爆
           this.x += this.dir * this.cfg.speed;
+          this.x = Math.max(GAME.camX + 10, this.x);
           this.state = "walk";
           if (adx < 25 && p && p.alive) {
             // 自爆

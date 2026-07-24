@@ -97,7 +97,7 @@
           return e;
         });
       }
-      if (z.list && !z.cleared && z.list.every(e => e.dead)) {
+      if (z.list && !z.cleared && z.list.every(e => e.dead || !ENT.enemies.includes(e))) {
         z.cleared = true;
         AudioSys.sfx.missionClear();
         ENT.addFloat(GAME.camX + GAME.VW / 2, 100, "AREA CLEAR!", "#a0e080");
