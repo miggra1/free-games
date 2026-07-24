@@ -93,7 +93,7 @@ function updateGame(dt) {
   }
 
   // Player weapon update
-  const shotResult = updatePlayer(player, dt, input.isDown(KEY_SHOT), false, 500, enemies);
+  const shotResult = updatePlayer(player, dt, input.isDown(KEY_SHOT), false, 500, enemies, enemies);
   if (shotResult) spawnPlayerBullets(pool, shotResult);
 
   // Update player timers
