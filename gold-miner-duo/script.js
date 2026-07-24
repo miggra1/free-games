@@ -91,8 +91,8 @@ function layoutPlayers() {
 
 function startLevel(level, intro = false) {
   game.level = level;
-  game.target = 1800 + level * 700;
-  game.time = Math.min(110, 80 + level * 6);
+  game.target = 2200 + level * 1200;
+  game.time = Math.min(100, 75 + level * 5);
   game.items = createItems(level);
   for (const player of game.players) resetHook(player);
   updateHud();
