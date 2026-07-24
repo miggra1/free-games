@@ -34,6 +34,8 @@
     aiVsAi: { black: "hard", white: "normal", delay: 800 },
     // 评估
     evalScore: 0,
+    // 侧面板是否需要完整重绘
+    panelDirty: true,
   };
 
   /* ---------------- DOM 引用 ---------------- */
@@ -69,7 +71,12 @@
     }
     if (GAME.state === "playing") {
       GAME.updateTimer();
-      GAME.updatePanel();
+      if (GAME.panelDirty) {
+        GAME.updatePanel();
+        GAME.panelDirty = false;
+      } else {
+        GAME.updatePanelInfo();
+      }
     }
   };
 
@@ -172,6 +179,7 @@
     GAME.reviewStep = -1;
     GAME.state = "playing";
     GAME.lastTick = Date.now();
+    GAME.panelDirty = true;
     // AI 先手时自动落子
     if (GAME.mode !== "pvp" && BOARD.current === BLACK && GAME.isAiTurn()) {
       setTimeout(() => GAME.aiMove(), 500);
@@ -218,6 +226,7 @@
     if (GAME.settings.showEval) {
       GAME.evalScore = AI.quickEvaluate(BOARD.grid, BLACK);
     }
+    GAME.panelDirty = true;
     // AI 回合
     if (GAME.isAiTurn() && GAME.state === "playing") {
       setTimeout(() => GAME.aiMove(), GAME.mode === "aivai" ? GAME.aiVsAi.delay : 200);
@@ -421,16 +430,19 @@
     AUDIO.undo();
     GAME.state = "playing";
     overlay.style.display = "none";
+    GAME.panelDirty = true;
   };
 
   GAME.resign = function () {
     if (BOARD.result !== 0) return;
     BOARD.result = BOARD.current === BLACK ? 2 : 1;
+    GAME.panelDirty = true;
     GAME.onGameEnd();
   };
 
   GAME.offerDraw = function () {
     if (BOARD.result !== 0) return;
+    GAME.panelDirty = true;
     if (GAME.mode === "pvp") {
       BOARD.result = 3;
       GAME.onGameEnd();
@@ -445,6 +457,7 @@
   GAME.pauseGame = function () {
     if (GAME.state === "playing") { GAME.state = "paused"; }
     else if (GAME.state === "paused") { GAME.state = "playing"; GAME.lastTick = Date.now(); }
+    GAME.panelDirty = true;
   };
 
   /* ---------------- 复盘 ---------------- */
@@ -453,6 +466,7 @@
     GAME.reviewStep = BOARD.moves.length - 1;
     overlay.style.display = "none";
     GAME.updateReviewGrid();
+    GAME.panelDirty = true;
   };
 
   GAME.reviewNav = function (dir) {
@@ -472,6 +486,7 @@
   GAME.exitReview = function () {
     GAME.state = "gameover";
     GAME.showResult();
+    GAME.panelDirty = true;
   };
 
   /* ---------------- SGF ---------------- */
@@ -580,7 +595,7 @@
           <label><input type="checkbox" id="set-sound" ${s.sound ? "checked" : ""} onchange="GAME.settings.sound=this.checked; if(!this.checked)AUDIO.toggleMute();"> 音效</label>
           <label><input type="checkbox" id="set-coords" ${s.coords ? "checked" : ""} onchange="RENDER.showCoords=this.checked; GAME.settings.coords=this.checked;"> 坐标刻度</label>
           <label><input type="checkbox" id="set-movenum" ${s.moveNum ? "checked" : ""} onchange="RENDER.showMoveNum=this.checked; GAME.settings.moveNum=this.checked;"> 手数编号</label>
-          <label><input type="checkbox" id="set-eval" ${s.showEval ? "checked" : ""} onchange="GAME.settings.showEval=this.checked;"> 形势评估</label>
+          <label><input type="checkbox" id="set-eval" ${s.showEval ? "checked" : ""} onchange="GAME.settings.showEval=this.checked; GAME.panelDirty=true;"> 形势评估</label>
           <label><input type="checkbox" id="set-bgm" ${s.bgm ? "checked" : ""} onchange="GAME.settings.bgm=this.checked; this.checked?AUDIO.bgm.start():AUDIO.bgm.stop();"> 背景音乐</label>
         </div>
         <div class="menu-group">
@@ -608,15 +623,15 @@
     html += `<div class="panel-score">比分 黑 ${BOARD.scores.black} : ${BOARD.scores.white} 白</div>`;
     html += `</div>`;
     // 黑方
-    html += `<div class="panel-section player ${BOARD.current === BLACK ? "active" : ""}">`;
+    html += `<div class="panel-section player ${BOARD.current === BLACK ? "active" : ""}" id="panel-player-black">`;
     html += `<div class="player-label"><span class="piece-icon black"></span>黑方${GAME.mode === "pve" ? "（你）" : GAME.mode === "aivai" ? "（AI " + diffNames[GAME.aiVsAi.black] + "）" : ""}</div>`;
-    html += `<div class="player-timer">${GAME.formatTime(t1)}</div>`;
+    html += `<div class="player-timer" id="timer-black">${GAME.formatTime(t1)}</div>`;
     if (t1.inByo) html += `<div class="player-byo">读秒 ${t1.byoUsed}/${t1.byoCount}</div>`;
     html += `</div>`;
     // 白方
-    html += `<div class="panel-section player ${BOARD.current === WHITE ? "active" : ""}">`;
+    html += `<div class="panel-section player ${BOARD.current === WHITE ? "active" : ""}" id="panel-player-white">`;
     html += `<div class="player-label"><span class="piece-icon white"></span>白方${GAME.mode === "pve" ? "（AI " + diffNames[GAME.difficulty] + "）" : GAME.mode === "aivai" ? "（AI " + diffNames[GAME.aiVsAi.white] + "）" : ""}</div>`;
-    html += `<div class="player-timer">${GAME.formatTime(t2)}</div>`;
+    html += `<div class="player-timer" id="timer-white">${GAME.formatTime(t2)}</div>`;
     if (t2.inByo) html += `<div class="player-byo">读秒 ${t2.byoUsed}/${t2.byoCount}</div>`;
     html += `</div>`;
     // 评估条
@@ -625,8 +640,8 @@
       const pct = 50 + (eval_ / 5000) * 50;
       html += `<div class="panel-section">`;
       html += `<div class="eval-label">形势评估</div>`;
-      html += `<div class="eval-bar"><div class="eval-fill" style="width:${pct}%"></div></div>`;
-      html += `<div class="eval-text">${eval_ > 0 ? "黑优" : eval_ < 0 ? "白优" : "均势"} ${Math.abs(eval_)}</div>`;
+      html += `<div class="eval-bar"><div class="eval-fill" id="eval-fill" style="width:${pct}%"></div></div>`;
+      html += `<div class="eval-text" id="eval-text">${eval_ > 0 ? "黑优" : eval_ < 0 ? "白优" : "均势"} ${Math.abs(eval_)}</div>`;
       html += `</div>`;
     }
     // AI 思考动画
@@ -636,7 +651,7 @@
     html += `<button class="btn" onclick="GAME.undoMove()">悔棋</button>`;
     html += `<button class="btn" onclick="GAME.resign()">认输</button>`;
     html += `<button class="btn" onclick="GAME.offerDraw()">求和</button>`;
-    html += `<button class="btn" onclick="GAME.pauseGame()">${GAME.state === "paused" ? "继续" : "暂停"}</button>`;
+    html += `<button class="btn" id="btn-pause" onclick="GAME.pauseGame()">${GAME.state === "paused" ? "继续" : "暂停"}</button>`;
     html += `</div>`;
     html += `<div class="panel-section panel-btns">`;
     html += `<button class="btn small" onclick="GAME.exportSGF()">导出SGF</button>`;
@@ -655,6 +670,31 @@
       html += `</div></div>`;
     }
     el.innerHTML = html;
+  };
+
+  /* ---------------- 侧面板轻量更新（不重建 DOM，保证按钮可点击） ---------------- */
+  GAME.updatePanelInfo = function () {
+    const el = $("side-panel");
+    if (!el) return;
+    // 计时器
+    const tb = $("timer-black"), tw = $("timer-white");
+    if (tb) tb.textContent = GAME.formatTime(GAME.timers[BLACK]);
+    if (tw) tw.textContent = GAME.formatTime(GAME.timers[WHITE]);
+    // 当前行棋方高亮
+    const pb = $("panel-player-black"), pw = $("panel-player-white");
+    if (pb) pb.classList.toggle("active", BOARD.current === BLACK);
+    if (pw) pw.classList.toggle("active", BOARD.current === WHITE);
+    // 形势条
+    if (GAME.settings.showEval && GAME.mode !== "aivai") {
+      const eval_ = Math.max(-5000, Math.min(5000, GAME.evalScore));
+      const pct = 50 + (eval_ / 5000) * 50;
+      const fill = $("eval-fill"), txt = $("eval-text");
+      if (fill) fill.style.width = pct + "%";
+      if (txt) txt.textContent = `${eval_ > 0 ? "黑优" : eval_ < 0 ? "白优" : "均势"} ${Math.abs(eval_)}`;
+    }
+    // 暂停按钮文字
+    const btnPause = $("btn-pause");
+    if (btnPause) btnPause.textContent = GAME.state === "paused" ? "继续" : "暂停";
   };
 
   /* ---------------- 时间格式化 ---------------- */
