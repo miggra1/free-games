@@ -91,8 +91,8 @@ function layoutPlayers() {
 
 function startLevel(level, intro = false) {
   game.level = level;
-  game.target = 900 + level * 360 + Math.floor(level / 3) * 260;
-  game.time = Math.max(42, 65 - level * 2);
+  game.target = 1800 + level * 700;
+  game.time = Math.min(110, 80 + level * 6);
   game.items = createItems(level);
   for (const player of game.players) resetHook(player);
   updateHud();
@@ -107,13 +107,13 @@ function startLevel(level, intro = false) {
 function createItems(level) {
   const items = [];
   const counts = {
-    goldLarge: 2 + Math.floor(level / 3),
+    goldLarge: 2 + Math.floor(level / 2),
     goldMedium: 4 + Math.floor(level / 2),
-    goldSmall: 6 + level,
-    diamond: 2 + Math.floor(level / 4),
-    rock: 4 + Math.floor(level / 2),
+    goldSmall: 6 + Math.min(level, 5),
+    diamond: Math.max(1, 3 - Math.floor((level - 1) / 3)),
+    rock: 3 + level,
     bag: 2,
-    bomb: 2 + Math.floor(level / 3),
+    bomb: 2 + Math.floor(level / 2),
   };
 
   for (const [type, count] of Object.entries(counts)) {
