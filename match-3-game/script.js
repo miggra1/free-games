@@ -529,8 +529,6 @@ canvas.addEventListener("pointerdown", (event) => {
   const cell = cellAt(event.clientX - rect.left, event.clientY - rect.top);
   if (!cell) return;
   game.pointerStart = { cell, x: event.clientX, y: event.clientY };
-  game.selected = cell;
-  draw();
 });
 canvas.addEventListener("pointerup", async (event) => {
   if (!game.pointerStart || game.busy) return;
