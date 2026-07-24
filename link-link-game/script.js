@@ -82,7 +82,7 @@ function newGame() {
 function roundConfig(round) {
   return {
     iconCount: Math.min(icons.length, 6 + round),
-    wallCount: round > 2 ? Math.min(14, Math.floor((round - 2) * 1.5) * 2) : 0,
+    wallCount: round > 2 ? Math.min(10, Math.floor((round - 2) * 1.5) * 2) : 0,
     timeBonus: 30,
     pairScore: 100 * round,
   };
@@ -95,6 +95,14 @@ function startRound(round) {
   game.path = null;
   game.combo = 0;
   game.lastMatchAt = 0;
+  buildRound(round);
+  ensureSolvable();
+  renderBoard();
+  updateHud();
+  syncCheatInputs();
+}
+
+function buildRound(round, addTime = true) {
   const cfg = roundConfig(round);
   game.walls = cfg.wallCount;
 
@@ -126,12 +134,19 @@ function startRound(round) {
 
   game.board = board;
   game.left = remain.length;
-  game.time = Math.min(300, game.time + cfg.timeBonus);
-  game.startTime = Math.max(game.startTime, game.time);
-  ensureSolvable();
-  renderBoard();
-  updateHud();
-  syncCheatInputs();
+  if (addTime) {
+    game.time = Math.min(300, game.time + cfg.timeBonus);
+    game.startTime = Math.max(game.startTime, game.time);
+  }
+}
+
+function regenerateBoard() {
+  if (!game) return;
+  const savedScore = game.score;
+  const savedTime = game.time;
+  buildRound(game.round, false);
+  game.score = savedScore;
+  game.time = savedTime;
 }
 
 function shuffleArray(array) {
@@ -330,9 +345,13 @@ function findAnyMove() {
 
 function ensureSolvable() {
   if (!game || game.left <= 0) return;
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    if (findAnyMove()) return;
-    shuffleRemainOnce();
+  for (let gen = 0; gen < 3; gen += 1) {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if (findAnyMove()) return;
+      shuffleRemainOnce();
+    }
+    // 图标位置洗无可洗，整体重排墙壁与图标
+    regenerateBoard();
   }
 }
 
