@@ -36,7 +36,7 @@ body {
 
 .topbar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(150px, auto) auto auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto auto;
   gap: 10px;
   padding: 10px;
   border: 1px solid var(--line);
@@ -146,6 +146,14 @@ button:active {
 .tile.empty {
   visibility: hidden;
   pointer-events: none;
+}
+
+.tile.wall {
+  background: linear-gradient(180deg, #5a5a5a, #3a3a3a);
+  border-color: rgba(255,255,255,.35);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.15);
+  font-size: clamp(14px, 4.5vw, 28px);
+  cursor: not-allowed;
 }
 
 .result-modal {
@@ -292,7 +300,7 @@ input[type="range"] {
     gap: 10px;
   }
   .topbar {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     padding: 8px;
   }
@@ -315,7 +323,7 @@ input[type="range"] {
 @media (max-width: 420px) {
   .shell { padding: 8px; gap: 8px; }
   .topbar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     padding: 6px;
   }

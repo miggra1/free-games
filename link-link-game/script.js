@@ -26,9 +26,12 @@ const cheatWinBtn = document.querySelector("#cheatWin");
 const rows = 8;
 const cols = 10;
 const icons = [
-  "\ud83c\udf4e", "\ud83c\udf4b", "\ud83c\udf47", "\ud83c\udf53", "\ud83c\udf52",
-  "\ud83e\udd5d", "\ud83c\udf51", "\ud83c\udf4c", "\ud83c\udf49", "\ud83c\udf4d",
+  "🍎", "🍋", "🍇", "🍓", "🍒",
+  "🥝", "🍑", "🍍", "🍉", "🍊",
+  "🥥", "🍈", "🥭", "🍐", "🫐",
+  "🍌", "🍏", "🥑", "🍆", "🥕",
 ];
+const WALL = "WALL";
 const bestRecordKey = "free-link-link-best-record";
 
 const text = {
@@ -53,43 +56,82 @@ let hintPair = null;
 let remoteBestRecord = null;
 
 function newGame() {
-  const total = rows * cols;
-  const pairs = [];
-  for (let i = 0; i < total / 2; i += 1) {
-    const value = icons[i % icons.length];
-    pairs.push(value, value);
-  }
-  shuffleArray(pairs);
-
-  const board = Array.from({ length: rows + 2 }, () => Array(cols + 2).fill(null));
-  let index = 0;
-  for (let r = 1; r <= rows; r += 1) {
-    for (let c = 1; c <= cols; c += 1) {
-      board[r][c] = pairs[index++];
-    }
-  }
-
   game = {
-    board,
+    round: 1,
+    score: 0,
     selected: null,
     path: null,
-    left: total,
-    startTime: 180,
-    time: 180,
+    left: 0,
+    startTime: 120,
+    time: 120,
     combo: 0,
     bestCombo: 0,
     result: text.playing,
     recorded: false,
     state: "playing",
+    lastMatchAt: 0,
+    walls: 0,
   };
   hintPair = null;
   resultModalEl.classList.add("hidden");
+  startRound(1);
+  renderBestRecord();
+  loadRemoteBestRecord();
+}
+
+function roundConfig(round) {
+  return {
+    iconCount: Math.min(icons.length, 6 + round),
+    wallCount: round > 2 ? Math.min(14, Math.floor((round - 2) * 1.5) * 2) : 0,
+    timeBonus: 30,
+    pairScore: 100 * round,
+  };
+}
+
+function startRound(round) {
+  if (!game) return;
+  game.round = round;
+  game.selected = null;
+  game.path = null;
+  game.combo = 0;
+  game.lastMatchAt = 0;
+  const cfg = roundConfig(round);
+  game.walls = cfg.wallCount;
+
+  const board = Array.from({ length: rows + 2 }, () => Array(cols + 2).fill(null));
+  const cells = [];
+  for (let r = 1; r <= rows; r += 1) {
+    for (let c = 1; c <= cols; c += 1) cells.push({ r, c });
+  }
+  shuffleArray(cells);
+
+  // 放置墙壁
+  for (let i = 0; i < cfg.wallCount; i += 1) {
+    const { r, c } = cells[i];
+    board[r][c] = WALL;
+  }
+
+  // 填充剩余格子为成对图标
+  const remain = cells.slice(cfg.wallCount);
+  const pairs = [];
+  for (let i = 0; i < remain.length / 2; i += 1) {
+    pairs.push(icons[i % cfg.iconCount]);
+  }
+  const deck = [];
+  for (const value of pairs) deck.push(value, value);
+  shuffleArray(deck);
+  for (let i = 0; i < remain.length; i += 1) {
+    board[remain[i].r][remain[i].c] = deck[i];
+  }
+
+  game.board = board;
+  game.left = remain.length;
+  game.time = Math.min(300, game.time + cfg.timeBonus);
+  game.startTime = Math.max(game.startTime, game.time);
   ensureSolvable();
   renderBoard();
   updateHud();
   syncCheatInputs();
-  renderBestRecord();
-  loadRemoteBestRecord();
 }
 
 function shuffleArray(array) {
@@ -116,7 +158,11 @@ function renderBoard() {
       tile.dataset.c = String(c);
 
       const value = game.board[r][c];
-      if (!value) {
+      if (value === WALL) {
+        tile.classList.add("wall");
+        tile.textContent = "🧱";
+        tile.disabled = true;
+      } else if (!value) {
         tile.classList.add("empty");
         tile.disabled = true;
       } else {
@@ -136,7 +182,7 @@ function handleTileClick(event) {
   event.preventDefault();
   const cell = { r: Number(tile.dataset.r), c: Number(tile.dataset.c) };
   const value = game.board[cell.r]?.[cell.c];
-  if (!value) return;
+  if (!value || value === WALL) return;
 
   if (!game.selected) {
     game.selected = cell;
@@ -227,14 +273,31 @@ function removePair(a, b) {
   game.board[b.r][b.c] = null;
   game.path = path;
   game.left = Math.max(0, game.left - 2);
-  game.combo += 1;
+
+  const now = Date.now();
+  if (now - game.lastMatchAt < 3500) game.combo += 1;
+  else game.combo = 1;
+  game.lastMatchAt = now;
   game.bestCombo = Math.max(game.bestCombo, game.combo);
+
+  const cfg = roundConfig(game.round);
+  const comboMult = 1 + (game.combo - 1) * 0.3;
+  game.score += Math.floor(cfg.pairScore * comboMult);
+  game.time = Math.min(300, game.time + 1 + Math.floor(game.combo / 3));
+
   game.selected = null;
   hintPair = null;
-  if (game.left <= 0) endGame(text.win);
+  if (game.left <= 0) endRound();
   else ensureSolvable();
   syncCheatInputs();
   return true;
+}
+
+function endRound() {
+  if (!game || game.state !== "playing") return;
+  game.score += Math.floor(game.time * 5);
+  const nextRound = game.round + 1;
+  startRound(nextRound);
 }
 
 function shuffleRemain() {
@@ -247,11 +310,14 @@ function shuffleRemain() {
   renderBoard();
 }
 
+function isWall(r, c) { return game.board[r]?.[c] === WALL; }
+
 function findAnyMove() {
   const cells = [];
   for (let r = 1; r <= rows; r += 1) {
     for (let c = 1; c <= cols; c += 1) {
-      if (game.board[r][c]) cells.push({ r, c, value: game.board[r][c] });
+      const v = game.board[r][c];
+      if (v && v !== WALL) cells.push({ r, c, value: v });
     }
   }
   for (let i = 0; i < cells.length; i += 1) {
@@ -272,17 +338,19 @@ function ensureSolvable() {
 
 function shuffleRemainOnce() {
   const remain = [];
+  const positions = [];
   for (let r = 1; r <= rows; r += 1) {
     for (let c = 1; c <= cols; c += 1) {
-      if (game.board[r][c]) remain.push(game.board[r][c]);
+      const v = game.board[r][c];
+      if (v && v !== WALL) {
+        remain.push(v);
+        positions.push({ r, c });
+      }
     }
   }
   shuffleArray(remain);
-  let index = 0;
-  for (let r = 1; r <= rows; r += 1) {
-    for (let c = 1; c <= cols; c += 1) {
-      if (game.board[r][c]) game.board[r][c] = remain[index++];
-    }
+  for (let i = 0; i < positions.length; i += 1) {
+    game.board[positions[i].r][positions[i].c] = remain[i];
   }
 }
 
@@ -296,7 +364,10 @@ function endGame(resultText) {
 function tick() {
   if (!game || game.state !== "playing") return;
   game.time = Math.max(0, game.time - 1);
-  if (game.time <= 0) endGame(text.timeUp);
+  if (game.time <= 0) {
+    game.time = 0;
+    endGame(text.timeUp);
+  }
   updateHud();
   syncCheatInputs();
 }
@@ -305,18 +376,20 @@ function updateHud() {
   leftEl.textContent = game.left;
   timerEl.textContent = Math.ceil(game.time);
   comboEl.textContent = game.combo;
+  const roundEl = document.querySelector("#round");
+  const scoreEl = document.querySelector("#score");
+  if (roundEl) roundEl.textContent = game.round;
+  if (scoreEl) scoreEl.textContent = game.score;
 }
 
 function currentResultRecord() {
-  const won = game.left <= 0;
   const used = Math.max(0, game.startTime - Math.ceil(game.time));
-  const score = Math.max(0, (won ? 100000 : 0) + game.bestCombo * 500 + (game.startTime - used) * 80 - game.left * 1200);
   return {
-    won,
+    round: game.round,
+    score: game.score,
+    bestCombo: game.bestCombo,
     used,
     left: game.left,
-    bestCombo: game.bestCombo,
-    score,
     savedAt: new Date().toLocaleString(),
   };
 }
@@ -336,14 +409,14 @@ function writeBestRecord(record) {
 
 function isBetterRecord(next, current) {
   if (!current) return true;
-  if (next.won !== current.won) return next.won;
-  if (next.won && next.used !== current.used) return next.used < current.used;
-  if (!next.won && next.left !== current.left) return next.left < current.left;
+  if (next.round !== current.round) return next.round > current.round;
+  if (next.score !== current.score) return next.score > current.score;
   return next.bestCombo > current.bestCombo;
 }
 
 function formatBestRecord(record) {
   if (!record) return "--";
+  if ("round" in record) return `Lv${record.round} / ${record.score}`;
   if ("time_used" in record || "best_combo" in record) {
     const combo = record.best_combo ?? 0;
     if (record.won) return `${record.time_used ?? 0}s / ${combo}`;
@@ -379,8 +452,8 @@ async function saveRemoteRecord(record) {
   const saved = await window.FreeGamesScores.saveScore({
     game_key: "link-link-game",
     score: record.score,
-    level: 1,
-    won: record.won,
+    level: record.round || 1,
+    won: record.left <= 0,
     time_used: record.used,
     remaining: record.left,
     best_combo: record.bestCombo,
@@ -393,8 +466,8 @@ function showResultModal() {
   const used = Math.max(0, game.startTime - Math.ceil(game.time));
   resultTitleEl.textContent = game.result || text.ended;
   resultTimeEl.textContent = `${text.usedTime} ${used}s`;
-  resultLeftEl.textContent = `${text.tiles} ${game.left}`;
-  resultComboEl.textContent = `${text.bestCombo} ${game.bestCombo}`;
+  resultLeftEl.textContent = `第 ${game.round} 轮 · 剩余 ${game.left} 牌`;
+  resultComboEl.textContent = `分数 ${game.score} · 最高连击 ${game.bestCombo}`;
   resultBestEl.textContent = game.isNewBest ? text.newBest : `${text.bestRecord} ${formatBestRecord(remoteBestRecord || readBestRecord())}`;
   resultModalEl.classList.remove("hidden");
 }
