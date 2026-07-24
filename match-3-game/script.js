@@ -4,18 +4,36 @@ const levelEl = document.querySelector("#level");
 const scoreEl = document.querySelector("#score");
 const movesEl = document.querySelector("#moves");
 const targetEl = document.querySelector("#target");
+const bestEl = document.querySelector("#best");
 const messageEl = document.querySelector("#message");
 const restartBtn = document.querySelector("#restart");
 
 const size = 8;
-const colors = ["#f05d55", "#59b6ff", "#69d08c", "#f0c86a", "#b985ff", "#ff8bd1"];
-const levels = [
+const colors = ["#f05d55", "#59b6ff", "#69d08c", "#f0c86a", "#b985ff", "#ff8bd1", "#44e3d0", "#ff9f55"];
+const baseLevels = [
   { target: 1800, moves: 28 },
   { target: 2600, moves: 30 },
   { target: 3600, moves: 31 },
   { target: 4800, moves: 32 },
   { target: 6500, moves: 34 },
 ];
+const bestRecordKey = "free-match3-best-record";
+
+function levelConfig(level) {
+  if (level < baseLevels.length) {
+    return {
+      target: baseLevels[level].target,
+      moves: baseLevels[level].moves,
+      colorsCount: Math.min(colors.length, 6 + Math.floor(level / 2)),
+    };
+  }
+  const k = level - baseLevels.length + 1;
+  return {
+    target: baseLevels[baseLevels.length - 1].target + k * 1400,
+    moves: Math.max(20, 34 - Math.floor(k / 2)),
+    colorsCount: Math.min(colors.length, 6 + Math.floor(k / 3)),
+  };
+}
 
 let game;
 
@@ -31,13 +49,14 @@ function resizeCanvas() {
 
 function w() { return canvas.w || canvas.clientWidth || 720; }
 function h() { return canvas.h || canvas.clientHeight || 720; }
-function randomGem() { return { color: Math.floor(Math.random() * colors.length), power: null }; }
+function randomGem() { return { color: Math.floor(Math.random() * (game?.colorsCount || 6)), power: null }; }
 function sameColor(a, b) { return a && b && a.color === b.color; }
 
-function newGame(level = game?.level || 0) {
-  const config = levels[level] || levels[levels.length - 1];
+async function newGame(level = game?.level || 0) {
+  const config = levelConfig(level);
   game = {
     level,
+    colorsCount: config.colorsCount,
     board: Array.from({ length: size }, () => Array(size).fill(null)),
     selected: null,
     score: 0,
@@ -49,16 +68,23 @@ function newGame(level = game?.level || 0) {
     state: "playing",
     pops: [],
     offsets: new Map(),
+    shuffling: false,
   };
+  fillBoard();
+  if (!hasPossibleMove()) autoShuffle();
+  messageEl.classList.add("hidden");
+  updateHud();
+  draw();
+}
+
+function fillBoard() {
   for (let r = 0; r < size; r += 1) {
     for (let c = 0; c < size; c += 1) {
+      if (game.board[r][c]) continue;
       do game.board[r][c] = randomGem();
       while (createsMatch(r, c));
     }
   }
-  messageEl.classList.add("hidden");
-  updateHud();
-  draw();
 }
 
 function createsMatch(r, c) {
@@ -113,8 +139,15 @@ async function handleClick(event) {
   await trySwap(game.selected, cell);
 }
 
+function isGem(gem) { return gem && typeof gem.color === "number"; }
+
 async function trySwap(a, b) {
   if (game.state !== "playing" || game.busy || !a || !b || !adjacent(a, b)) return;
+  if (!isGem(game.board[a.r][a.c]) || !isGem(game.board[b.r][b.c])) {
+    game.selected = null;
+    draw();
+    return;
+  }
   game.busy = true;
   game.selected = null;
   await animateSwap(a, b);
@@ -135,11 +168,16 @@ async function trySwap(a, b) {
 
   game.moves -= 1;
   await resolveBoard(matches, powerCells, b);
+
+  // 自动重排直到有可行动作
+  if (!game.shuffling && !hasPossibleMove()) {
+    await autoShuffle();
+  }
+
   game.busy = false;
 
   if (game.score >= game.target) {
-    if (game.level < levels.length - 1) endGame(`第 ${game.level + 1} 关完成，点击进入下一关`, true);
-    else endGame("全部通关");
+    endGame(`第 ${game.level + 1} 关完成，点击进入下一关`, true);
   } else if (game.moves <= 0) {
     endGame("步数用完");
   }
@@ -229,7 +267,8 @@ async function resolveBoard(matches, powerCells = [], preferred = null) {
     if (power) remove.delete(key(power.cell));
 
     const cells = [...remove].map(fromKey).filter((cell) => inBounds(cell));
-    game.score += cells.length * 70 * chain;
+    const pts = cells.length * 60 * chain * (1 + chain * 0.2);
+    game.score += Math.floor(pts);
     game.pops = cells;
     draw();
     await sleep(90);
@@ -301,12 +340,104 @@ function key(cell) { return `${cell.r},${cell.c}`; }
 function fromKey(value) { const [r, c] = value.split(",").map(Number); return { r, c }; }
 function inBounds(cell) { return cell.r >= 0 && cell.r < size && cell.c >= 0 && cell.c < size; }
 
+function hasPossibleMove() {
+  for (let r = 0; r < size; r += 1) {
+    for (let c = 0; c < size; c += 1) {
+      const a = { r, c };
+      if (!isGem(game.board[r][c])) continue;
+      for (const [dr, dc] of [[0, 1], [1, 0]]) {
+        const b = { r: r + dr, c: c + dc };
+        if (!inBounds(b) || !isGem(game.board[b.r][b.c])) continue;
+        if (swapCreatesMatch(a, b)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function swapCreatesMatch(a, b) {
+  swap(a, b);
+  const ok = createsMatch(a.r, a.c) || createsMatch(b.r, b.c);
+  swap(a, b);
+  return ok;
+}
+
+async function autoShuffle() {
+  if (game.shuffling) return;
+  game.shuffling = true;
+  messageEl.textContent = "没有可消组合，重排中…";
+  messageEl.classList.remove("hidden");
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const gems = [];
+    for (let r = 0; r < size; r += 1) {
+      for (let c = 0; c < size; c += 1) {
+        if (isGem(game.board[r][c])) gems.push({ ...game.board[r][c] });
+      }
+    }
+    shuffleArray(gems);
+    let i = 0;
+    for (let r = 0; r < size; r += 1) {
+      for (let c = 0; c < size; c += 1) {
+        if (isGem(game.board[r][c])) game.board[r][c] = gems[i++];
+      }
+    }
+    if (hasPossibleMove()) break;
+  }
+  await sleep(200);
+  messageEl.classList.add("hidden");
+  game.shuffling = false;
+  draw();
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function readBestRecord() {
+  try {
+    const record = JSON.parse(localStorage.getItem(bestRecordKey) || "null");
+    return record && typeof record === "object" ? record : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeBestRecord(record) {
+  localStorage.setItem(bestRecordKey, JSON.stringify(record));
+}
+
+function updateBestRecord() {
+  const current = readBestRecord();
+  if (!current || game.score > current.score) {
+    writeBestRecord({ score: game.score, level: game.level + 1, savedAt: new Date().toLocaleString() });
+  }
+}
+
+function formatBestRecord(record) {
+  if (!record) return "--";
+  return `${record.score} (Lv${record.level})`;
+}
+
 function endGame(text, next = false) {
   game.state = "ended";
-  messageEl.textContent = next ? `${text}` : text;
-  messageEl.title = next ? "点击进入下一关" : "";
-  messageEl.classList.remove("hidden");
-  messageEl.onclick = next ? () => newGame(game.level + 1) : null;
+  if (next) {
+    // 关卡完成：剩余步数转化为奖励分
+    game.score += Math.max(0, game.moves) * 250;
+    messageEl.textContent = text;
+    messageEl.title = "点击进入下一关";
+    messageEl.classList.remove("hidden");
+    messageEl.onclick = () => newGame(game.level + 1);
+  } else {
+    updateBestRecord();
+    const record = readBestRecord();
+    messageEl.textContent = `${text}\n最终分数 ${game.score} · 到达第 ${game.level + 1} 关\n最高记录 ${formatBestRecord(record)}`;
+    messageEl.title = "点击重新开始";
+    messageEl.classList.remove("hidden");
+    messageEl.onclick = () => newGame(0);
+  }
 }
 
 function updateHud() {
@@ -314,6 +445,7 @@ function updateHud() {
   scoreEl.textContent = game.score;
   movesEl.textContent = game.moves;
   targetEl.textContent = game.target;
+  if (bestEl) bestEl.textContent = formatBestRecord(readBestRecord());
 }
 
 function draw() {

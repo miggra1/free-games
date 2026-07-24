@@ -34,7 +34,7 @@ body {
 
 .topbar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
   gap: 10px;
   padding: 10px;
   border: 1px solid var(--line);
@@ -97,6 +97,7 @@ canvas {
 @media (max-width: 680px) {
   body { overflow: auto; }
   .shell { height: auto; min-height: 100dvh; }
-  .topbar { grid-template-columns: repeat(2, 1fr); }
+  .topbar { grid-template-columns: repeat(3, 1fr); }
+  .topbar button { grid-column: span 1; }
   .board-wrap { min-height: 560px; }
 }
