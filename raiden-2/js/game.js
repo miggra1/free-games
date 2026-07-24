@@ -82,7 +82,11 @@ function updateGame(dt) {
     // Damage all enemies on screen
     for (const e of enemies) {
       if (!e.dead && Math.hypot(e.x - bombEffect.x, e.y - bombEffect.y) < 200) {
-        damageEnemy(e, 20);
+        if (damageEnemy(e, 20)) {
+          player.score += e.score;
+          spawnItem(e.x, e.y);
+          spawnExplosion(e.x, e.y, e.size === "large" ? "big" : "small");
+        }
       }
     }
     shakeTimer = 0.3;

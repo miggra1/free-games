@@ -59,24 +59,28 @@ function updateBullets(pool, dt, enemies) {
 
 // ── Enemy Factory ──
 function spawnEnemy(wave, scrollY) {
-  const base = { x: wave.x, y: wave.y + scrollY - H, dead: false, hp: 1, score: 50, parts: null };
+  const base = { x: wave.x, y: wave.y, dead: false, hp: 1, score: 50, parts: null };
   switch (wave.type) {
     case "small":
       return { ...base, hp: 1, score: 50, color: wave.color || "#5a5", size: "small" };
     case "medium":
-      return { ...base, hp: 3, score: 150, color: wave.color || "#a55", size: "medium" };
+      return { ...base, hp: 3, score: 150, color: wave.color || "#a55", size: "medium",
+        fireRate: 1.2, fireTimer: 0.6, firePattern: "aimed" };
     case "large":
       return { ...base, hp: 15, score: 500, color: "#aa8833", size: "large",
-        parts: { body: 15, turretL: 8, turretR: 8 } };
+        parts: { body: 15, turretL: 8, turretR: 8 },
+        fireRate: 0.8, fireTimer: 0.4, firePattern: "spread" };
     case "turret":
-      return { ...base, hp: 4, score: 200, color: "#555", angle: wave.angle || 0, size: "turret" };
+      return { ...base, hp: 4, score: 200, color: "#555", angle: wave.angle || 0, size: "turret",
+        fireRate: 1.5, fireTimer: 0.8, firePattern: "aimed" };
     case "tank":
-      return { ...base, hp: 6, score: 250, color: "#4a4a3a", angle: wave.angle || 0, size: "tank" };
+      return { ...base, hp: 6, score: 250, color: "#4a4a3a", angle: wave.angle || 0, size: "tank",
+        fireRate: 2, fireTimer: 1, firePattern: "aimed" };
     case "boss":
-      return { ...base, x: W / 2, y: H * 0.35, hp: 300, maxHp: 300, score: 10000, color: "#887755",
+      return { ...base, x: W / 2, y: H * 0.2, hp: 300, maxHp: 300, score: 10000, color: "#887755",
         size: "boss", bossPhase: 0, bossTimer: 0, bossName: wave.name || "BOSS" };
     case "formation":
-      return wave.data.map(d => ({ ...base, x: d.x, y: d.y + scrollY - H, hp: 1, score: 50,
+      return wave.data.map(d => ({ ...base, x: d.x, y: d.y, hp: 1, score: 50,
         color: wave.color || "#5a5", size: "small" }));
   }
 }

@@ -67,7 +67,6 @@
       const dt = Math.min(_dt, 0.1);
 
       handleMenus();
-      input.clearJustPressed();
 
       if (gameState === "title") {
         ctx.fillStyle = "#000";
@@ -84,6 +83,8 @@
         renderGame();
         R.drawGameOver(player ? player.score : 0, highScore);
       }
+
+      input.clearJustPressed();
     });
   </script>
 </body>
