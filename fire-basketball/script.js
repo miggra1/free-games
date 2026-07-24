@@ -30,6 +30,7 @@ const state = {
   trails: [],
   particles: [],
   ripples: [],
+  stuckFrames: 0,
   last: 0,
 };
 
@@ -87,6 +88,7 @@ function reset() {
   state.trails = [];
   state.particles = [];
   state.ripples = [];
+  state.stuckFrames = 0;
   spawnBall();
   tip.textContent = "60 秒挑战，点一下起跳";
 }
@@ -97,6 +99,7 @@ function difficulty() {
 }
 
 function spawnBall() {
+  state.stuckFrames = 0;
   const dir = state.side === "left" ? -1 : 1;
   const level = difficulty();
   state.ball = {
@@ -191,6 +194,22 @@ function update(delta) {
   b.spin += b.vx * 0.045;
 
   state.trails.push({ x: b.x, y: b.y, life: state.fire > 0 ? 0.62 : 0.3, fire: state.fire > 0 });
+
+  // 卡死检测：本帧位移过小就累加，连续多帧位移过小就强制 miss
+  const movedX = b.x - b.px;
+  const movedY = b.y - b.py;
+  const moved = Math.hypot(movedX, movedY);
+  if (moved < 0.45) {
+    state.stuckFrames += 1;
+  } else {
+    state.stuckFrames = Math.max(0, state.stuckFrames - 2);
+  }
+  if (state.stuckFrames > 90) {
+    state.stuckFrames = 0;
+    miss();
+    updateEffects(delta);
+    return;
+  }
 
   if (b.y < 108) {
     b.y = 108;
@@ -374,6 +393,9 @@ function collideRim() {
   b.y = contact.y + ny * minDist;
   b.vx = (b.vx - 1.25 * speedIntoRim * nx) * 0.62;
   b.vy = (b.vy - 1.25 * speedIntoRim * ny) * 0.58;
+  // 防止反弹后球速过小卡在篮筐附近：给一个最小的逃逸速度
+  if (Math.abs(b.vx) < 0.6) b.vx += nx * 1.4;
+  if (Math.abs(b.vy) < 0.6) b.vy += ny * 1.4 - 0.8; // 略向上逃逸
   b.spin += nx * 0.45;
   state.shake = Math.max(state.shake, 0.12);
   state.netSide = hoop.side;
