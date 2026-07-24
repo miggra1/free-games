@@ -133,6 +133,7 @@ function renderBoard() {
 function handleTileClick(event) {
   const tile = event.target.closest(".tile");
   if (!tile || tile.disabled || !game || game.state !== "playing") return;
+  event.preventDefault();
   const cell = { r: Number(tile.dataset.r), c: Number(tile.dataset.c) };
   const value = game.board[cell.r]?.[cell.c];
   if (!value) return;
@@ -500,7 +501,7 @@ function handleCheatShortcut(event) {
   }
 }
 
-boardEl.addEventListener("click", handleTileClick);
+boardEl.addEventListener("pointerdown", handleTileClick);
 document.addEventListener("keydown", handleCheatShortcut, true);
 restartBtn.addEventListener("click", newGame);
 shuffleBtn.addEventListener("click", shuffleRemain);
