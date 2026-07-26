@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>&#27700;&#26524;&#36830;&#36830;&#30475;</title>
-    <link rel="stylesheet" href="style.css?v=mode-2" />
+    <link rel="stylesheet" href="style.css?v=mode-3" />
   </head>
   <body>
     <main class="shell">
@@ -13,7 +13,7 @@
         <div><span>&#20851;&#21345;</span><strong id="round">1</strong></div>
         <div><span>&#20998;&#25968;</span><strong id="score">0</strong></div>
         <div><span>&#21097;&#20313;</span><strong id="leftCount">0</strong></div>
-        <div><span>&#26102;&#38388;</span><strong id="timer">120</strong></div>
+        <div><span>&#26102;&#38388;</span><strong id="timer">0s</strong></div>
         <div><span>&#36830;&#20987;</span><strong id="combo">0</strong></div>
         <div class="best-box"><span>&#26368;&#39640;&#35760;&#24405;</span><strong id="bestRecord">--</strong></div>
         <button id="shuffle" type="button">&#37325;&#25490;</button>
@@ -29,6 +29,21 @@
       </section>
 
       <section class="board-wrap">
+        <div id="modeMenu" class="mode-menu" aria-label="choose mode">
+          <div class="mode-menu-panel">
+            <strong>&#36873;&#25321;&#29609;&#27861;</strong>
+            <div class="mode-menu-actions">
+              <button data-mode="speed" type="button">
+                <span>&#26497;&#36895;&#35760;&#24405;</span>
+                <small>&#21333;&#23616;&#35745;&#26102;&#65292;&#25361;&#25112;&#26368;&#30701;&#36890;&#20851;&#26102;&#38388;</small>
+              </button>
+              <button data-mode="adventure" type="button">
+                <span>&#38383;&#20851;&#27169;&#24335;</span>
+                <small>8 &#20851;&#36882;&#36827;&#65292;&#38556;&#30861;&#21644;&#26102;&#38480;&#36234;&#26469;&#36234;&#32039;</small>
+              </button>
+            </div>
+          </div>
+        </div>
         <div id="gameBoard" class="game-board" aria-label="link game board"></div>
         <div id="resultModal" class="result-modal hidden" role="dialog" aria-modal="true" aria-label="game result">
           <div class="result-card">
@@ -78,6 +93,6 @@
     </aside>
 
     <script src="/shared/supabase-scores.js?v=supabase-1"></script>
-    <script src="script.js?v=mode-2"></script>
+    <script src="script.js?v=mode-3"></script>
   </body>
 </html>

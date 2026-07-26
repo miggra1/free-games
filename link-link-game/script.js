@@ -13,6 +13,7 @@ const resultComboEl = document.querySelector("#resultCombo");
 const resultBestEl = document.querySelector("#resultBest");
 const resultRestartBtn = document.querySelector("#resultRestart");
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const modeMenuEl = document.querySelector("#modeMenu");
 const modeLabelEl = document.querySelector("#modeLabel");
 const levelGoalEl = document.querySelector("#levelGoal");
 const cheatPanel = document.querySelector("#cheatPanel");
@@ -94,6 +95,7 @@ function newGame(mode = currentMode) {
   };
 
   hintPair = null;
+  modeMenuEl.classList.add("hidden");
   resultModalEl.classList.add("hidden");
   updateModeUi();
   startLevel(1);
@@ -451,6 +453,19 @@ function tick() {
 }
 
 function updateHud() {
+  if (!game) {
+    leftEl.textContent = "0";
+    timerEl.textContent = currentMode === "speed" ? "0s" : levelConfig(1).timeLimit;
+    comboEl.textContent = "0";
+    const roundEl = document.querySelector("#round");
+    const scoreEl = document.querySelector("#score");
+    if (roundEl) roundEl.textContent = currentMode === "speed" ? "1" : `1/${maxAdventureLevel}`;
+    if (scoreEl) scoreEl.textContent = "0";
+    if (modeLabelEl) modeLabelEl.textContent = modes[currentMode].label;
+    if (levelGoalEl) levelGoalEl.textContent = currentMode === "speed" ? "目标：刷新最短通关时间" : `目标：通过第 ${maxAdventureLevel} 关`;
+    return;
+  }
+
   leftEl.textContent = game.left;
   timerEl.textContent = game.mode === "speed" ? `${Math.ceil(game.elapsed)}s` : Math.ceil(game.time);
   comboEl.textContent = game.combo;
@@ -470,6 +485,15 @@ function updateModeUi() {
     button.setAttribute("aria-pressed", String(active));
   });
   document.body.dataset.gameMode = currentMode;
+}
+
+function previewMode(mode) {
+  currentMode = mode;
+  remoteBestRecord = null;
+  updateModeUi();
+  updateHud();
+  renderBestRecord();
+  loadRemoteBestRecord();
 }
 
 function currentResultRecord() {
@@ -560,7 +584,7 @@ async function loadRemoteBestRecord() {
   if (!window.FreeGamesScores) return;
   const requestedMode = currentMode;
   const record = await window.FreeGamesScores.getBestScore(modes[requestedMode].remoteKey);
-  if (!record || requestedMode !== currentMode || requestedMode !== game.mode) return;
+  if (!record || requestedMode !== currentMode || (game && requestedMode !== game.mode)) return;
   remoteBestRecord = normalizeRecord(record, requestedMode);
   renderBestRecord();
 }
@@ -713,6 +737,12 @@ restartBtn.addEventListener("click", () => newGame(currentMode));
 shuffleBtn.addEventListener("click", shuffleRemain);
 resultRestartBtn.addEventListener("click", () => newGame(currentMode));
 modeButtons.forEach((button) => {
+  button.addEventListener("pointerenter", () => {
+    if (!game) previewMode(button.dataset.mode);
+  });
+  button.addEventListener("focus", () => {
+    if (!game) previewMode(button.dataset.mode);
+  });
   button.addEventListener("click", () => newGame(button.dataset.mode));
 });
 cheatCloseBtn.addEventListener("click", () => toggleCheatPanel(false));
@@ -725,9 +755,10 @@ cheatHintsEl.addEventListener("change", renderBoard);
 
 const params = new URLSearchParams(window.location.search);
 if (params.get("mode") === "adventure") currentMode = "adventure";
-newGame(currentMode);
+previewMode(currentMode);
 if (params.get("cheat") === "1") toggleCheatPanel(true);
 if (params.get("result") === "1") {
+  newGame(currentMode);
   game.elapsed = 126;
   game.bestCombo = 6;
   endGame(text.win);
