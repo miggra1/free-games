@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>&#27700;&#26524;&#36830;&#36830;&#30475;</title>
-    <link rel="stylesheet" href="style.css?v=best-record-1" />
+    <link rel="stylesheet" href="style.css?v=mode-2" />
   </head>
   <body>
     <main class="shell">
       <section class="topbar" aria-label="game status">
-        <div><span>&#36718;&#27425;</span><strong id="round">1</strong></div>
+        <div><span>&#27169;&#24335;</span><strong id="modeLabel">&#26497;&#36895;&#35760;&#24405;</strong></div>
+        <div><span>&#20851;&#21345;</span><strong id="round">1</strong></div>
         <div><span>&#20998;&#25968;</span><strong id="score">0</strong></div>
         <div><span>&#21097;&#20313;</span><strong id="leftCount">0</strong></div>
         <div><span>&#26102;&#38388;</span><strong id="timer">120</strong></div>
@@ -17,6 +18,14 @@
         <div class="best-box"><span>&#26368;&#39640;&#35760;&#24405;</span><strong id="bestRecord">--</strong></div>
         <button id="shuffle" type="button">&#37325;&#25490;</button>
         <button id="restart" type="button">&#37325;&#24320;</button>
+      </section>
+
+      <section class="modebar" aria-label="game modes">
+        <div class="mode-switch" role="group" aria-label="mode switch">
+          <button class="active" data-mode="speed" type="button" aria-pressed="true">&#26497;&#36895;&#35760;&#24405;</button>
+          <button data-mode="adventure" type="button" aria-pressed="false">&#38383;&#20851;&#27169;&#24335;</button>
+        </div>
+        <strong id="levelGoal">&#30446;&#26631;&#65306;&#21047;&#26032;&#26368;&#30701;&#36890;&#20851;&#26102;&#38388;</strong>
       </section>
 
       <section class="board-wrap">
@@ -69,6 +78,6 @@
     </aside>
 
     <script src="/shared/supabase-scores.js?v=supabase-1"></script>
-    <script src="script.js?v=supabase-1"></script>
+    <script src="script.js?v=mode-2"></script>
   </body>
 </html>

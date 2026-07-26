@@ -12,6 +12,9 @@ const resultLeftEl = document.querySelector("#resultLeft");
 const resultComboEl = document.querySelector("#resultCombo");
 const resultBestEl = document.querySelector("#resultBest");
 const resultRestartBtn = document.querySelector("#resultRestart");
+const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const modeLabelEl = document.querySelector("#modeLabel");
+const levelGoalEl = document.querySelector("#levelGoal");
 const cheatPanel = document.querySelector("#cheatPanel");
 const cheatCloseBtn = document.querySelector("#cheatClose");
 const cheatTimeEl = document.querySelector("#cheatTime");
@@ -25,85 +28,116 @@ const cheatWinBtn = document.querySelector("#cheatWin");
 
 const rows = 8;
 const cols = 10;
+const maxAdventureLevel = 8;
 const icons = [
-  "🍎", "🍋", "🍇", "🍓", "🍒",
-  "🥝", "🍑", "🍍", "🍉", "🍊",
-  "🥥", "🍈", "🥭", "🍐", "🫐",
-  "🍌", "🍏", "🥑", "🍆", "🥕",
+  "🍎", "🍊", "🍌", "🍇", "🍉",
+  "🍓", "🍒", "🍑", "🥝", "🍍",
+  "🥥", "🍐", "🥭", "🍋", "🫐",
+  "🍈", "🍏", "🥑", "🌽", "🥕",
 ];
 const WALL = "WALL";
-const bestRecordKey = "free-link-link-best-record";
+const bestRecordPrefix = "free-link-link-best-record";
+
+const modes = {
+  speed: {
+    label: "极速记录",
+    bestLabel: "最快记录",
+    remoteKey: "link-link-game-speed",
+  },
+  adventure: {
+    label: "闯关模式",
+    bestLabel: "闯关记录",
+    remoteKey: "link-link-game-adventure",
+  },
+};
 
 const text = {
-  playing: "\u8fdb\u884c\u4e2d",
-  win: "\u901a\u5173\u6210\u529f",
-  timeUp: "\u65f6\u95f4\u5230",
-  ended: "\u5df2\u7ed3\u675f",
-  remaining: "\u5269\u4f59",
-  tiles: "\u724c",
-  bestCombo: "\u6700\u9ad8\u8fde\u51fb",
-  bestRecord: "\u6700\u9ad8\u8bb0\u5f55",
-  newBest: "\u65b0\u7eaa\u5f55",
-  usedTime: "\u7528\u65f6",
+  playing: "进行中",
+  win: "通关成功",
+  timeUp: "时间到",
+  ended: "已结束",
+  tiles: "牌",
+  bestCombo: "最高连击",
+  bestRecord: "最高记录",
+  newBest: "新纪录",
+  usedTime: "用时",
 };
 
 let game;
 let timerId = 0;
+let currentMode = "speed";
 let cheatTyped = "";
 let cheatTypedAt = 0;
 let tileBrightness = 76;
 let hintPair = null;
 let remoteBestRecord = null;
 
-function newGame() {
+function newGame(mode = currentMode) {
+  currentMode = mode;
+  remoteBestRecord = null;
   game = {
-    round: 1,
+    mode: currentMode,
+    level: 1,
     score: 0,
     selected: null,
     path: null,
     left: 0,
-    startTime: 120,
-    time: 120,
+    time: currentMode === "speed" ? 0 : levelConfig(1).timeLimit,
+    elapsed: 0,
     combo: 0,
     bestCombo: 0,
     result: text.playing,
-    recorded: false,
     state: "playing",
     lastMatchAt: 0,
     walls: 0,
+    isNewBest: false,
   };
+
   hintPair = null;
   resultModalEl.classList.add("hidden");
-  startRound(1);
+  updateModeUi();
+  startLevel(1);
   renderBestRecord();
   loadRemoteBestRecord();
 }
 
-function roundConfig(round) {
+function levelConfig(level) {
+  if (currentMode === "speed") {
+    return {
+      iconCount: 10,
+      wallCount: 0,
+      timeLimit: 0,
+      pairScore: 100,
+    };
+  }
+
   return {
-    iconCount: Math.min(icons.length, 6 + round),
-    wallCount: round > 2 ? Math.min(10, Math.floor((round - 2) * 1.5) * 2) : 0,
-    timeBonus: 30,
-    pairScore: 100 * round,
+    iconCount: Math.min(icons.length, 6 + level),
+    wallCount: level > 1 ? Math.min(18, Math.floor((level - 1) * 2)) : 0,
+    timeLimit: Math.max(75, 150 - (level - 1) * 8),
+    pairScore: 100 + level * 30,
   };
 }
 
-function startRound(round) {
+function startLevel(level) {
   if (!game) return;
-  game.round = round;
+  const cfg = levelConfig(level);
+  game.level = level;
   game.selected = null;
   game.path = null;
   game.combo = 0;
   game.lastMatchAt = 0;
-  buildRound(round);
+  if (game.mode === "adventure") game.time = cfg.timeLimit;
+
+  buildLevel(level);
   ensureSolvable();
   renderBoard();
   updateHud();
   syncCheatInputs();
 }
 
-function buildRound(round, addTime = true) {
-  const cfg = roundConfig(round);
+function buildLevel(level) {
+  const cfg = levelConfig(level);
   game.walls = cfg.wallCount;
 
   const board = Array.from({ length: rows + 2 }, () => Array(cols + 2).fill(null));
@@ -113,13 +147,11 @@ function buildRound(round, addTime = true) {
   }
   shuffleArray(cells);
 
-  // 放置墙壁
   for (let i = 0; i < cfg.wallCount; i += 1) {
     const { r, c } = cells[i];
     board[r][c] = WALL;
   }
 
-  // 填充剩余格子为成对图标
   const remain = cells.slice(cfg.wallCount);
   const pairs = [];
   for (let i = 0; i < remain.length / 2; i += 1) {
@@ -128,25 +160,24 @@ function buildRound(round, addTime = true) {
   const deck = [];
   for (const value of pairs) deck.push(value, value);
   shuffleArray(deck);
+
   for (let i = 0; i < remain.length; i += 1) {
     board[remain[i].r][remain[i].c] = deck[i];
   }
 
   game.board = board;
   game.left = remain.length;
-  if (addTime) {
-    game.time = Math.min(300, game.time + cfg.timeBonus);
-    game.startTime = Math.max(game.startTime, game.time);
-  }
 }
 
 function regenerateBoard() {
   if (!game) return;
   const savedScore = game.score;
   const savedTime = game.time;
-  buildRound(game.round, false);
+  const savedElapsed = game.elapsed;
+  buildLevel(game.level);
   game.score = savedScore;
   game.time = savedTime;
+  game.elapsed = savedElapsed;
 }
 
 function shuffleArray(array) {
@@ -195,6 +226,7 @@ function handleTileClick(event) {
   const tile = event.target.closest(".tile");
   if (!tile || tile.disabled || !game || game.state !== "playing") return;
   event.preventDefault();
+
   const cell = { r: Number(tile.dataset.r), c: Number(tile.dataset.c) };
   const value = game.board[cell.r]?.[cell.c];
   if (!value || value === WALL) return;
@@ -243,6 +275,7 @@ function clearLine(a, b, allowA, allowB) {
     }
     return true;
   }
+
   if (a.c === b.c) {
     const min = Math.min(a.r, b.r);
     const max = Math.max(a.r, b.r);
@@ -251,6 +284,7 @@ function clearLine(a, b, allowA, allowB) {
     }
     return true;
   }
+
   return false;
 }
 
@@ -277,6 +311,7 @@ function findPath(a, b) {
     const pB = { r: b.r, c };
     if (isEmpty(pA.r, pA.c, a, b) && isEmpty(pB.r, pB.c, a, b) && clearLine(a, pA, a, b) && clearLine(pA, pB, a, b) && clearLine(pB, b, a, b)) return [a, pA, pB, b];
   }
+
   return null;
 }
 
@@ -295,37 +330,50 @@ function removePair(a, b) {
   game.lastMatchAt = now;
   game.bestCombo = Math.max(game.bestCombo, game.combo);
 
-  const cfg = roundConfig(game.round);
+  const cfg = levelConfig(game.level);
   const comboMult = 1 + (game.combo - 1) * 0.3;
   game.score += Math.floor(cfg.pairScore * comboMult);
-  game.time = Math.min(300, game.time + 1 + Math.floor(game.combo / 3));
+  if (game.mode === "adventure") game.time = Math.min(cfg.timeLimit, game.time + 1 + Math.floor(game.combo / 4));
 
   game.selected = null;
   hintPair = null;
-  if (game.left <= 0) endRound();
+
+  if (game.left <= 0) endLevel();
   else ensureSolvable();
+
   syncCheatInputs();
   return true;
 }
 
-function endRound() {
+function endLevel() {
   if (!game || game.state !== "playing") return;
-  game.score += Math.floor(game.time * 5);
-  const nextRound = game.round + 1;
-  startRound(nextRound);
+
+  if (game.mode === "speed") {
+    game.score += Math.max(0, 10000 - game.elapsed * 10);
+    endGame(text.win);
+    return;
+  }
+
+  game.score += Math.floor(game.time * 8) + game.level * 500;
+  if (game.level >= maxAdventureLevel) {
+    endGame(text.win);
+    return;
+  }
+
+  startLevel(game.level + 1);
 }
 
 function shuffleRemain() {
   if (!game || game.state !== "playing") return;
   shuffleRemainOnce();
+  if (game.mode === "speed") game.elapsed += 5;
+  else game.time = Math.max(0, game.time - 5);
   game.selected = null;
   hintPair = null;
   ensureSolvable();
   updateHud();
   renderBoard();
 }
-
-function isWall(r, c) { return game.board[r]?.[c] === WALL; }
 
 function findAnyMove() {
   const cells = [];
@@ -335,11 +383,13 @@ function findAnyMove() {
       if (v && v !== WALL) cells.push({ r, c, value: v });
     }
   }
+
   for (let i = 0; i < cells.length; i += 1) {
     for (let j = i + 1; j < cells.length; j += 1) {
       if (cells[i].value === cells[j].value && findPath(cells[i], cells[j])) return [cells[i], cells[j]];
     }
   }
+
   return null;
 }
 
@@ -350,7 +400,6 @@ function ensureSolvable() {
       if (findAnyMove()) return;
       shuffleRemainOnce();
     }
-    // 图标位置洗无可洗，整体重排墙壁与图标
     regenerateBoard();
   }
 }
@@ -367,6 +416,7 @@ function shuffleRemainOnce() {
       }
     }
   }
+
   shuffleArray(remain);
   for (let i = 0; i < positions.length; i += 1) {
     game.board[positions[i].r][positions[i].c] = remain[i];
@@ -377,45 +427,71 @@ function endGame(resultText) {
   game.state = "ended";
   game.result = resultText;
   updateBestRecord();
+  updateHud();
+  renderBoard();
   showResultModal();
 }
 
 function tick() {
   if (!game || game.state !== "playing") return;
-  game.time = Math.max(0, game.time - 1);
-  if (game.time <= 0) {
-    game.time = 0;
-    endGame(text.timeUp);
+
+  game.elapsed += 1;
+  if (game.mode === "adventure") {
+    game.time = Math.max(0, game.time - 1);
+    if (game.time <= 0) {
+      game.time = 0;
+      endGame(text.timeUp);
+    }
+  } else {
+    game.time = game.elapsed;
   }
+
   updateHud();
   syncCheatInputs();
 }
 
 function updateHud() {
   leftEl.textContent = game.left;
-  timerEl.textContent = Math.ceil(game.time);
+  timerEl.textContent = game.mode === "speed" ? `${Math.ceil(game.elapsed)}s` : Math.ceil(game.time);
   comboEl.textContent = game.combo;
+
   const roundEl = document.querySelector("#round");
   const scoreEl = document.querySelector("#score");
-  if (roundEl) roundEl.textContent = game.round;
+  if (roundEl) roundEl.textContent = game.mode === "speed" ? "1" : `${game.level}/${maxAdventureLevel}`;
   if (scoreEl) scoreEl.textContent = game.score;
+  if (modeLabelEl) modeLabelEl.textContent = modes[game.mode].label;
+  if (levelGoalEl) levelGoalEl.textContent = game.mode === "speed" ? "目标：刷新最短通关时间" : `目标：通过第 ${maxAdventureLevel} 关`;
+}
+
+function updateModeUi() {
+  modeButtons.forEach((button) => {
+    const active = button.dataset.mode === currentMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  document.body.dataset.gameMode = currentMode;
 }
 
 function currentResultRecord() {
-  const used = Math.max(0, game.startTime - Math.ceil(game.time));
   return {
-    round: game.round,
+    mode: game.mode,
+    level: game.level,
     score: game.score,
     bestCombo: game.bestCombo,
-    used,
+    used: game.elapsed,
     left: game.left,
+    won: game.left <= 0 && game.result === text.win,
     savedAt: new Date().toLocaleString(),
   };
 }
 
-function readBestRecord() {
+function recordKey(mode = currentMode) {
+  return `${bestRecordPrefix}-${mode}`;
+}
+
+function readBestRecord(mode = currentMode) {
   try {
-    const record = JSON.parse(localStorage.getItem(bestRecordKey) || "null");
+    const record = JSON.parse(localStorage.getItem(recordKey(mode)) || "null");
     return record && typeof record === "object" ? record : null;
   } catch {
     return null;
@@ -423,31 +499,52 @@ function readBestRecord() {
 }
 
 function writeBestRecord(record) {
-  localStorage.setItem(bestRecordKey, JSON.stringify(record));
+  localStorage.setItem(recordKey(record.mode), JSON.stringify(record));
 }
 
 function isBetterRecord(next, current) {
   if (!current) return true;
-  if (next.round !== current.round) return next.round > current.round;
+
+  if (next.mode === "speed") {
+    if (next.won && !current.won) return true;
+    if (!next.won && current.won) return false;
+    if (next.won && current.won && next.used !== current.used) return next.used < current.used;
+    return next.bestCombo > (current.bestCombo ?? 0);
+  }
+
+  if (next.level !== current.level) return next.level > current.level;
+  if (next.won !== current.won) return next.won;
   if (next.score !== current.score) return next.score > current.score;
-  return next.bestCombo > current.bestCombo;
+  return next.bestCombo > (current.bestCombo ?? 0);
 }
 
-function formatBestRecord(record) {
+function formatBestRecord(record, mode = currentMode) {
   if (!record) return "--";
-  if ("round" in record) return `Lv${record.round} / ${record.score}`;
-  if ("time_used" in record || "best_combo" in record) {
-    const combo = record.best_combo ?? 0;
-    if (record.won) return `${record.time_used ?? 0}s / ${combo}`;
-    return `${text.tiles}${record.remaining ?? 0} / ${combo}`;
+  const normalized = normalizeRecord(record, mode);
+
+  if (mode === "speed") {
+    if (normalized.won) return `${normalized.used}s / ${normalized.bestCombo}`;
+    return `${text.tiles}${normalized.left} / ${normalized.bestCombo}`;
   }
-  if (record.won) return `${record.used}s / ${record.bestCombo}`;
-  return `${text.tiles}${record.left} / ${record.bestCombo}`;
+
+  return `Lv${normalized.level} / ${normalized.score}`;
+}
+
+function normalizeRecord(record, mode = currentMode) {
+  return {
+    mode,
+    level: record.level ?? record.round ?? 1,
+    score: record.score ?? 0,
+    bestCombo: record.bestCombo ?? record.best_combo ?? 0,
+    used: record.used ?? record.time_used ?? 0,
+    left: record.left ?? record.remaining ?? 0,
+    won: Boolean(record.won),
+  };
 }
 
 function updateBestRecord() {
   const next = currentResultRecord();
-  const current = readBestRecord();
+  const current = readBestRecord(game.mode);
   game.isNewBest = isBetterRecord(next, current);
   if (game.isNewBest) writeBestRecord(next);
   renderBestRecord();
@@ -455,24 +552,26 @@ function updateBestRecord() {
 }
 
 function renderBestRecord() {
-  bestRecordEl.textContent = formatBestRecord(remoteBestRecord || readBestRecord());
+  const source = remoteBestRecord || readBestRecord(currentMode);
+  bestRecordEl.textContent = formatBestRecord(source, currentMode);
 }
 
 async function loadRemoteBestRecord() {
   if (!window.FreeGamesScores) return;
-  const record = await window.FreeGamesScores.getBestScore("link-link-game");
-  if (!record) return;
-  remoteBestRecord = record;
+  const requestedMode = currentMode;
+  const record = await window.FreeGamesScores.getBestScore(modes[requestedMode].remoteKey);
+  if (!record || requestedMode !== currentMode || requestedMode !== game.mode) return;
+  remoteBestRecord = normalizeRecord(record, requestedMode);
   renderBestRecord();
 }
 
 async function saveRemoteRecord(record) {
   if (!window.FreeGamesScores) return;
   const saved = await window.FreeGamesScores.saveScore({
-    game_key: "link-link-game",
-    score: record.score,
-    level: record.round || 1,
-    won: record.left <= 0,
+    game_key: modes[record.mode].remoteKey,
+    score: record.mode === "speed" && record.won ? Math.max(1, 100000 - record.used) : record.score,
+    level: record.level || 1,
+    won: record.won,
     time_used: record.used,
     remaining: record.left,
     best_combo: record.bestCombo,
@@ -482,12 +581,14 @@ async function saveRemoteRecord(record) {
 }
 
 function showResultModal() {
-  const used = Math.max(0, game.startTime - Math.ceil(game.time));
+  const record = currentResultRecord();
   resultTitleEl.textContent = game.result || text.ended;
-  resultTimeEl.textContent = `${text.usedTime} ${used}s`;
-  resultLeftEl.textContent = `第 ${game.round} 轮 · 剩余 ${game.left} 牌`;
+  resultTimeEl.textContent = `${modes[game.mode].label} · ${text.usedTime} ${record.used}s`;
+  resultLeftEl.textContent = game.mode === "speed"
+    ? `剩余 ${game.left} 牌`
+    : `第 ${game.level}/${maxAdventureLevel} 关 · 剩余 ${game.left} 牌`;
   resultComboEl.textContent = `分数 ${game.score} · 最高连击 ${game.bestCombo}`;
-  resultBestEl.textContent = game.isNewBest ? text.newBest : `${text.bestRecord} ${formatBestRecord(remoteBestRecord || readBestRecord())}`;
+  resultBestEl.textContent = game.isNewBest ? text.newBest : `${modes[game.mode].bestLabel} ${formatBestRecord(remoteBestRecord || readBestRecord(game.mode), game.mode)}`;
   resultModalEl.classList.remove("hidden");
 }
 
@@ -499,22 +600,30 @@ function toggleCheatPanel(force) {
 
 function syncCheatInputs() {
   if (!game) return;
-  cheatTimeEl.value = Math.ceil(game.time);
+  cheatTimeEl.value = game.mode === "speed" ? Math.ceil(game.elapsed) : Math.ceil(game.time);
   cheatComboEl.value = game.combo;
   cheatBrightnessEl.value = tileBrightness;
 }
 
 function applyCheatSettings() {
   if (!game) return;
-  game.time = clamp(Number(cheatTimeEl.value) || 0, 0, 9999);
+  const cheatTime = clamp(Number(cheatTimeEl.value) || 0, 0, 9999);
+  if (game.mode === "speed") {
+    game.elapsed = cheatTime;
+    game.time = cheatTime;
+  } else {
+    game.time = cheatTime;
+  }
+
   game.combo = clamp(Number(cheatComboEl.value) || 0, 0, 999);
   game.bestCombo = Math.max(game.bestCombo, game.combo);
   tileBrightness = clamp(Number(cheatBrightnessEl.value) || 76, 45, 100);
-  if (game.state === "ended" && game.left > 0 && game.time > 0) {
+
+  if (game.state === "ended" && game.left > 0 && (game.mode === "speed" || game.time > 0)) {
     game.state = "playing";
-    game.recorded = false;
     resultModalEl.classList.add("hidden");
   }
+
   updateHud();
   renderBoard();
 }
@@ -525,12 +634,18 @@ function clamp(value, min, max) {
 
 function cheatAddTime() {
   if (!game) return;
-  game.time = clamp(game.time + 60, 0, 9999);
+  if (game.mode === "speed") {
+    game.elapsed = Math.max(0, game.elapsed - 15);
+    game.time = game.elapsed;
+  } else {
+    game.time = clamp(game.time + 60, 0, 9999);
+  }
+
   if (game.state === "ended" && game.left > 0) {
     game.state = "playing";
-    game.recorded = false;
     resultModalEl.classList.add("hidden");
   }
+
   updateHud();
   syncCheatInputs();
 }
@@ -555,8 +670,6 @@ function cheatWinNow() {
   game.combo += 1;
   game.bestCombo = Math.max(game.bestCombo, game.combo);
   endGame(text.win);
-  updateHud();
-  renderBoard();
   syncCheatInputs();
 }
 
@@ -565,6 +678,7 @@ function updateHint() {
     hintPair = null;
     return;
   }
+
   if (!hintPair || !game.board[hintPair[0].r]?.[hintPair[0].c] || !game.board[hintPair[1].r]?.[hintPair[1].c]) {
     hintPair = findAnyMove();
   }
@@ -595,9 +709,12 @@ function handleCheatShortcut(event) {
 
 boardEl.addEventListener("pointerdown", handleTileClick);
 document.addEventListener("keydown", handleCheatShortcut, true);
-restartBtn.addEventListener("click", newGame);
+restartBtn.addEventListener("click", () => newGame(currentMode));
 shuffleBtn.addEventListener("click", shuffleRemain);
-resultRestartBtn.addEventListener("click", newGame);
+resultRestartBtn.addEventListener("click", () => newGame(currentMode));
+modeButtons.forEach((button) => {
+  button.addEventListener("click", () => newGame(button.dataset.mode));
+});
 cheatCloseBtn.addEventListener("click", () => toggleCheatPanel(false));
 cheatApplyBtn.addEventListener("click", applyCheatSettings);
 cheatAddTimeBtn.addEventListener("click", cheatAddTime);
@@ -606,12 +723,12 @@ cheatWinBtn.addEventListener("click", cheatWinNow);
 cheatBrightnessEl.addEventListener("input", applyCheatSettings);
 cheatHintsEl.addEventListener("change", renderBoard);
 
-newGame();
-if (new URLSearchParams(window.location.search).get("cheat") === "1") {
-  toggleCheatPanel(true);
-}
-if (new URLSearchParams(window.location.search).get("result") === "1") {
-  game.time = 126;
+const params = new URLSearchParams(window.location.search);
+if (params.get("mode") === "adventure") currentMode = "adventure";
+newGame(currentMode);
+if (params.get("cheat") === "1") toggleCheatPanel(true);
+if (params.get("result") === "1") {
+  game.elapsed = 126;
   game.bestCombo = 6;
   endGame(text.win);
 }

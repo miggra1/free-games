@@ -29,14 +29,14 @@ body {
   width: min(1060px, 100vw);
   height: min(800px, 100dvh);
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
   padding: 12px;
 }
 
 .topbar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(110px, 1.2fr) auto auto;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(120px, 1.25fr) auto auto;
   gap: 10px;
   padding: 10px;
   border: 1px solid var(--line);
@@ -54,12 +54,60 @@ body {
   display: block;
   margin-top: 2px;
   font-size: clamp(22px, 4vw, 32px);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .best-box strong {
   color: var(--green);
   font-size: clamp(18px, 2.4vw, 24px);
   white-space: nowrap;
+}
+
+#modeLabel {
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.modebar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(18, 24, 28, 0.86);
+}
+
+.mode-switch {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mode-switch button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.mode-switch button.active {
+  border-color: rgba(255, 226, 122, 0.5);
+  background: var(--gold);
+  color: #171717;
+}
+
+#levelGoal {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 button {
@@ -304,7 +352,15 @@ input[type="range"] {
     gap: 8px;
     padding: 8px;
   }
+  .modebar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .mode-switch { width: 100%; }
+  .mode-switch button { flex: 1; padding: 0 8px; }
+  #levelGoal { text-align: left; }
   .topbar strong { font-size: clamp(18px, 5vw, 26px); }
+  #modeLabel { font-size: 18px; }
   .best-box strong { font-size: clamp(14px, 3.5vw, 20px); }
   .topbar button { min-height: 38px; padding: 0 10px; font-size: 14px; }
   .board-wrap {
@@ -327,8 +383,18 @@ input[type="range"] {
     gap: 6px;
     padding: 6px;
   }
+  .modebar {
+    gap: 6px;
+    padding: 6px;
+  }
+  .mode-switch button {
+    min-height: 32px;
+    font-size: 13px;
+  }
+  #levelGoal { font-size: 12px; }
   .topbar span { font-size: 11px; }
   .topbar strong { font-size: clamp(16px, 6vw, 22px); }
+  #modeLabel { font-size: 16px; }
   .topbar button { min-height: 34px; padding: 0 8px; font-size: 13px; }
   .game-board { gap: 4px; }
   .tile { border-radius: 5px; }
