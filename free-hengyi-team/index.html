@@ -174,19 +174,74 @@
     .member-heroes { margin-top: .55rem; color: #393935; font-size: .7rem; line-height: 1.5; }
     .member-more { margin-top: auto; color: var(--red); font-size: .68rem; }
 
-    .achievements-section { min-height: 760px; background: #f6f5f1 url("assets/ink-valley-paper.png") right bottom / 60% auto no-repeat; }
-    .achievement-layout { display: grid; grid-template-columns: .9fr 1.1fr; width: var(--content); min-height: 760px; margin: auto; padding: 6.5rem 0 4rem; }
-    .trophy-art { min-height: 580px; background: url("assets/ink-trophy-paper.png") left center / contain no-repeat; }
-    .achievement-content { padding: 1.6rem 2rem 0 4rem; }
-    .timeline { position: relative; display: grid; gap: 0; margin-top: 2.4rem; padding-left: 1.35rem; }
-    .timeline::before { content: ""; position: absolute; top: .7rem; bottom: .7rem; left: 3px; width: 1px; background: #8d8d87; }
-    .schedule-item { position: relative; display: grid; grid-template-columns: 105px 1fr auto; gap: 1.2rem; align-items: center; min-height: 96px; padding: .8rem 0; border-bottom: 1px solid var(--line); }
-    .schedule-item::before { content: ""; position: absolute; left: -1.52rem; width: 8px; height: 8px; border-radius: 50%; background: #111; }
-    .session-time { font-size: .92rem; font-weight: 900; }
-    .session-title { margin: 0 0 .18rem; font-size: .9rem; }
-    .session-meta { margin: 0; color: var(--muted); font-size: .7rem; }
-    .confirm-button { min-width: 78px; min-height: 34px; padding: 0 .7rem; border: 1px solid #222; border-radius: 999px; background: transparent; color: #222; font-size: .72rem; }
-    .confirm-button.is-confirmed { border-color: var(--green); background: var(--green); color: #fff; }
+    .achievements-section {
+      --record-gold: #ad9258;
+      min-height: 800px;
+      display: grid;
+      align-items: end;
+      background:
+        linear-gradient(180deg, transparent 0 34%, rgba(247,246,242,.04) 54%, rgba(247,246,242,.18) 100%),
+        url("assets/record-hero-reference.png") center top / 100% auto no-repeat,
+        #e9e7df url("assets/ink-hill-paper.png") center bottom / cover no-repeat;
+    }
+    .achievement-layout {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1.06fr) minmax(0, .94fr);
+      gap: 26px;
+      width: min(1120px, calc(100vw - 96px));
+      margin: auto;
+      padding: 21.5rem 0 3.3rem;
+      align-items: stretch;
+    }
+    .record-rail {
+      min-height: 390px;
+      display: grid;
+      place-content: center;
+      gap: .8rem;
+      background: rgba(18,18,16,.88);
+      color: #fff;
+      box-shadow: 0 16px 36px rgba(17,17,15,.2);
+      text-align: center;
+    }
+    .record-rail h2 { margin: 0; writing-mode: vertical-rl; font-family: var(--font-brush); font-size: 2rem; letter-spacing: .18em; }
+    .record-rail span { color: rgba(255,255,255,.58); font-size: .58rem; letter-spacing: .16em; }
+    .record-panel {
+      min-width: 0;
+      min-height: 390px;
+      padding: 1.25rem 1.55rem;
+      border: 1px solid rgba(42,41,37,.42);
+      background: rgba(249,247,241,.9);
+      box-shadow: 0 16px 36px rgba(32,30,25,.12);
+      backdrop-filter: blur(3px);
+    }
+    .record-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+    .record-panel-title h3 { margin: 0; font-family: var(--font-brush); font-size: 1.25rem; letter-spacing: .08em; }
+    .record-panel-title span { color: #68665f; font-size: .68rem; }
+    .season-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-bottom: 1px solid rgba(32,31,28,.14); }
+    .season-metric { min-width: 0; padding: .35rem .25rem .85rem; text-align: center; border-right: 1px solid rgba(32,31,28,.12); }
+    .season-metric:last-child { border-right: 0; }
+    .season-metric .metric-mark { width: 26px; height: 26px; display: grid; place-items: center; margin: 0 auto .18rem; color: #55534d; font-family: var(--font-brush); font-size: 1rem; }
+    .season-metric span { display: block; min-height: 2.5em; color: #65635c; font-size: .62rem; line-height: 1.25; }
+    .season-metric strong { display: block; margin-top: .2rem; font-size: 1.55rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+    .season-metric small { margin-left: .15rem; color: #77746c; font-size: .55rem; }
+    .honor-title { margin: .75rem 0 .45rem; font-family: var(--font-brush); font-size: 1.1rem; }
+    .honor-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .honor-item { min-width: 0; padding: .25rem .3rem 0; text-align: center; border-right: 1px solid rgba(32,31,28,.1); }
+    .honor-item:last-child { border-right: 0; }
+    .honor-year { display: block; color: #6e6b64; font-size: .62rem; }
+    .honor-mark { width: 36px; height: 36px; display: grid; place-items: center; margin: .28rem auto; border: 1px solid var(--record-gold); border-radius: 50%; color: var(--record-gold); font-family: var(--font-brush); font-size: 1rem; }
+    .honor-item b { display: block; color: #595750; font-size: .58rem; font-weight: 500; line-height: 1.35; }
+    .battle-list { border-top: 1px solid rgba(32,31,28,.15); }
+    .schedule-item { display: grid; grid-template-columns: 72px 65px minmax(0, 1fr) auto; gap: .55rem; align-items: center; min-height: 68px; padding: .45rem 0; border-bottom: 1px solid rgba(32,31,28,.13); }
+    .session-time strong, .session-time span { display: block; }
+    .session-time strong { font-size: .78rem; }
+    .session-time span { color: #77746c; font-size: .6rem; }
+    .record-team { display: flex; align-items: center; gap: .4rem; font-size: .72rem; }
+    .record-team-mark { width: 28px; height: 28px; display: grid; place-items: center; color: var(--record-gold); font-family: var(--font-brush); font-size: 1.2rem; font-weight: 900; }
+    .session-title { margin: 0 0 .12rem; font-size: .78rem; }
+    .session-meta { margin: 0; color: #77746c; font-size: .58rem; line-height: 1.35; }
+    .confirm-button { min-width: 58px; min-height: 32px; padding: 0 .6rem; border: 1px solid #65625b; border-radius: 999px; background: #65625b; color: #fff; font-size: .62rem; }
+    .confirm-button.is-confirmed { border-color: var(--record-gold); background: var(--record-gold); color: #fff; }
 
     .news-section { display: grid; align-items: center; min-height: 680px; background: #f8f7f3 url("assets/ink-valley-paper.png") right bottom / 50% auto no-repeat; }
     .news-layout { width: min(820px, calc(100% - 48px)); margin: auto; padding: 6.5rem 0 4rem; }
@@ -260,9 +315,9 @@
       .site-nav { gap: 1rem; }
       .site-nav a { font-size: .74rem; }
       .about-main { grid-template-columns: 1fr .65fr; }
-      .achievement-content { padding-left: 2rem; }
-      .schedule-item { grid-template-columns: 90px 1fr; }
-      .confirm-button { grid-column: 2; justify-self: start; }
+      .achievement-layout { grid-template-columns: 64px 1fr; }
+      .record-rail { grid-row: 1 / span 2; }
+      .record-panel { min-height: auto; }
     }
 
     @media (max-width: 760px) {
@@ -303,10 +358,24 @@
       .member-rail { grid-auto-columns: 170px; margin-top: 2rem; padding-left: 16px; scroll-padding-left: 16px; }
       .member-card { min-height: 315px; }
 
-      .achievement-layout { grid-template-columns: 1fr; min-height: auto; padding: 4.2rem 0 3rem; }
-      .trophy-art { min-height: 360px; background-position: center; }
-      .achievement-content { padding: 1rem 8px 0; }
-      .schedule-item { grid-template-columns: 82px 1fr; gap: .7rem; }
+      .achievements-section {
+        background:
+          linear-gradient(180deg, transparent 0 19%, rgba(247,246,242,.18) 29%, rgba(247,246,242,.34) 100%),
+          url("assets/record-hero-reference.png") 47% top / auto 210px no-repeat,
+          #e9e7df url("assets/ink-hill-paper.png") center bottom / cover no-repeat;
+      }
+      .achievement-layout { grid-template-columns: 1fr; gap: 12px; width: calc(100% - 32px); padding: 16.5rem 0 3rem; }
+      .record-rail { grid-row: auto; min-height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 1.15rem; }
+      .record-rail h2 { writing-mode: horizontal-tb; font-size: 1.65rem; letter-spacing: .1em; }
+      .record-panel { min-height: 0; padding: 1.15rem 1rem; }
+      .season-metrics { grid-template-columns: repeat(2, 1fr); }
+      .season-metric { border-bottom: 1px solid rgba(32,31,28,.12); }
+      .season-metric:nth-child(2n) { border-right: 0; }
+      .season-metric:last-child { grid-column: 1 / -1; }
+      .honor-strip { grid-template-columns: repeat(3, 1fr); row-gap: 1rem; }
+      .honor-item:nth-child(3) { border-right: 0; }
+      .schedule-item { grid-template-columns: 70px 58px minmax(0, 1fr); gap: .45rem; }
+      .confirm-button { grid-column: 3; justify-self: start; }
 
       .news-layout { width: calc(100% - 32px); padding: 4.5rem 0 3rem; }
       .news-item { grid-template-columns: 112px 1fr; }
@@ -404,12 +473,38 @@
 
     <section class="page-section achievements-section" id="achievements" aria-labelledby="achievementTitle">
       <div class="achievement-layout">
-        <div class="trophy-art" role="img" aria-label="水墨风战队奖杯"></div>
-        <div class="achievement-content">
-          <h2 class="section-title" id="achievementTitle">赛事战绩<span class="dot" aria-hidden="true"></span></h2>
-          <p class="section-en">ACHIEVEMENTS</p>
-          <div class="timeline" id="scheduleList" aria-label="本周作战安排"></div>
-        </div>
+        <header class="record-rail">
+          <h2 id="achievementTitle">赛事战绩</h2>
+          <span>RECORD</span>
+        </header>
+        <section class="record-panel" aria-labelledby="seasonOverviewTitle">
+          <div class="record-panel-title">
+            <h3 id="seasonOverviewTitle">赛季总览</h3>
+            <span>FREE · 2026</span>
+          </div>
+          <div class="season-metrics" aria-label="赛季数据">
+            <div class="season-metric"><span class="metric-mark">局</span><span>并肩对局</span><strong>100<small>+</small></strong></div>
+            <div class="season-metric"><span class="metric-mark">阵</span><span>阵容覆盖</span><strong>5<small>路</small></strong></div>
+            <div class="season-metric"><span class="metric-mark">员</span><span>现役成员</span><strong>7<small>人</small></strong></div>
+            <div class="season-metric"><span class="metric-mark">练</span><span>每周训练</span><strong>4<small>场</small></strong></div>
+            <div class="season-metric"><span class="metric-mark">报</span><span>战报记录</span><strong id="reportCount">3<small>篇</small></strong></div>
+          </div>
+          <h3 class="honor-title">战队历程</h3>
+          <div class="honor-strip" aria-label="战队历程">
+            <div class="honor-item"><span class="honor-year">2026.03</span><span class="honor-mark">聚</span><b>Free、恒谊<br>正式集结</b></div>
+            <div class="honor-item"><span class="honor-year">2026.04</span><span class="honor-mark">练</span><b>五排训练<br>体系建立</b></div>
+            <div class="honor-item"><span class="honor-year">2026.05</span><span class="honor-mark">阵</span><b>五路阵容<br>完成覆盖</b></div>
+            <div class="honor-item"><span class="honor-year">2026.06</span><span class="honor-mark">战</span><b>固定约战<br>进入常态</b></div>
+            <div class="honor-item"><span class="honor-year">2026.07</span><span class="honor-mark">志</span><b>战报后台<br>完成接入</b></div>
+          </div>
+        </section>
+        <section class="record-panel" aria-labelledby="recentBattleTitle">
+          <div class="record-panel-title">
+            <h3 id="recentBattleTitle">近期作战</h3>
+            <span>本周安排</span>
+          </div>
+          <div class="battle-list" id="scheduleList" aria-label="本周作战安排"></div>
+        </section>
       </div>
     </section>
 
@@ -566,13 +661,20 @@
         const saved = loadJson(keys.attendance, {});
         document.querySelector("#scheduleList").innerHTML = sessions.map(session => {
           const confirmed = Boolean(saved[session.id]);
-          return `<article class="schedule-item"><span class="session-time">${session.time}</span><div><h3 class="session-title">${session.title}</h3><p class="session-meta">${session.meta}</p></div><button class="confirm-button ${confirmed ? "is-confirmed" : ""}" type="button" data-session="${session.id}" aria-pressed="${confirmed}">${confirmed ? "已确认" : "确认参加"}</button></article>`;
+          const [day, time] = session.time.split(" ");
+          return `<article class="schedule-item">
+            <span class="session-time"><strong>${day}</strong><span>${time}</span></span>
+            <span class="record-team"><span>FREE</span><span class="record-team-mark">恒</span></span>
+            <div><h3 class="session-title">${session.title}</h3><p class="session-meta">${session.meta}</p></div>
+            <button class="confirm-button ${confirmed ? "is-confirmed" : ""}" type="button" data-session="${session.id}" aria-pressed="${confirmed}">${confirmed ? "已确认" : "待确认"}</button>
+          </article>`;
         }).join("");
       }
 
       function renderReports() {
         const saved = loadJson(keys.reports, []);
         const reports = saved.length ? saved.slice().reverse() : defaultReports;
+        document.querySelector("#reportCount").innerHTML = `${reports.length}<small>篇</small>`;
         document.querySelector("#reportList").innerHTML = reports.slice(0, 4).map((report, index) => `
           <article class="news-item">
             <div class="news-thumb" style="background-position:${20 + index * 18}% center" aria-hidden="true"></div>
