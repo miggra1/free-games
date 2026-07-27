@@ -180,8 +180,9 @@
     GAME.state = "playing";
     GAME.lastTick = Date.now();
     GAME.panelDirty = true;
-    // AI 先手时自动落子
-    if (GAME.mode !== "pvp" && BOARD.current === BLACK && GAME.isAiTurn()) {
+    // 人机模式中，无论 AI 执黑还是执白，只要轮到 AI 都自动落子。
+    // AI 观战由 startAivai 显式启动，避免在此重复调度首手。
+    if (GAME.mode === "pve" && GAME.isAiTurn()) {
       setTimeout(() => GAME.aiMove(), 500);
     }
   };
