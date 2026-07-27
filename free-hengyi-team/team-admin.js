@@ -1,5 +1,6 @@
 const SUPABASE_URL = "https://etaedrixhwtcfykczram.supabase.co";
 const SUPABASE_KEY = "sb_publishable_F3CdHW5XABUrO-Fc4TAeVA_UVpnYen3";
+const AUTH_REDIRECT_URL = "https://free-games-kohl.vercel.app/free-hengyi-team/team-admin.html";
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const statusLabels = { draft: "草稿", sent: "已发送", accepted: "已确认", declined: "已拒绝", completed: "已完成", planned: "待执行", active: "进行中", done: "已完成", cancelled: "已取消" };
 let currentUser = null;
@@ -37,10 +38,18 @@ $("#signUpButton").addEventListener("click", async () => {
   const email = $("#authEmail").value.trim(), password = $("#authPassword").value;
   if (!email || password.length < 6) { setStatus("#authStatus", "请输入邮箱和至少 6 位密码。", "error"); return; }
   setStatus("#authStatus", "创建账号中...");
-  const { data, error } = await client.auth.signUp({ email, password, options:{ emailRedirectTo: window.location.href } });
+  const { data, error } = await client.auth.signUp({ email, password, options:{ emailRedirectTo: AUTH_REDIRECT_URL } });
   if (error) { setStatus("#authStatus", error.message, "error"); return; }
   setStatus("#authStatus", data.session ? "账号已创建。正在进入后台..." : "账号已创建，请完成邮箱验证后登录。", "success");
   if (data.session) await refreshSession();
+});
+$("#resendButton").addEventListener("click", async () => {
+  const email = $("#authEmail").value.trim();
+  if (!email) { setStatus("#authStatus", "请先填写注册邮箱。", "error"); return; }
+  setStatus("#authStatus", "正在发送验证邮件...");
+  const { error } = await client.auth.resend({ type:"signup", email, options:{ emailRedirectTo: AUTH_REDIRECT_URL } });
+  if (error) { setStatus("#authStatus", error.message, "error"); return; }
+  setStatus("#authStatus", "验证邮件已发送，请打开新邮件完成确认。", "success");
 });
 $("#signOutButton").addEventListener("click", async () => { await client.auth.signOut(); currentUser = null; show("auth"); });
 $("#setupForm").addEventListener("submit", async (event) => {
