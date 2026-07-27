@@ -38,13 +38,15 @@ function createPlayer(x, y) {
 function updatePlayer(p, dt, shotPressed, bombPressed, bulletSpd, enemyBullets, enemies) {
   if (p.dead) {
     p.respawnTimer -= dt;
-    if (p.respawnTimer <= 0) {
+    if (p.respawnTimer <= 0 && p.lives > 0) {
       p.dead = false;
       p.x = p.respawnX;
       p.y = p.respawnY;
       p.invincible = 2.5;
       p.weaponLevel = Math.max(1, p.weaponLevel - 2);
       p.subLevel = Math.max(0, p.subLevel - 2);
+    } else if (p.lives <= 0) {
+      p.respawnTimer = 0;
     }
     return;
   }
