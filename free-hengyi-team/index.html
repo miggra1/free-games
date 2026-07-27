@@ -168,6 +168,10 @@
     .report-entry summary { min-height: 54px; display: flex; align-items: center; padding: 0 var(--space-3); color: var(--gold-light); font-weight: 700; cursor: pointer; }
     .report-form { display: grid; gap: var(--space-3); padding: 0 var(--space-3) var(--space-3); }
 
+    .culture { padding: calc(var(--space-7) + var(--space-4)) 0; text-align: center; }
+    .culture h2 { max-width: 22ch; margin: 0 auto var(--space-3); color: var(--gold-light); font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 400; letter-spacing: .16em; line-height: 1.3; text-wrap: balance; }
+    .culture p { max-width: 48ch; margin: 0 auto; color: var(--muted); letter-spacing: .04em; }
+
     .motion-on .site-shell::after { animation: brush-drift 7s cubic-bezier(.25, 1, .5, 1) infinite alternate; }
     .motion-on .member-card::before { animation: ember-shift 4s ease-in-out infinite alternate; }
     .motion-on .session-action.is-confirmed { animation: confirm-flash 900ms cubic-bezier(.25, 1, .5, 1); }
@@ -275,6 +279,7 @@
         <a href="#members">成员档案</a>
         <a href="#operations">本周作战</a>
         <a href="#reports">每周战报</a>
+        <a href="#culture">战队文化</a>
         <a href="#join">申请试训</a>
         <a href="../free-games/">游戏大厅</a>
         <label class="motion-control"><input id="motionToggle" type="checkbox" role="switch" aria-label="开启动态效果模式"><span>动态效果</span></label>
@@ -370,12 +375,18 @@
         </div>
       </section>
 
+      <section class="culture" id="culture" aria-labelledby="culture-title">
+        <p class="eyebrow">Team Culture</p>
+        <h2 id="culture-title" class="brush">自由不羁 · 恒久并肩</h2>
+        <p>以自由之心作战，以恒久之谊同行 —— 这是 Free、恒谊 的战队信条</p>
+      </section>
+
       <section id="join" aria-labelledby="join-title">
         <div class="join-layout">
           <div class="join-intro">
-            <p class="eyebrow">Tryout</p>
-            <h2 id="join-title" class="brush">申请试训</h2>
-            <p>填写擅长位置与可参与时段。队长会基于当前缺位和训练安排筛选试训名单。</p>
+            <p class="eyebrow">Join Us</p>
+            <h2 id="join-title" class="brush">加入我们</h2>
+            <p>如果你也热爱王者峡谷，认同「自由不羁，恒久并肩」的信念，欢迎与 Free、恒谊 并肩作战。期待下一位伙伴的名字，写进这幅水墨长卷。</p>
             <ul class="join-points">
               <li>优先匹配战队当前缺位分路。</li>
               <li>请留下可联系到你的一个方式。</li>
@@ -435,7 +446,7 @@
       </section>
     </main>
 
-    <footer><b>Free、恒谊</b> 战队大厅 · 试训与作战状态保存在当前浏览器</footer>
+    <footer><b>Free、恒谊</b> 战队 · 2026</footer>
   </div>
 
   <dialog id="profileDialog" aria-labelledby="profileName">
