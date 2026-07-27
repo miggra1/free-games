@@ -3,30 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0c0a08">
-  <title>Free、恒谊 | 战队大厅</title>
+  <meta name="theme-color" content="#11110f">
+  <title>Free、恒谊 | 王者荣耀战队</title>
   <style>
     :root {
-      --bg: #0c0a08;
-      --surface: #15120e;
-      --surface-raised: #1c1811;
-      --line: rgba(217, 164, 65, .28);
-      --line-strong: rgba(242, 206, 132, .65);
-      --gold: #d9a441;
-      --gold-light: #f2ce84;
-      --ink: #f2eadb;
-      --muted: #b7aa91;
-      --quiet: #827766;
-      --success: #a8d38e;
-      --danger: #efaaa0;
-      --space-1: .5rem;
-      --space-2: .75rem;
-      --space-3: 1rem;
-      --space-4: 1.5rem;
-      --space-5: 2rem;
-      --space-6: 3rem;
-      --space-7: 4.5rem;
-      --shadow: 0 20px 48px rgba(0, 0, 0, .34);
+      --black: #10110f;
+      --ink: #171715;
+      --muted: #676761;
+      --paper: #f5f4f0;
+      --white: #fff;
+      --red: #b5251d;
+      --green: #2f6c4e;
+      --line: rgba(23, 23, 21, .16);
+      --shadow: 0 12px 32px rgba(23, 23, 21, .13);
+      --content: min(1160px, calc(100vw - 48px));
+      --font-body: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      --font-brush: "STKaiti", "KaiTi", "FangSong", serif;
+      --ease: cubic-bezier(.22, 1, .36, 1);
     }
 
     * { box-sizing: border-box; }
@@ -35,665 +28,645 @@
       margin: 0;
       min-width: 320px;
       overflow-x: hidden;
-      background: var(--bg);
+      background: var(--paper);
       color: var(--ink);
-      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-      font-size: 1rem;
-      line-height: 1.6;
+      font-family: var(--font-body);
+      line-height: 1.65;
     }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
+    body, button, input, select, textarea { font: inherit; }
+    button, summary { cursor: pointer; }
     a { color: inherit; }
-    .brush { font-family: "STXingkai", "STKaiti", "KaiTi", serif; }
-    .site-shell { position: relative; isolation: isolate; }
-    .site-shell::before {
-      content: "";
-      position: fixed;
-      z-index: -2;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(7, 6, 5, .98) 0%, rgba(7, 6, 5, .86) 44%, rgba(7, 6, 5, .78) 100%),
-        linear-gradient(180deg, rgba(7, 6, 5, .18) 0%, rgba(7, 6, 5, .96) 76%),
-        url("concepts/ink-gold.png") right top / max(145%, 1900px) auto no-repeat,
-        #0c0a08;
-      filter: saturate(.68) contrast(1.05);
-    }
-    .site-shell::after {
-      content: "";
-      position: fixed;
-      z-index: -1;
-      inset: 0;
-      background: linear-gradient(90deg, transparent 48%, rgba(217, 164, 65, .05) 70%, transparent 100%);
-      pointer-events: none;
-    }
-    :focus-visible { outline: 3px solid var(--gold-light); outline-offset: 3px; }
+    img { display: block; max-width: 100%; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { text-wrap: balance; }
+    p { text-wrap: pretty; }
+    :focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .brush { font-family: var(--font-brush); }
+    .content { width: var(--content); margin-inline: auto; }
 
-    .topbar {
-      position: sticky;
+    .site-header {
+      position: fixed;
+      z-index: 40;
       top: 0;
-      z-index: 10;
+      right: 0;
+      left: 0;
+      height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 72px;
-      padding: 0 max(24px, calc((100vw - 1240px) / 2));
-      border-bottom: 1px solid var(--line);
-      background: rgba(12, 10, 8, .94);
+      padding-inline: max(24px, calc((100vw - 1160px) / 2));
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      background: var(--black);
+      color: var(--white);
+      transition: background-color 300ms var(--ease), color 300ms var(--ease), box-shadow 300ms var(--ease);
+    }
+    .site-header.is-light {
+      border-bottom-color: rgba(23, 23, 21, .08);
+      background: rgba(250, 249, 246, .96);
+      color: var(--ink);
+      box-shadow: 0 3px 18px rgba(23, 23, 21, .07);
       backdrop-filter: blur(12px);
     }
-    .brand { display: inline-flex; align-items: center; gap: .75rem; text-decoration: none; white-space: nowrap; }
-    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--gold); border-radius: 6px; color: var(--gold-light); font-weight: 700; }
-    .brand-name { font-size: 1.15rem; letter-spacing: .08em; }
-    .brand-name b { color: var(--gold); font-weight: 500; }
-    .nav-links { display: flex; align-items: center; gap: 1.25rem; }
-    .nav-links a { color: var(--muted); font-size: .875rem; letter-spacing: .08em; text-decoration: none; }
-    .nav-links a:hover, .nav-links a:focus-visible { color: var(--gold-light); }
-    .nav-cta { min-height: 40px; padding: 0 1rem; border: 1px solid var(--gold); border-radius: 5px; color: var(--gold-light) !important; display: inline-flex; align-items: center; }
-    .menu-toggle { display: none; min-width: 44px; min-height: 44px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--ink); font-size: 1.25rem; }
-    .motion-control { display: inline-flex; align-items: center; gap: .45rem; min-height: 40px; color: var(--muted); font-size: .75rem; letter-spacing: .05em; cursor: pointer; }
-    .motion-control input { width: 38px; min-height: 22px; appearance: none; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; transition: background-color 200ms ease, border-color 200ms ease; }
-    .motion-control input::after { content: ""; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--quiet); transform: translateX(0); transition: transform 200ms cubic-bezier(.25, 1, .5, 1), background-color 200ms ease; }
-    .motion-control input:checked { border-color: var(--gold); background: rgba(217, 164, 65, .2); }
-    .motion-control input:checked::after { background: var(--gold-light); transform: translateX(16px); }
-    .motion-control input:disabled { opacity: .5; cursor: not-allowed; }
+    .brand { display: inline-flex; align-items: center; gap: .42rem; color: inherit; text-decoration: none; }
+    .brand-mark { width: 25px; height: 25px; display: grid; place-items: center; font-family: var(--font-brush); font-size: 1.05rem; font-weight: 900; transform: rotate(-8deg); }
+    .brand-word { font-size: 1.2rem; font-style: italic; font-weight: 900; letter-spacing: .02em; }
+    .site-nav { display: flex; align-items: center; gap: clamp(.9rem, 2vw, 1.8rem); }
+    .site-nav a { position: relative; color: inherit; font-size: .82rem; text-decoration: none; white-space: nowrap; }
+    .site-nav a::after { content: ""; position: absolute; right: 50%; bottom: -.65rem; left: 50%; height: 2px; background: var(--red); transition: right 180ms var(--ease), left 180ms var(--ease); }
+    .site-nav a:hover::after, .site-nav a:focus-visible::after { right: 0; left: 0; }
+    .motion-switch { display: inline-flex; align-items: center; cursor: pointer; }
+    .motion-switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .motion-track { width: 34px; height: 18px; padding: 2px; border: 1px solid currentColor; border-radius: 999px; opacity: .72; }
+    .motion-track::after { content: ""; display: block; width: 12px; height: 12px; border-radius: 50%; background: currentColor; transition: transform 180ms var(--ease); }
+    .motion-switch input:checked + .motion-track::after { transform: translateX(16px); }
+    .menu-toggle { display: none; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font-size: 1.45rem; }
 
-    main { width: min(1240px, calc(100% - 48px)); margin: 0 auto; }
-    .hero { min-height: calc(100svh - 72px); position: relative; display: grid; align-content: center; padding: var(--space-7) 0 168px; }
-    .eyebrow { margin: 0 0 var(--space-2); color: var(--muted); font-size: .75rem; letter-spacing: .26em; text-transform: uppercase; }
-    h1, h2, h3, p { margin-top: 0; }
-    .hero h1 { max-width: 820px; margin-bottom: var(--space-3); color: var(--ink); font-size: clamp(4rem, 10vw, 8.5rem); font-weight: 400; line-height: 1; letter-spacing: .04em; text-wrap: balance; }
-    .hero h1 span { color: var(--gold); }
-    .hero-copy { max-width: 42ch; margin-bottom: var(--space-5); color: var(--muted); font-size: 1.0625rem; letter-spacing: .04em; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-    .button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.35rem; border: 1px solid transparent; border-radius: 5px; font-weight: 700; letter-spacing: .05em; text-decoration: none; transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease; }
-    .button:hover { transform: translateY(-2px); }
-    .button-primary { background: var(--gold-light); color: #21170a; }
-    .button-primary:hover { background: #ffe1a3; }
-    .button-secondary { border-color: var(--gold); background: transparent; color: var(--gold-light); }
-    .button-secondary:hover { background: rgba(217, 164, 65, .14); }
-    .button-quiet { border-color: var(--line); background: var(--surface); color: var(--ink); }
-    .button-quiet:hover { border-color: var(--line-strong); }
+    .hero {
+      position: relative;
+      min-height: max(820px, 100svh);
+      padding-top: 64px;
+      overflow: hidden;
+      background: var(--paper) url("assets/ink-hero-mountain.png") center / cover no-repeat;
+    }
+    .hero::after { content: ""; position: absolute; inset: 64px 0 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.08) 0 42%, rgba(11,12,10,.02) 52%, rgba(11,12,10,.82) 73%, rgba(11,12,10,.98) 100%); }
+    .hero-title-block {
+      position: relative;
+      z-index: 3;
+      width: min(700px, calc(100% - 32px));
+      margin: clamp(3.5rem, 7.5vh, 5.5rem) auto 0;
+      text-align: center;
+    }
+    .hero-word-wrap { position: relative; display: inline-block; }
+    .hero-word {
+      margin: 0;
+      color: #090a08;
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: clamp(5.7rem, 11vw, 9.4rem);
+      font-style: italic;
+      font-weight: 950;
+      line-height: .86;
+      letter-spacing: -.04em;
+      transform: skewX(-5deg);
+    }
+    .hero-seal { position: absolute; top: .25rem; right: -2.4rem; width: 30px; padding: .35rem .1rem; border-radius: 2px; background: var(--red); color: #fff; font-family: var(--font-brush); font-size: .82rem; line-height: 1.05; }
+    .hero-slogan { margin: 1.35rem 0 .15rem; color: #141412; font-size: clamp(1.2rem, 2vw, 1.72rem); font-weight: 800; letter-spacing: .1em; }
+    .hero-subtitle { margin: 0; color: #3f3f3b; font-size: .66rem; letter-spacing: .7em; text-indent: .7em; }
+    .hero-warriors {
+      position: absolute;
+      z-index: 2;
+      top: clamp(330px, 43vh, 430px);
+      left: 50%;
+      width: min(610px, 72vw);
+      transform: translateX(-50%);
+      mix-blend-mode: multiply;
+      mask-image: radial-gradient(ellipse 72% 88% at 50% 56%, #000 0 55%, rgba(0,0,0,.88) 66%, transparent 88%);
+      filter: contrast(1.1);
+    }
+    .hero-intro {
+      position: absolute;
+      z-index: 4;
+      right: 0;
+      bottom: clamp(2rem, 4vh, 3.5rem);
+      left: 0;
+      color: #fff;
+      text-align: center;
+    }
+    .hero-intro h2 { margin-bottom: .35rem; font-family: var(--font-brush); font-size: 1.55rem; letter-spacing: .12em; }
+    .title-rule { width: 34px; height: 3px; margin: .5rem auto 1.15rem; background: var(--red); }
+    .hero-intro > p { max-width: 58ch; margin: 0 auto 1.75rem; color: rgba(255,255,255,.76); font-size: .82rem; }
+    .values { display: grid; grid-template-columns: repeat(4, 1fr); width: min(660px, calc(100% - 32px)); margin: 0 auto; padding: 0; list-style: none; }
+    .values li { min-height: 112px; padding: 0 1rem; border-right: 1px solid rgba(255,255,255,.14); }
+    .values li:last-child { border-right: 0; }
+    .value-icon { width: 45px; height: 45px; display: grid; place-items: center; margin: 0 auto .55rem; border: 1px solid rgba(255,255,255,.72); border-radius: 50%; font-family: var(--font-brush); font-size: 1.35rem; }
+    .values strong { display: block; margin-bottom: .05rem; font-size: .98rem; }
+    .values span { display: block; color: rgba(255,255,255,.66); font-size: .7rem; }
 
-    .hero-featured-roster { position: absolute; right: 0; bottom: 118px; width: min(58vw, 830px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); }
-    .hero-member-card { min-height: 280px; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-3); overflow: hidden; border: 1px solid var(--line); border-radius: 0; background: linear-gradient(145deg, rgba(28, 24, 17, .94), rgba(9, 8, 6, .95)); color: var(--ink); text-align: left; transition: border-color 180ms ease, transform 180ms ease, background-color 180ms ease; }
-    .hero-member-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(242, 234, 219, .16), transparent 37%); pointer-events: none; }
-    .hero-member-card > * { position: relative; }
-    .hero-member-card:hover, .hero-member-card:focus-visible { border-color: var(--gold-light); background: linear-gradient(145deg, rgba(40, 32, 18, .96), rgba(10, 8, 5, .96)); transform: translateY(-4px); }
-    .hero-member-role { color: var(--gold-light); font-size: .75rem; letter-spacing: .08em; }
-    .hero-member-glyph { align-self: center; color: var(--ink); font-size: 4.25rem; line-height: 1; }
-    .hero-member-name { margin: 0; color: var(--ink); font-size: 1.25rem; letter-spacing: .06em; }
-    .hero-member-duty { display: block; margin-top: .2rem; color: var(--muted); font-size: .75rem; }
-    .hero-rail { position: absolute; right: 0; bottom: 48px; left: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .hero-rail a { min-height: 70px; display: grid; align-content: center; gap: .1rem; padding: .75rem var(--space-3); border-right: 1px solid var(--line); color: var(--muted); font-size: .8125rem; text-decoration: none; transition: background-color 180ms ease, color 180ms ease; }
-    .hero-rail a:last-child { border-right: 0; }
-    .hero-rail a:hover, .hero-rail a:focus-visible { background: rgba(217, 164, 65, .1); color: var(--ink); }
-    .hero-rail b { color: var(--gold-light); font-size: .875rem; }
+    .page-section { position: relative; min-height: 720px; overflow: hidden; background-color: var(--paper); scroll-margin-top: 64px; }
+    .section-title { margin: 0; font-family: var(--font-brush); font-size: clamp(2.15rem, 4vw, 3.2rem); font-weight: 900; letter-spacing: .08em; }
+    .section-title .dot { display: inline-block; width: 8px; height: 8px; margin-left: .45rem; border-radius: 1px; background: var(--red); vertical-align: .2em; }
+    .section-en { margin: .25rem 0 0; color: var(--red); font-size: .65rem; letter-spacing: .35em; text-transform: uppercase; }
 
-    section { padding: var(--space-7) 0; }
-    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); border-bottom: 1px solid var(--line); padding-bottom: var(--space-3); }
-    .section-heading h2 { margin: 0; font-size: 2rem; font-weight: 500; letter-spacing: .1em; text-wrap: balance; }
-    .section-heading p { max-width: 42ch; margin: 0; color: var(--muted); font-size: .9375rem; }
-    .overview-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: var(--space-5); align-items: start; }
-    .overview-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .overview-stat { min-height: 118px; display: grid; align-content: center; gap: .35rem; padding: var(--space-3); border-right: 1px solid var(--line); }
-    .overview-stat:last-child { border-right: 0; }
-    .overview-stat strong { color: var(--gold-light); font-size: 2rem; font-weight: 500; font-variant-numeric: tabular-nums; }
-    .overview-stat span { color: var(--muted); font-size: .8125rem; }
-    .overview-note { margin: var(--space-4) 0 0; color: var(--muted); }
-    .role-map { display: flex; flex-wrap: wrap; gap: .55rem; padding: 0; margin: 0; list-style: none; }
-    .role-map li { padding: .4rem .65rem; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: .8125rem; }
-    .role-map b { color: var(--gold-light); font-weight: 600; }
-    .overview-side { padding: var(--space-4); border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-    .overview-side h3 { margin-bottom: var(--space-2); font-size: 1.125rem; }
-    .overview-side p { margin-bottom: var(--space-3); color: var(--muted); font-size: .9375rem; }
+    .about-section { display: grid; align-content: center; background: #f7f6f2 url("assets/ink-dragon-paper.png") right center / min(52vw, 720px) auto no-repeat; }
+    .about-section::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #f7f6f2 0 49%, rgba(247,246,242,.82) 63%, rgba(247,246,242,.05) 100%); }
+    .about-main { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(380px, .8fr); align-items: center; min-height: 545px; padding: 6rem 0 2.5rem; }
+    .about-copy { max-width: 530px; padding-left: clamp(2rem, 7vw, 7rem); }
+    .about-copy p:not(.section-en) { max-width: 45ch; margin: 2rem 0 0; color: #4f4f4a; font-size: .92rem; }
+    .about-copy strong { color: var(--ink); }
+    .about-stats { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); min-height: 150px; border-top: 1px solid rgba(23,23,21,.08); background: rgba(255,255,255,.78); }
+    .about-stat { display: grid; place-content: center; gap: .25rem; text-align: center; border-right: 1px solid var(--line); }
+    .about-stat:last-child { border-right: 0; }
+    .about-stat b { font-size: 1.75rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .about-stat span { color: var(--muted); font-size: .72rem; }
 
-    .member-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--space-2); }
-    .member-card { min-height: 278px; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: var(--space-3); overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); text-align: left; }
-    .member-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 38% 25%, rgba(217, 164, 65, .17), transparent 46%); opacity: .8; pointer-events: none; }
-    .member-card:hover, .member-card:focus-visible { border-color: var(--gold-light); transform: translateY(-4px); }
-    .member-card > * { position: relative; }
-    .member-role { color: var(--gold-light); font-size: .75rem; letter-spacing: .08em; }
-    .member-glyph { align-self: center; color: var(--ink); font-size: 4rem; line-height: 1; }
-    .member-name { margin: 0; font-size: 1.25rem; letter-spacing: .06em; }
-    .member-detail { color: var(--muted); font-size: .75rem; }
-    .member-card small { color: var(--gold); font-size: .75rem; }
+    .members-section { display: grid; align-content: start; padding: 6.5rem 0 5rem; background: #f7f6f2 url("assets/ink-bamboo-paper.png") center / cover no-repeat; }
+    .members-section::after { content: ""; position: absolute; inset: 0; background: rgba(248,247,243,.22); pointer-events: none; }
+    .section-heading-center { position: relative; z-index: 1; text-align: center; }
+    .member-rail { position: relative; z-index: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(145px, 1fr); gap: 14px; width: var(--content); margin: 3.3rem auto 0; padding: .25rem .15rem 1.5rem; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; scrollbar-color: var(--red) transparent; }
+    .member-card { position: relative; min-height: 330px; display: flex; flex-direction: column; padding: 0; overflow: hidden; border: 1px solid rgba(23,23,21,.1); border-radius: 5px; background: rgba(255,255,255,.82); box-shadow: 0 8px 24px rgba(23,23,21,.09); color: var(--ink); text-align: left; transition: transform 240ms var(--ease), box-shadow 240ms var(--ease); }
+    .member-card:hover { transform: translateY(-7px); box-shadow: 0 16px 34px rgba(23,23,21,.17); }
+    .member-portrait { position: relative; height: 205px; overflow: hidden; background-color: #e8e7e3; background-image: linear-gradient(180deg, rgba(255,255,255,.12), rgba(0,0,0,.5)), url("assets/ink-warriors-row.png"); background-repeat: no-repeat; background-position: var(--portrait-position, center) bottom; background-size: auto 108%; filter: grayscale(1) contrast(1.25); }
+    .member-portrait::after { content: ""; position: absolute; inset: auto 0 0; height: 48%; background: linear-gradient(transparent, rgba(8,8,7,.88)); }
+    .role-badge { position: absolute; z-index: 2; right: 50%; bottom: 12px; transform: translateX(50%); min-width: 54px; padding: .28rem .5rem; border-radius: 999px; background: #111; color: #fff; font-size: .72rem; text-align: center; white-space: nowrap; }
+    .member-card-body { display: grid; flex: 1; align-content: start; gap: .2rem; padding: 1rem .9rem; }
+    .member-name { font-size: 1rem; font-weight: 900; }
+    .member-duty { color: var(--muted); font-size: .72rem; }
+    .member-heroes { margin-top: .55rem; color: #393935; font-size: .7rem; line-height: 1.5; }
+    .member-more { margin-top: auto; color: var(--red); font-size: .68rem; }
 
-    .ops-layout { display: grid; grid-template-columns: 1.2fr .8fr; gap: var(--space-5); align-items: start; }
-    .schedule-list { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--line); }
-    .schedule-item { display: grid; grid-template-columns: 96px 1fr auto; gap: var(--space-3); align-items: center; padding: 1rem; background: var(--surface); }
-    .session-time { color: var(--gold-light); font-size: .8125rem; font-variant-numeric: tabular-nums; }
-    .session-title { margin: 0 0 .15rem; font-size: 1rem; }
-    .session-meta { color: var(--muted); font-size: .8125rem; }
-    .session-action { min-width: 104px; }
-    .session-action.is-confirmed { border-color: var(--success); color: var(--success); background: rgba(168, 211, 142, .08); }
-    .ops-note { padding: var(--space-4); border: 1px solid var(--line); border-radius: 6px; background: rgba(21, 18, 14, .85); }
-    .ops-note h3 { margin-bottom: var(--space-2); font-size: 1.125rem; }
-    .ops-note p { color: var(--muted); font-size: .9375rem; }
-    .ops-note ul { margin: 0; padding-left: 1.2rem; color: var(--muted); font-size: .875rem; }
-    .ops-note li + li { margin-top: .5rem; }
-    .report-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--space-5); align-items: start; }
-    .report-list { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--line); }
-    .report-item { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: var(--space-4); padding: var(--space-4); background: var(--surface); }
-    .report-week { color: var(--gold-light); font-size: .8125rem; letter-spacing: .08em; }
-    .report-item h3 { margin: 0 0 .35rem; font-size: 1rem; }
-    .report-item p { margin: 0; color: var(--muted); font-size: .875rem; }
-    .report-empty { padding: var(--space-5); background: var(--surface); color: var(--muted); }
-    .report-entry { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
-    .report-entry summary { min-height: 54px; display: flex; align-items: center; padding: 0 var(--space-3); color: var(--gold-light); font-weight: 700; cursor: pointer; }
-    .report-form { display: grid; gap: var(--space-3); padding: 0 var(--space-3) var(--space-3); }
+    .achievements-section { min-height: 760px; background: #f6f5f1 url("assets/ink-valley-paper.png") right bottom / 60% auto no-repeat; }
+    .achievement-layout { display: grid; grid-template-columns: .9fr 1.1fr; width: var(--content); min-height: 760px; margin: auto; padding: 6.5rem 0 4rem; }
+    .trophy-art { min-height: 580px; background: url("assets/ink-trophy-paper.png") left center / contain no-repeat; }
+    .achievement-content { padding: 1.6rem 2rem 0 4rem; }
+    .timeline { position: relative; display: grid; gap: 0; margin-top: 2.4rem; padding-left: 1.35rem; }
+    .timeline::before { content: ""; position: absolute; top: .7rem; bottom: .7rem; left: 3px; width: 1px; background: #8d8d87; }
+    .schedule-item { position: relative; display: grid; grid-template-columns: 105px 1fr auto; gap: 1.2rem; align-items: center; min-height: 96px; padding: .8rem 0; border-bottom: 1px solid var(--line); }
+    .schedule-item::before { content: ""; position: absolute; left: -1.52rem; width: 8px; height: 8px; border-radius: 50%; background: #111; }
+    .session-time { font-size: .92rem; font-weight: 900; }
+    .session-title { margin: 0 0 .18rem; font-size: .9rem; }
+    .session-meta { margin: 0; color: var(--muted); font-size: .7rem; }
+    .confirm-button { min-width: 78px; min-height: 34px; padding: 0 .7rem; border: 1px solid #222; border-radius: 999px; background: transparent; color: #222; font-size: .72rem; }
+    .confirm-button.is-confirmed { border-color: var(--green); background: var(--green); color: #fff; }
 
-    .culture { padding: calc(var(--space-7) + var(--space-4)) 0; text-align: center; }
-    .culture h2 { max-width: 22ch; margin: 0 auto var(--space-3); color: var(--gold-light); font-size: clamp(2.25rem, 5vw, 4rem); font-weight: 400; letter-spacing: .16em; line-height: 1.3; text-wrap: balance; }
-    .culture p { max-width: 48ch; margin: 0 auto; color: var(--muted); letter-spacing: .04em; }
+    .news-section { display: grid; align-items: center; min-height: 680px; background: #f8f7f3 url("assets/ink-valley-paper.png") right bottom / 50% auto no-repeat; }
+    .news-layout { width: min(820px, calc(100% - 48px)); margin: auto; padding: 6.5rem 0 4rem; }
+    .news-heading { text-align: center; }
+    .news-list { display: grid; gap: 12px; margin-top: 2.5rem; }
+    .news-item { display: grid; grid-template-columns: 180px 1fr auto; gap: 1.2rem; align-items: center; min-height: 96px; padding: .45rem; background: rgba(255,255,255,.55); }
+    .news-thumb { height: 86px; background: #222 url("assets/ink-hill-paper.png") center / cover no-repeat; filter: grayscale(1) contrast(1.15); }
+    .news-item h3 { margin: 0 0 .3rem; font-size: .92rem; }
+    .news-item p { margin: 0; color: var(--muted); font-size: .72rem; }
+    .news-date { color: #77766f; font-size: .68rem; white-space: nowrap; }
+    .news-actions { display: flex; justify-content: center; gap: .75rem; margin-top: 1.7rem; }
 
-    .motion-on .site-shell::after { animation: brush-drift 7s cubic-bezier(.25, 1, .5, 1) infinite alternate; }
-    .motion-on .member-card::before { animation: ember-shift 4s ease-in-out infinite alternate; }
-    .motion-on .session-action.is-confirmed { animation: confirm-flash 900ms cubic-bezier(.25, 1, .5, 1); }
-    @keyframes brush-drift { from { transform: rotate(-22deg) translate3d(0, 0, 0); opacity: .72; } to { transform: rotate(-19deg) translate3d(-28px, 16px, 0); opacity: 1; } }
-    @keyframes ember-shift { from { opacity: .45; } to { opacity: 1; } }
-    @keyframes confirm-flash { 0% { box-shadow: 0 0 0 0 rgba(168, 211, 142, .42); } 100% { box-shadow: 0 0 0 10px rgba(168, 211, 142, 0); } }
+    .join-section { position: relative; min-height: 500px; display: grid; place-items: center; overflow: hidden; padding: 6rem 24px; background: #f7f6f2 url("assets/ink-valley-paper.png") center bottom / cover no-repeat; text-align: center; }
+    .join-section::after { content: ""; position: absolute; right: max(24px, calc((100vw - 1160px) / 2)); bottom: -10px; width: min(430px, 42vw); aspect-ratio: 520 / 147; background: url("assets/ink-warriors-transparent.png") center bottom / contain no-repeat; filter: contrast(1.25); pointer-events: none; }
+    .join-content { position: relative; z-index: 1; max-width: 660px; }
+    .join-content p:not(.section-en) { max-width: 48ch; margin: 1.7rem auto; color: #454540; }
+    .primary-button, .secondary-button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 1.45rem; border: 1px solid #111; border-radius: 999px; font-weight: 800; text-decoration: none; transition: transform 180ms var(--ease), background-color 180ms var(--ease); }
+    .primary-button { background: #111; color: #fff; }
+    .secondary-button { background: #fff; color: #111; }
+    .primary-button:hover, .secondary-button:hover { transform: translateY(-2px); }
 
-    .join-layout { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr); gap: var(--space-6); align-items: start; }
-    .join-intro { position: sticky; top: 100px; }
-    .join-intro h2 { margin-bottom: var(--space-3); font-size: 2.25rem; font-weight: 500; letter-spacing: .1em; }
-    .join-intro p { max-width: 30ch; color: var(--muted); }
-    .join-points { display: grid; gap: .7rem; margin: var(--space-4) 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .875rem; }
-    .join-points li { display: flex; gap: .6rem; align-items: baseline; }
-    .join-points li::before { content: ""; width: .45rem; height: .45rem; flex: none; border: 1px solid var(--gold); transform: rotate(45deg); }
-    .application-form { display: grid; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: var(--shadow); }
-    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
-    .field { display: grid; gap: .4rem; }
+    .contact-section { min-height: 280px; padding: 3.6rem 24px 2rem; background: var(--black); color: #fff; text-align: center; }
+    .contact-title { margin-bottom: .3rem; font-family: var(--font-brush); font-size: 1.75rem; letter-spacing: .1em; }
+    .contact-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(720px, 100%); margin: 2rem auto 2.4rem; }
+    .contact-item { padding: .3rem 1.5rem; border-right: 1px solid rgba(255,255,255,.15); text-decoration: none; }
+    .contact-item:last-child { border-right: 0; }
+    .contact-item b { display: block; font-size: .82rem; }
+    .contact-item span { color: rgba(255,255,255,.55); font-size: .68rem; }
+    .footer-brand { display: block; font-size: 1.3rem; font-style: italic; font-weight: 900; }
+    .copyright { margin: .45rem 0 0; color: rgba(255,255,255,.38); font-size: .62rem; }
+
+    dialog { width: min(680px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: auto; border: 0; border-radius: 4px; background: #f8f7f3; color: var(--ink); box-shadow: 0 30px 90px rgba(0,0,0,.42); }
+    dialog::backdrop { background: rgba(10,10,9,.72); backdrop-filter: blur(4px); }
+    .dialog-panel { padding: 2rem; }
+    .dialog-head { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font-family: var(--font-brush); font-size: 2rem; }
+    .dialog-kicker { margin-bottom: .25rem; color: var(--red); font-size: .7rem; }
+    .icon-button { width: 40px; height: 40px; display: grid; place-items: center; flex: none; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--ink); font-size: 1.3rem; }
+    .profile-summary { color: var(--muted); }
+    .profile-verse { margin: 1.2rem 0; padding: 1rem 0; border-top: 1px solid var(--red); border-bottom: 1px solid var(--red); color: var(--red); font-family: var(--font-brush); font-size: 1.2rem; text-align: center; }
+    .profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+    .profile-stat { padding: .85rem; background: #fff; }
+    .profile-stat span { display: block; color: var(--muted); font-size: .68rem; }
+    .profile-stat strong { font-size: .88rem; }
+    .hero-pool { margin-top: 1.2rem; }
+    .hero-pool h3 { margin-bottom: .55rem; font-size: .9rem; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+    .tag-list li { padding: .25rem .65rem; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: .72rem; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .field { display: grid; gap: .35rem; }
     .field-wide { grid-column: 1 / -1; }
-    label { color: var(--ink); font-size: .875rem; font-weight: 700; }
-    .field-hint { color: var(--quiet); font-size: .75rem; }
-    input, select, textarea { width: 100%; min-height: 44px; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: 5px; background: #0e0c09; color: var(--ink); }
-    textarea { min-height: 96px; resize: vertical; }
-    input::placeholder, textarea::placeholder { color: #827766; }
-    input:focus, select:focus, textarea:focus { border-color: var(--gold-light); outline: none; box-shadow: 0 0 0 3px rgba(242, 206, 132, .12); }
-    .form-footer { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: space-between; padding-top: var(--space-2); }
-    .form-status { margin: 0; color: var(--muted); font-size: .875rem; }
-    .form-status.success { color: var(--success); }
-    .form-status.error { color: var(--danger); }
+    label { font-size: .78rem; font-weight: 800; }
+    input, select, textarea { width: 100%; min-height: 44px; padding: .65rem .75rem; border: 1px solid #b7b5ae; border-radius: 2px; background: #fff; color: var(--ink); }
+    textarea { min-height: 90px; resize: vertical; }
+    input::placeholder, textarea::placeholder { color: #676761; }
+    input:focus, select:focus, textarea:focus { border-color: var(--red); outline: 0; box-shadow: 0 0 0 3px rgba(181,37,29,.1); }
+    .form-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.2rem; }
+    .form-status { margin: 0; color: var(--muted); font-size: .72rem; }
+    .form-status.success { color: var(--green); }
+    .form-status.error { color: var(--red); }
 
-    .team-desk { margin-top: var(--space-5); border-top: 1px solid var(--line); }
-    .team-desk summary { min-height: 54px; display: flex; align-items: center; color: var(--gold-light); font-weight: 700; cursor: pointer; }
-    .application-list { display: grid; gap: 1px; margin: 0 0 var(--space-3); overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--line); }
-    .application-row { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); padding: var(--space-3); background: var(--surface-raised); }
-    .application-row strong { display: block; }
-    .application-row span { color: var(--muted); font-size: .8125rem; }
-    .empty-applications { padding: var(--space-3); color: var(--muted); background: var(--surface-raised); }
+    .motion-on .hero-warriors { animation: warriors-rise 1.2s var(--ease) both; }
+    .motion-on .hero-word { animation: title-ink 900ms var(--ease) both; }
+    .motion-on .member-card { animation: card-enter 700ms var(--ease) both; animation-delay: calc(var(--index, 0) * 60ms); }
+    @keyframes warriors-rise { from { opacity: 0; transform: translate(-50%, 28px); filter: blur(8px) contrast(1.1); } to { opacity: 1; transform: translate(-50%, 0); filter: blur(0) contrast(1.1); } }
+    @keyframes title-ink { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
+    @keyframes card-enter { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 
-    dialog { width: min(640px, calc(100% - 32px)); max-height: min(760px, calc(100dvh - 32px)); padding: 0; overflow: auto; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); box-shadow: 0 30px 90px rgba(0, 0, 0, .68); }
-    dialog::backdrop { background: rgba(0, 0, 0, .7); backdrop-filter: blur(3px); }
-    .profile-panel { padding: var(--space-5); }
-    .dialog-top { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
-    .dialog-kicker { margin-bottom: .35rem; color: var(--gold-light); font-size: .8125rem; letter-spacing: .1em; }
-    .dialog-top h2 { margin: 0; font-size: 2.5rem; font-weight: 500; letter-spacing: .08em; }
-    .icon-button { width: 44px; height: 44px; display: grid; place-items: center; flex: none; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--ink); font-size: 1.5rem; }
-    .icon-button:hover { border-color: var(--gold-light); color: var(--gold-light); }
-    .profile-summary { margin-bottom: var(--space-4); color: var(--muted); }
-    .profile-verse { margin: 0 0 var(--space-4); padding: .7rem 0 .7rem var(--space-3); border-left: 1px solid var(--gold); color: var(--gold-light); font-size: 1.125rem; letter-spacing: .12em; }
-    .profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 6px; background: var(--line); }
-    .profile-stat { padding: var(--space-3); background: var(--surface-raised); }
-    .profile-stat span { display: block; color: var(--quiet); font-size: .75rem; }
-    .profile-stat strong { display: block; margin-top: .2rem; color: var(--ink); }
-    .hero-pool { margin-top: var(--space-4); }
-    .hero-pool h3 { margin-bottom: var(--space-2); font-size: 1rem; }
-    .tag-list { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; }
-    .tag-list li { padding: .28rem .55rem; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); font-size: .8125rem; }
-
-    footer { width: min(1240px, calc(100% - 48px)); margin: 0 auto; padding: var(--space-5) 0 max(var(--space-5), env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--quiet); font-size: .8125rem; }
-    footer b { color: var(--gold); font-weight: 600; }
-
-    @media (max-width: 1050px) { .member-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (max-width: 780px) {
-      .topbar { width: 100%; max-width: 100vw; padding: 0 20px; }
-      .menu-toggle { position: fixed; z-index: 12; top: 14px; right: 16px; display: grid; place-items: center; }
-      .nav-links { position: absolute; top: calc(100% + 1px); left: 0; right: 0; display: none; align-items: stretch; gap: 0; padding: .5rem 20px 1rem; border-bottom: 1px solid var(--line); background: #0c0a08; }
-      .nav-links.is-open { display: grid; }
-      .nav-links a { min-height: 44px; display: flex; align-items: center; }
-      .nav-cta { justify-content: center; margin-top: .5rem; }
-      main, footer { width: calc(100vw - 32px); max-width: calc(100vw - 32px); }
-      .hero { min-width: 0; min-height: 970px; grid-template-columns: minmax(0, 1fr); align-content: start; padding: var(--space-6) 0 360px; }
-      .hero > * { min-width: 0; }
-      .hero h1 { max-width: 100%; font-size: clamp(3.5rem, 18vw, 5.75rem); letter-spacing: 0; overflow-wrap: anywhere; }
-      .hero h1 span { display: block; }
-      .hero-copy { max-width: 32ch; }
-      .hero-featured-roster { right: 0; bottom: 96px; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .hero-member-card { min-height: 156px; padding: .8rem; }
-      .hero-member-glyph { font-size: 2.75rem; }
-      .hero-member-name { font-size: 1.05rem; }
-      .hero-rail { bottom: 0; }
-      .hero-rail a { min-height: 76px; padding: .6rem .5rem; font-size: .7rem; }
-      .hero-rail b { font-size: .75rem; }
-      .ops-layout, .join-layout, .overview-layout, .report-layout { grid-template-columns: 1fr; gap: var(--space-4); }
-      .join-intro { position: static; }
-      .section-heading { display: grid; gap: var(--space-2); }
+    @media (max-width: 960px) {
+      .site-nav { gap: 1rem; }
+      .site-nav a { font-size: .74rem; }
+      .about-main { grid-template-columns: 1fr .65fr; }
+      .achievement-content { padding-left: 2rem; }
+      .schedule-item { grid-template-columns: 90px 1fr; }
+      .confirm-button { grid-column: 2; justify-self: start; }
     }
-    @media (max-width: 560px) {
-      .hero-actions .button { width: 100%; }
-      .member-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .member-card { min-height: 232px; }
-      .hero { min-height: 970px; }
-      .schedule-item { grid-template-columns: 1fr; gap: .5rem; }
-      .session-action { width: 100%; }
-      .form-grid, .profile-grid { grid-template-columns: 1fr; }
-      .overview-stats { grid-template-columns: 1fr; }
-      .overview-stat { min-height: 88px; border-right: 0; border-bottom: 1px solid var(--line); }
-      .overview-stat:last-child { border-bottom: 0; }
-      .report-item { grid-template-columns: 1fr; gap: .45rem; }
-      .application-form { padding: var(--space-3); }
-      .profile-panel { padding: var(--space-4); }
+
+    @media (max-width: 760px) {
+      :root { --content: calc(100vw - 32px); }
+      .site-header { height: 60px; padding-inline: 16px; }
+      .menu-toggle { display: grid; place-items: center; }
+      .site-nav { position: fixed; top: 60px; right: 0; left: 0; display: none; align-items: stretch; gap: 0; padding: .5rem 16px 1rem; border-top: 1px solid rgba(255,255,255,.08); background: var(--black); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.2); }
+      .site-nav.is-open { display: grid; }
+      .site-nav a { min-height: 44px; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,.08); font-size: .82rem; }
+      .site-nav a::after { display: none; }
+      .motion-switch { min-height: 44px; }
+
+      .hero { min-height: 850px; padding-top: 60px; background-position: 49% center; }
+      .hero::after { top: 60px; background: linear-gradient(180deg, rgba(255,255,255,.04) 0 40%, rgba(12,12,10,.13) 56%, rgba(12,12,10,.96) 76%); }
+      .hero-title-block { margin-top: 4.3rem; }
+      .hero-word { font-size: clamp(4.2rem, 24vw, 6rem); }
+      .hero-seal { right: -1.75rem; }
+      .hero-slogan { font-size: 1.05rem; letter-spacing: .06em; }
+      .hero-subtitle { font-size: .58rem; letter-spacing: .45em; text-indent: .45em; }
+      .hero-warriors { top: 330px; width: 610px; max-width: none; }
+      .hero-intro { bottom: 1.25rem; }
+      .hero-intro > p { max-width: 42ch; padding-inline: 16px; }
+      .values { grid-template-columns: repeat(2, 1fr); width: min(390px, calc(100% - 32px)); }
+      .values li { min-height: 90px; padding: .3rem; border-right: 0; }
+      .value-icon { width: 38px; height: 38px; font-size: 1.05rem; }
+
+      .page-section { min-height: auto; scroll-margin-top: 60px; }
+      .about-section { padding-top: 60px; background-position: 65% 10%; background-size: auto 52%; }
+      .about-section::before { background: linear-gradient(180deg, rgba(247,246,242,.56), #f7f6f2 54%); }
+      .about-main { grid-template-columns: 1fr; min-height: 520px; padding: 4.2rem 0 1rem; }
+      .about-copy { align-self: end; padding: 0 20px 1rem; }
+      .about-copy p:not(.section-en) { margin-top: 1.2rem; }
+      .about-stats { grid-template-columns: repeat(2, 1fr); min-height: 220px; }
+      .about-stat:nth-child(2) { border-right: 0; }
+      .about-stat:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+
+      .members-section { padding: 4.5rem 0 3rem; }
+      .member-rail { grid-auto-columns: 170px; margin-top: 2rem; padding-left: 16px; scroll-padding-left: 16px; }
+      .member-card { min-height: 315px; }
+
+      .achievement-layout { grid-template-columns: 1fr; min-height: auto; padding: 4.2rem 0 3rem; }
+      .trophy-art { min-height: 360px; background-position: center; }
+      .achievement-content { padding: 1rem 8px 0; }
+      .schedule-item { grid-template-columns: 82px 1fr; gap: .7rem; }
+
+      .news-layout { width: calc(100% - 32px); padding: 4.5rem 0 3rem; }
+      .news-item { grid-template-columns: 112px 1fr; }
+      .news-thumb { height: 76px; }
+      .news-date { grid-column: 2; }
+
+      .join-section { min-height: 460px; padding-block: 4.5rem 8rem; background-position: 60% bottom; }
+      .join-section::after { right: -48px; width: 360px; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .contact-item { min-height: 58px; display: grid; place-content: center; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.12); }
+      .contact-item:last-child { border-bottom: 0; }
+
+      .form-grid { grid-template-columns: 1fr; }
+      .field-wide { grid-column: auto; }
+      .form-footer { align-items: stretch; flex-direction: column; }
+      .form-footer .primary-button { width: 100%; }
+      .profile-grid { grid-template-columns: 1fr; }
     }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
 
-    /* Ink-and-gold visual system: shared by the lobby, roster and operations surfaces. */
-    :root { --bg:#060705; --surface:rgba(12, 12, 9, .88); --surface-raised:rgba(22, 20, 14, .94); --line:rgba(218, 176, 89, .38); --line-strong:rgba(248, 217, 146, .84); --gold:#cda14d; --gold-light:#f0cf84; --ink:#f4efe3; --muted:#c5b68f; --quiet:#918568; --shadow:0 24px 64px rgba(0, 0, 0, .48); }
-    body { background:#060705; }
-    .site-shell::before { background:linear-gradient(90deg, rgba(5, 6, 4, .98) 0%, rgba(5, 6, 4, .9) 45%, rgba(5, 6, 4, .84) 100%), url("concepts/ink-gold.png") right top / 1600px auto no-repeat, #060705; filter:saturate(.78) contrast(1.08); }
-    .site-shell::after { background:linear-gradient(160deg, transparent 26%, rgba(205, 161, 77, .06) 46%, transparent 47% 69%, rgba(205, 161, 77, .045) 70%, transparent 71%); }
-    .topbar { min-height:76px; border-bottom-color:rgba(218, 176, 89, .26); background:rgba(4, 5, 3, .88); backdrop-filter:blur(10px); }
-    .brand-mark { width:36px; height:36px; border-radius:0; background:rgba(205, 161, 77, .1); }
-    .brand-name { color:var(--ink); font-size:1.25rem; }
-    .nav-links a { color:#d0c39e; }
-    .nav-links a:hover, .nav-links a:focus-visible { color:#fff3d5; }
-    .nav-cta { border-radius:2px; background:rgba(205, 161, 77, .1); }
-    main { width:min(1280px, calc(100% - 56px)); }
-    .hero { min-height:calc(100svh - 76px); isolation:isolate; padding:clamp(5rem, 10vh, 8rem) 0 174px; }
-    .hero::before { content:""; position:absolute; z-index:-1; inset:0 calc((1280px - 100vw) / 2); background:linear-gradient(90deg, rgba(5,6,4,.96) 0%, rgba(5,6,4,.8) 43%, rgba(5,6,4,.65) 100%), linear-gradient(180deg, rgba(5,6,4,.05), rgba(5,6,4,.9) 94%), url("concepts/ink-gold.png") center top / 130% auto no-repeat; filter:saturate(.72) contrast(1.08); pointer-events:none; }
-    .hero h1 { max-width:760px; color:var(--ink); font-size:clamp(4rem, 9vw, 7.2rem); letter-spacing:.02em; text-shadow:0 8px 32px rgba(0,0,0,.42); }
-    .hero h1 span { color:var(--ink); }
-    .eyebrow { color:#ddc68b; letter-spacing:.18em; }
-    .hero-copy { max-width:37ch; color:#e3d6b5; font-size:1.05rem; }
-    .button { border-radius:2px; }
-    .button-primary { background:#e7c06c; color:#1a1308; }
-    .button-primary:hover { background:#ffe09a; }
-    .button-secondary { border-color:#e7c06c; color:#f6db9d; }
-    .button-secondary:hover { background:rgba(231,192,108,.14); }
-    .hero-featured-roster { gap:14px; right:0; bottom:118px; width:min(60vw, 850px); }
-    .hero-member-card { min-height:302px; border-color:rgba(232, 193, 99, .58); background:linear-gradient(160deg, rgba(25,23,16,.92), rgba(4,5,3,.96)); box-shadow:inset 0 0 0 1px rgba(255,238,190,.04); }
-    .hero-member-card::before { background:radial-gradient(ellipse at 50% 38%, rgba(247,239,211,.25), transparent 34%), linear-gradient(180deg, transparent 45%, rgba(0,0,0,.6)); }
-    .hero-member-card::after { content:""; position:absolute; inset:7px; border:1px solid rgba(240,207,132,.11); pointer-events:none; }
-    .hero-member-card:hover, .hero-member-card:focus-visible { border-color:#f0cf84; background:linear-gradient(160deg, rgba(47,39,22,.96), rgba(4,5,3,.98)); }
-    .hero-member-role { color:#f1d58f; }.hero-member-glyph { color:#f8f2e5; font-size:4.6rem; }.hero-member-name { color:#f9f3e7; }.hero-member-duty { color:#c9b98f; }
-    .hero-rail { bottom:36px; border-color:rgba(218,176,89,.36); background:rgba(5,6,4,.4); }.hero-rail a { min-height:72px; border-color:rgba(218,176,89,.28); color:#c9b98f; }.hero-rail a:hover,.hero-rail a:focus-visible { background:rgba(205,161,77,.12); color:#fff1d1; }.hero-rail b { color:#f0cf84; }
-    section:not(.hero) { position:relative; padding:clamp(4.5rem, 8vw, 7rem) 0; border-top:1px solid rgba(218,176,89,.18); }
-    section:not(.hero)::before { content:""; position:absolute; z-index:-1; top:0; right:calc((1280px - 100vw) / 2); width:min(820px, 72vw); height:100%; background:linear-gradient(90deg, transparent, rgba(6,7,5,.78)), url("concepts/ink-gold.png") right top / 1080px auto no-repeat; opacity:.18; pointer-events:none; }
-    .section-heading { align-items:center; margin-bottom:2.6rem; padding-bottom:1rem; border-bottom-color:rgba(218,176,89,.42); }.section-heading h2 { color:#f2e7d0; font-size:2.25rem; font-weight:400; letter-spacing:.08em; }.section-heading p { color:#c6b88f; }
-    .overview-layout,.ops-layout,.report-layout,.join-layout { gap:2rem; }.overview-stats { border-color:rgba(218,176,89,.48); background:rgba(7,8,5,.5); }.overview-stat { min-height:132px; border-color:rgba(218,176,89,.34); }.overview-stat strong { color:#f0cf84; font-size:2.5rem; }.overview-side,.ops-note,.application-form,.report-entry { border-radius:0; border-color:rgba(218,176,89,.44); background:rgba(13,13,9,.88); box-shadow:var(--shadow); }.role-map li,.tag-list li { border-radius:0; border-color:rgba(218,176,89,.4); background:rgba(7,8,5,.44); color:#d9cba8; }.role-map b { color:#f0cf84; }
-    .member-grid { grid-template-columns:repeat(4, minmax(0, 1fr)); gap:18px; }.member-card { min-height:326px; border-radius:0; border-color:rgba(218,176,89,.46); background:linear-gradient(158deg, rgba(27,25,18,.94), rgba(6,7,5,.96)); box-shadow:inset 0 0 0 7px rgba(2,3,2,.16); }.member-card::before { background:radial-gradient(ellipse at 50% 38%, rgba(245,235,205,.21), transparent 34%), linear-gradient(180deg, transparent 50%, rgba(0,0,0,.58)); opacity:1; }.member-card:hover,.member-card:focus-visible { border-color:#f0cf84; }.member-glyph { font-size:4.6rem; color:#f8f1e0; }.member-role,.member-card small { color:#f0cf84; }.member-detail { display:block; margin-top:.25rem; color:#c6b88f; }
-    .schedule-list,.report-list,.application-list,.profile-grid { border-radius:0; border-color:rgba(218,176,89,.42); background:rgba(218,176,89,.25); }.schedule-item,.report-item,.application-row,.profile-stat { background:rgba(13,13,9,.9); }.schedule-item { border-left:2px solid rgba(218,176,89,.2); }.session-time,.report-week { color:#f0cf84; }.session-meta,.report-item p { color:#c6b88f; }.button-quiet { border-radius:0; border-color:rgba(218,176,89,.45); background:rgba(7,8,5,.58); color:#f0cf84; }.session-action.is-confirmed { border-color:#a8d38e; background:rgba(80,116,67,.16); }
-    .culture { padding:clamp(6rem, 12vw, 10rem) 0; border-top:0!important; background:linear-gradient(90deg, rgba(5,6,4,.88), rgba(5,6,4,.52), rgba(5,6,4,.88)); }.culture::before { opacity:.34!important; width:100%!important; background-position:center 25%!important; }.culture h2 { color:#f0cf84; text-shadow:0 4px 22px rgba(0,0,0,.6); }.culture p { color:#e0d0a9; }
-    .join-intro h2 { color:#f2e7d0; font-weight:400; }.join-intro p,.join-points { color:#c6b88f; }.join-points li::before { border-color:#f0cf84; }.application-form { padding:2rem; }.form-grid { gap:1.2rem; } input,select,textarea { border-radius:0; border-color:rgba(218,176,89,.38); background:rgba(4,5,3,.72); } input:focus,select:focus,textarea:focus { border-color:#f0cf84; box-shadow:0 0 0 3px rgba(240,207,132,.1); }.team-desk { border-color:rgba(218,176,89,.42); }
-    dialog { border-radius:0; border-color:#f0cf84; background:rgba(13,13,9,.98); }.profile-verse { border-left-color:#f0cf84; }.icon-button { border-radius:0; }.tag-list li { color:#d9cba8; }
-    footer { border-color:rgba(218,176,89,.3); color:#a89b7e; }
-    .motion-on .site-shell::after { animation:ink-drift 9s ease-in-out infinite alternate; }.motion-on .hero-member-card::before,.motion-on .member-card::before { animation:ember-shift 4s ease-in-out infinite alternate; } @keyframes ink-drift { from { transform:translate3d(0,0,0); opacity:.6; } to { transform:translate3d(-18px,10px,0); opacity:1; } }
-    @media (max-width:1050px) { .member-grid { grid-template-columns:repeat(3, minmax(0,1fr)); } .hero-featured-roster { width:min(64vw, 700px); } }
-    @media (max-width:780px) { main,footer { width:100vw!important; max-width:100vw!important; padding-left:16px; padding-right:16px; }.topbar { background:rgba(4,5,3,.94); }.hero { min-height:0; display:block; padding:4rem 0 2rem; }.hero::before { inset:0 -16px; background-size:auto 100%; background-position:60% top; }.hero h1 { font-size:4.4rem; }.hero-featured-roster { position:relative; right:auto; bottom:auto; left:auto; width:100%; max-width:100%; margin-top:3rem; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }.hero-member-card { min-width:0; min-height:164px; }.hero-member-glyph { font-size:3rem; }.hero-rail { position:relative; right:auto; bottom:auto; left:auto; margin-top:10px; }.section-heading { align-items:start; }.section-heading h2 { font-size:2rem; }.member-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }.member-card { min-width:0; min-height:256px; padding:.85rem; }.member-glyph { font-size:3.5rem; }.overview-side,.ops-note,.application-form,.report-entry { box-shadow:none; }.culture { margin-left:-16px; margin-right:-16px; padding-left:16px!important; padding-right:16px!important; }.application-form { padding:1.2rem; } }
-
-    /* White-paper ink direction: dark manifesto hero, light roster and competition sheets. */
-    :root { --bg:#efeeeb; --surface:#ffffff; --surface-raised:#f8f7f4; --line:rgba(18,18,16,.15); --line-strong:rgba(18,18,16,.42); --gold:#b3221b; --gold-light:#a81d17; --ink:#161513; --muted:#605d58; --quiet:#89857f; --success:#2c6b49; --danger:#a81d17; --shadow:0 18px 42px rgba(20,18,15,.13); }
-    body { background:#efeeeb; color:var(--ink); }
-    .site-shell { background:#efeeeb; }.site-shell::before { position:absolute; background:linear-gradient(180deg,#f5f4f1 0%,#ecebe7 100%); filter:none; }.site-shell::after { display:none; }
-    .topbar { min-height:64px; border-bottom:1px solid rgba(255,255,255,.12); background:#11110f; backdrop-filter:none; }.brand-mark { width:auto; height:auto; border:0; background:transparent; color:#fff; }.brand-name { color:#fff; font-size:1.05rem; }.brand-name b { color:#fff; }.nav-links { gap:1.35rem; }.nav-links a { color:#e9e8e3; font-size:.8125rem; }.nav-links a:hover,.nav-links a:focus-visible { color:#fff; }.nav-cta { border:0; border-radius:0; background:transparent; color:#fff!important; }.motion-control { color:#e5e3dd; }
-    main { width:min(1280px,calc(100% - 48px)); }.hero { min-height:calc(100svh - 64px); display:grid; place-items:start center; align-content:start; padding:clamp(6.5rem,11vw,9rem) 0 5rem; text-align:center; background:#f7f6f2; isolation:isolate; }.hero::before { inset:0 calc((1280px - 100vw) / 2); background:url("assets/ink-hero-mountain.png") center / cover no-repeat; filter:contrast(1.02); }.hero .eyebrow { display:none; }.hero h1 { max-width:none; margin:0; color:#12110f; font-size:clamp(5rem,8vw,8.4rem); line-height:.82; letter-spacing:.01em; text-shadow:none; }.hero h1 span { display:block; margin-top:.32em; color:#12110f; font-size:.32em; letter-spacing:.08em; }.hero-copy { max-width:40ch; margin:1.55rem auto 1.8rem; color:#292722; font-size:1.08rem; font-weight:700; }.hero-actions { justify-content:center; }.button { border-radius:999px; min-height:42px; padding:0 1.4rem; box-shadow:none; }.button-primary { background:#151412; color:#fff; }.button-primary:hover { background:#3a3731; }.button-secondary { border-color:#151412; color:#151412; }.button-secondary:hover { background:rgba(21,20,18,.08); }.hero-featured-roster,.hero-rail { display:none; }
-    section:not(.hero) { padding:clamp(5rem,9vw,8rem) 0; border:0; background:#f7f6f3; color:#171614; }.site-shell section:nth-of-type(odd):not(.hero) { background:#efeeeb; }.site-shell section:not(.hero)::before { z-index:0; top:0; right:0; width:min(720px,58vw); height:100%; background:linear-gradient(90deg,rgba(247,246,243,.98),rgba(247,246,243,.35)),url("assets/ink-dragon-paper.png") right 10% / auto 54% no-repeat; opacity:.34; }.site-shell section:not(.hero) > * { position:relative; z-index:1; }.section-heading { margin-bottom:3.2rem; padding-bottom:0; border-bottom:0; justify-content:center; text-align:center; }.section-heading h2 { color:#161513; font-size:3rem; font-weight:600; letter-spacing:.12em; }.section-heading h2::after { content:""; display:inline-block; width:8px; height:8px; margin-left:.5rem; border-radius:50%; background:#b3221b; vertical-align:middle; }.section-heading p { max-width:52ch; color:#68635d; }.section-heading .eyebrow { margin-bottom:.45rem; color:#b3221b; letter-spacing:.22em; }
-    .overview-layout { max-width:980px; margin:0 auto; gap:1.5rem; }.overview-stats { border-color:var(--line); background:rgba(255,255,255,.64); box-shadow:var(--shadow); }.overview-stat { min-height:124px; border-color:var(--line); }.overview-stat strong { color:#171614; font-size:2.25rem; }.overview-stat span,.overview-note { color:#69645d; }.overview-side,.ops-note,.application-form,.report-entry { border-radius:2px; border-color:rgba(18,18,16,.1); background:rgba(255,255,255,.9); box-shadow:var(--shadow); }.overview-side h3,.ops-note h3 { color:#1b1917; }.role-map li,.tag-list li { border-radius:999px; border-color:rgba(18,18,16,.15); background:#fff; color:#5b5752; }.role-map b { color:#b3221b; }
-    #overview::before { background-image:linear-gradient(90deg,rgba(247,246,243,.98),rgba(247,246,243,.35)),url("assets/ink-dragon-paper.png"); } #members { background:#f5f4f1; } #members::before { width:100%; background:linear-gradient(90deg,rgba(245,244,241,.9),rgba(245,244,241,.34)),url("assets/ink-bamboo-paper.png") center / cover no-repeat; opacity:.43; }.member-grid { grid-template-columns:repeat(5,minmax(0,1fr)); max-width:1120px; margin:0 auto; gap:16px; }.member-card { min-height:330px; border:0; border-radius:7px; background:linear-gradient(180deg,rgba(255,255,255,.96) 0 58%,rgba(240,239,235,.96) 100%); box-shadow:0 10px 22px rgba(20,18,15,.13); color:#171614; }.member-card::before { background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(15,15,13,.68)),url("assets/ink-bamboo-paper.png") center / cover no-repeat; opacity:.82; }.member-card:hover,.member-card:focus-visible { border:0; box-shadow:0 16px 30px rgba(20,18,15,.22); transform:translateY(-5px); }.member-role { color:#7a746d; }.member-glyph { width:56px; height:56px; display:grid; place-items:center; align-self:center; border-radius:50%; background:#161513; color:#fff; font-size:2.25rem; }.member-name { color:#171614; }.member-detail { display:block; color:#5f5a54; }.member-card small { color:#b3221b; }
-    #operations::before { background-image:linear-gradient(90deg,rgba(239,238,235,.98),rgba(239,238,235,.35)),url("assets/ink-valley-paper.png"); } #reports::before { background-image:linear-gradient(90deg,rgba(247,246,243,.98),rgba(247,246,243,.18)),url("assets/ink-trophy-paper.png"); background-size:auto 78%; background-position:left 65%; } #join::before { background-image:linear-gradient(90deg,rgba(239,238,235,.94),rgba(239,238,235,.26)),url("assets/ink-valley-paper.png"); background-size:auto 88%; background-position:right bottom; }.ops-layout,.report-layout,.join-layout { max-width:1080px; margin:0 auto; gap:2rem; }.schedule-list,.report-list,.application-list,.profile-grid { border-radius:0; border-color:rgba(18,18,16,.13); background:rgba(18,18,16,.1); }.schedule-item,.report-item,.application-row,.profile-stat { background:rgba(255,255,255,.92); }.schedule-item { border-left:0; }.session-time,.report-week { color:#b3221b; }.session-title,.report-item h3 { color:#171614; }.session-meta,.report-item p { color:#656059; }.button-quiet { border-radius:999px; border-color:#171614; background:#171614; color:#fff; }.button-quiet:hover { border-color:#171614; background:#35322e; }.session-action.is-confirmed { border-color:#2c6b49; background:#2c6b49; color:#fff; }
-    .culture { margin:0 calc((1280px - 100vw) / 2); padding:clamp(6rem,12vw,10rem) max(24px,calc((100vw - 1120px) / 2))!important; background:linear-gradient(180deg,rgba(8,8,7,.84),rgba(8,8,7,.97)),url("assets/ink-hill-paper.png") center / cover no-repeat!important; color:#fff; }.culture::before { display:none; }.culture .eyebrow { color:#c5433b; }.culture h2 { color:#fff; text-shadow:none; }.culture h2::after { content:""; display:inline-block; width:8px; height:8px; margin-left:.5rem; border-radius:50%; background:#c5433b; }.culture p { color:#e4e1da; }
-    .join-intro h2 { color:#171614; font-weight:600; }.join-intro p,.join-points { color:#625e58; }.join-points li::before { border-color:#b3221b; }.application-form { padding:2.2rem; } input,select,textarea { border-radius:2px; border-color:rgba(18,18,16,.18); background:#fff; color:#171614; } input:focus,select:focus,textarea:focus { border-color:#b3221b; box-shadow:0 0 0 3px rgba(179,34,27,.1); }.form-status { color:#6c665e; }.profile-verse { border-left:0; border-bottom:1px solid #b3221b; padding:.7rem 0; color:#b3221b; }.team-desk { border-color:rgba(18,18,16,.14); }
-    dialog { border-radius:3px; border-color:rgba(18,18,16,.18); background:#fff; color:#171614; }.dialog-kicker,.dialog-top h2 { color:#171614; }.icon-button { border-radius:50%; border-color:rgba(18,18,16,.22); color:#171614; }.icon-button:hover { border-color:#b3221b; color:#b3221b; }.profile-summary { color:#5f5a54; }.profile-stat span { color:#77716a; }.profile-stat strong { color:#171614; }
-    footer { width:100%; margin:0; padding-left:max(24px,calc((100vw - 1280px)/2)); padding-right:max(24px,calc((100vw - 1280px)/2)); border:0; background:#11110f; color:#ccc8bf; } footer b { color:#fff; }
-    .motion-on .site-shell::after { display:none; }.motion-on .member-card::before { animation:paper-drift 5s ease-in-out infinite alternate; } @keyframes paper-drift { from { background-position:center,center; } to { background-position:center,52% center; } }
-    @media (max-width:1100px) { .member-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
-    @media (max-width:780px) { .topbar { min-height:60px; background:#11110f; }.menu-toggle { position:absolute!important; top:8px!important; right:16px!important; display:grid!important; width:44px; min-width:44px; height:44px; min-height:44px; border-color:rgba(255,255,255,.72); background:#11110f; color:#fff; }.nav-links { background:#11110f; }.hero { min-height:690px; padding:5.5rem 0 3rem; background:#f7f6f2; }.hero::before { inset:0 -16px; background:url("assets/ink-hero-mountain.png") center / cover no-repeat!important; }.hero h1 { color:#12110f!important; font-size:5.4rem; }.hero h1 span { color:#12110f!important; }.hero-copy { color:#292722!important; font-size:1rem; }.section-heading { display:block; text-align:left; margin-bottom:2rem; }.section-heading h2 { font-size:2.35rem; }.member-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }.member-card { min-height:254px; }.member-glyph { width:46px; height:46px; font-size:1.8rem; }.site-shell section:not(.hero)::before { width:100%; opacity:.14; }.culture { margin-left:-16px; margin-right:-16px; }.overview-layout,.ops-layout,.report-layout,.join-layout { gap:1.25rem; }.application-form { padding:1.25rem; } }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+    }
   </style>
 </head>
 <body>
-  <div class="site-shell">
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="Free、恒谊战队大厅首页">
-        <span class="brand-mark brush" aria-hidden="true">恒</span>
-        <span class="brand-name brush">Free<b>、恒谊</b></span>
-      </a>
-      <button class="menu-toggle" type="button" aria-label="打开导航" aria-expanded="false" aria-controls="site-nav">☰</button>
-      <nav class="nav-links" id="site-nav" aria-label="主导航">
-        <a href="#overview">战队总览</a>
-        <a href="#members">成员档案</a>
-        <a href="#operations">本周作战</a>
-        <a href="#reports">每周战报</a>
-        <a href="#culture">战队文化</a>
-        <a href="team-admin.html">战队后台</a>
-        <a href="#join">申请试训</a>
-        <a href="../free-games/">游戏大厅</a>
-        <label class="motion-control"><input id="motionToggle" type="checkbox" role="switch" aria-label="开启动态效果模式"><span>动态效果</span></label>
-        <a class="nav-cta" href="#join">加入战队</a>
-      </nav>
-    </header>
+  <header class="site-header" id="siteHeader">
+    <a class="brand" href="#home" aria-label="Free 战队首页">
+      <span class="brand-mark" aria-hidden="true">恒</span>
+      <span class="brand-word">FREE</span>
+    </a>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-label="打开导航" aria-controls="siteNav" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav" aria-label="主导航">
+      <a href="#home">首页</a>
+      <a href="#about">战队介绍</a>
+      <a href="#news">新闻资讯</a>
+      <a href="#achievements">赛事战绩</a>
+      <a href="#members">队员阵容</a>
+      <a href="#join">加入我们</a>
+      <a href="#contact">联系我们</a>
+      <label class="motion-switch" title="动态效果">
+        <input id="motionToggle" type="checkbox" role="switch" aria-label="动态效果">
+        <span class="motion-track" aria-hidden="true"></span>
+      </label>
+    </nav>
+  </header>
 
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">Honor of Kings · Team Hall</p>
-        <h1 id="hero-title" class="brush">Free<span>、恒谊</span></h1>
-        <p class="hero-copy">自由不羁，恒久并肩。这里是队员档案、训练安排与试训申请汇集的战队大厅。</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#join">进入战队</a>
-          <a class="button button-secondary" href="#members">查看成员</a>
+  <main>
+    <section class="hero" id="home" aria-labelledby="heroTitle">
+      <div class="hero-title-block">
+        <div class="hero-word-wrap">
+          <h1 class="hero-word" id="heroTitle">FREE</h1>
+          <span class="hero-seal">自由</span>
         </div>
-        <div class="hero-featured-roster" id="heroRoster" aria-label="战队代表成员">
-          <button class="hero-member-card" type="button" data-member="0" aria-label="查看久涵的成员档案"><span class="hero-member-role">打野 · 队长</span><span class="hero-member-glyph brush" aria-hidden="true">久</span><span><strong class="hero-member-name brush">久涵</strong><span class="hero-member-duty">核心指挥</span></span></button>
-          <button class="hero-member-card" type="button" data-member="1" aria-label="查看祈夜的成员档案"><span class="hero-member-role">中路 · 支援</span><span class="hero-member-glyph brush" aria-hidden="true">祈</span><span><strong class="hero-member-name brush">祈夜</strong><span class="hero-member-duty">中轴支援</span></span></button>
-          <button class="hero-member-card" type="button" data-member="2" aria-label="查看长意的成员档案"><span class="hero-member-role">对抗路 · 战士</span><span class="hero-member-glyph brush" aria-hidden="true">长</span><span><strong class="hero-member-name brush">长意</strong><span class="hero-member-duty">边线牵制</span></span></button>
-          <button class="hero-member-card" type="button" data-member="3" aria-label="查看羽麟的成员档案"><span class="hero-member-role">发育路 · 射手</span><span class="hero-member-glyph brush" aria-hidden="true">羽</span><span><strong class="hero-member-name brush">羽麟</strong><span class="hero-member-duty">后期输出</span></span></button>
-        </div>
-        <nav class="hero-rail" aria-label="大厅快捷入口">
-          <a href="#operations"><b>本周作战</b><span>训练、约战与复盘</span></a>
-          <a href="#reports"><b>战队战报</b><span>记录最近一条结论</span></a>
-          <a href="#join"><b>试训申请</b><span>提交资料，等待安排</span></a>
-        </nav>
-      </section>
+        <p class="hero-slogan">自由无畏 · 战出无限可能</p>
+        <p class="hero-subtitle">FREE ESPORTS</p>
+      </div>
+      <img class="hero-warriors" src="assets/ink-warriors-transparent.png" alt="五位披甲战士立于水墨山崖之上">
+      <div class="hero-intro content">
+        <h2>战队简介</h2>
+        <div class="title-rule" aria-hidden="true"></div>
+        <p>Free、恒谊是一支因热爱而相聚的王者荣耀战队。我们以自由为名，以并肩为约，在每一场训练与战队赛中追求默契、突破和共同成长。</p>
+        <ul class="values" aria-label="战队信念">
+          <li><span class="value-icon">放</span><strong>自由</strong><span>不被定义<br>打破常规</span></li>
+          <li><span class="value-icon">勇</span><strong>无畏</strong><span>勇往直前<br>无所畏惧</span></li>
+          <li><span class="value-icon">同</span><strong>团结</strong><span>同心协力<br>共同成长</span></li>
+          <li><span class="value-icon">破</span><strong>突破</strong><span>不惧超越<br>追求极限</span></li>
+        </ul>
+      </div>
+    </section>
 
-      <section id="overview" aria-labelledby="overview-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Overview</p>
-            <h2 id="overview-title" class="brush">战队总览</h2>
-          </div>
-          <p>实时汇总当前成员、训练确认和试训申请状态。</p>
+    <section class="page-section about-section" id="about" aria-labelledby="aboutTitle">
+      <div class="about-main content">
+        <div class="about-copy">
+          <h2 class="section-title" id="aboutTitle">战队介绍<span class="dot" aria-hidden="true"></span></h2>
+          <p class="section-en">ABOUT US</p>
+          <p><strong>Free、恒谊</strong>成立于一群朋友对王者峡谷最纯粹的热爱。我们相信，真正长久的队伍不只依靠操作，更依靠坦诚沟通、稳定训练和彼此信任。这里记录成员阵容、训练计划、战队赛申请与每周复盘，让每一次并肩都有迹可循。</p>
         </div>
-        <div class="overview-layout">
-          <div>
-            <div class="overview-stats" id="overviewStats" aria-label="战队状态总览"></div>
-            <p class="overview-note">名单与英雄池以成员档案为准；确认参与仅代表当前浏览器的个人状态。</p>
-          </div>
-          <aside class="overview-side">
-            <h3>阵容覆盖</h3>
-            <p>现有成员的主要分路与人数分布。</p>
-            <ul class="role-map" id="roleMap" aria-label="分路覆盖"></ul>
-          </aside>
-        </div>
-      </section>
+      </div>
+      <div class="about-stats" aria-label="战队数据">
+        <div class="about-stat"><b>2026</b><span>成立时间</span></div>
+        <div class="about-stat"><b id="memberCount">7</b><span>现役成员</span></div>
+        <div class="about-stat"><b>5 路</b><span>阵容覆盖</span></div>
+        <div class="about-stat"><b>100+</b><span>并肩对局</span></div>
+      </div>
+    </section>
 
-      <section id="members" aria-labelledby="members-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Roster</p>
-            <h2 id="members-title" class="brush">成员档案</h2>
-          </div>
-          <p>选择成员查看主分路、常用英雄与近期战队职责。</p>
-        </div>
-        <div class="member-grid" id="memberGrid" aria-label="战队成员"></div>
-      </section>
+    <section class="page-section members-section" id="members" aria-labelledby="membersTitle">
+      <div class="section-heading-center">
+        <h2 class="section-title" id="membersTitle">队员阵容<span class="dot" aria-hidden="true"></span></h2>
+        <p class="section-en">OUR PLAYERS</p>
+      </div>
+      <div class="member-rail" id="memberGrid" aria-label="战队成员"></div>
+    </section>
 
-      <section id="operations" aria-labelledby="operations-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Operations</p>
-            <h2 id="operations-title" class="brush">本周作战</h2>
-          </div>
-          <p>队员可在本机确认可参与的训练或约战，状态会在本浏览器保留。</p>
+    <section class="page-section achievements-section" id="achievements" aria-labelledby="achievementTitle">
+      <div class="achievement-layout">
+        <div class="trophy-art" role="img" aria-label="水墨风战队奖杯"></div>
+        <div class="achievement-content">
+          <h2 class="section-title" id="achievementTitle">赛事战绩<span class="dot" aria-hidden="true"></span></h2>
+          <p class="section-en">ACHIEVEMENTS</p>
+          <div class="timeline" id="scheduleList" aria-label="本周作战安排"></div>
         </div>
-        <div class="ops-layout">
-          <div class="schedule-list" id="scheduleList" aria-label="本周作战安排"></div>
-          <aside class="ops-note" aria-label="作战说明">
-            <h3>队伍节奏</h3>
-            <p>先确认可参与场次，再由队长按位置与英雄池安排阵容。</p>
-            <ul>
-              <li>训练赛：优先磨合开局与团战沟通。</li>
-              <li>约战：开赛前 30 分钟确认最终五人。</li>
-              <li>复盘：赛后保留一条可执行的调整项。</li>
-            </ul>
-          </aside>
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <section id="reports" aria-labelledby="reports-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Weekly Report</p>
-            <h2 id="reports-title" class="brush">每周战报</h2>
-          </div>
-          <p>战后记录对局结果、重点复盘与下一周调整方向。</p>
+    <section class="page-section news-section" id="news" aria-labelledby="newsTitle">
+      <div class="news-layout">
+        <div class="news-heading">
+          <h2 class="section-title" id="newsTitle">新闻资讯<span class="dot" aria-hidden="true"></span></h2>
+          <p class="section-en">NEWS</p>
         </div>
-        <div class="report-layout">
-          <div class="report-list" id="reportList" aria-live="polite"></div>
-          <details class="report-entry">
-            <summary>录入本周战报</summary>
-            <form class="report-form" id="reportForm" novalidate>
-              <div class="field"><label for="reportWeek">周次</label><input id="reportWeek" name="week" maxlength="20" required placeholder="例如：2026 第 31 周"></div>
-              <div class="field"><label for="reportRecord">对局结果</label><input id="reportRecord" name="record" maxlength="30" required placeholder="例如：训练赛 4 胜 2 负"></div>
-              <div class="field"><label for="reportFocus">本周重点</label><textarea id="reportFocus" name="focus" maxlength="240" required placeholder="记录可执行的复盘结论与下周调整方向"></textarea></div>
-              <p class="form-status" id="reportStatus" role="status" aria-live="polite">战报会保存在当前浏览器。</p>
-              <button class="button button-primary" type="submit">保存本周战报</button>
-            </form>
-          </details>
+        <div class="news-list" id="reportList" aria-live="polite"></div>
+        <div class="news-actions">
+          <button class="primary-button" id="openReport" type="button">记录战报</button>
+          <a class="secondary-button" href="team-admin.html">战队后台</a>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="culture" id="culture" aria-labelledby="culture-title">
-        <p class="eyebrow">Team Culture</p>
-        <h2 id="culture-title" class="brush">自由不羁 · 恒久并肩</h2>
-        <p>以自由之心作战，以恒久之谊同行 —— 这是 Free、恒谊 的战队信条</p>
-      </section>
+    <section class="join-section" id="join" aria-labelledby="joinTitle">
+      <div class="join-content">
+        <h2 class="section-title" id="joinTitle">加入我们<span class="dot" aria-hidden="true"></span></h2>
+        <p class="section-en">JOIN US</p>
+        <p>如果你也热爱王者峡谷，认同「自由不羁，恒久并肩」的信念，欢迎加入 Free、恒谊，与我们一起并肩作战。期待下一位伙伴的名字，写进这幅水墨长卷。</p>
+        <button class="primary-button" id="openApplication" type="button">立即申请</button>
+      </div>
+    </section>
+  </main>
 
-      <section id="join" aria-labelledby="join-title">
-        <div class="join-layout">
-          <div class="join-intro">
-            <p class="eyebrow">Join Us</p>
-            <h2 id="join-title" class="brush">加入我们</h2>
-            <p>如果你也热爱王者峡谷，认同「自由不羁，恒久并肩」的信念，欢迎与 Free、恒谊 并肩作战。期待下一位伙伴的名字，写进这幅水墨长卷。</p>
-            <ul class="join-points">
-              <li>优先匹配战队当前缺位分路。</li>
-              <li>请留下可联系到你的一个方式。</li>
-              <li>提交后可在本页队务面板查看记录。</li>
-            </ul>
-          </div>
-          <div>
-            <form class="application-form" id="applicationForm" novalidate>
-              <div class="form-grid">
-                <div class="field">
-                  <label for="applicantName">游戏昵称</label>
-                  <input id="applicantName" name="name" autocomplete="nickname" maxlength="16" required placeholder="例如：云起">
-                </div>
-                <div class="field">
-                  <label for="applicantContact">联系方式</label>
-                  <input id="applicantContact" name="contact" maxlength="40" required placeholder="QQ 或 微信号">
-                </div>
-                <div class="field">
-                  <label for="applicantRole">意向分路</label>
-                  <select id="applicantRole" name="role" required>
-                    <option value="">请选择</option>
-                    <option>对抗路</option><option>打野</option><option>中路</option><option>发育路</option><option>游走</option><option>全能补位</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="applicantRank">当前最高段位</label>
-                  <select id="applicantRank" name="rank" required>
-                    <option value="">请选择</option>
-                    <option>王者 10-24 星</option><option>王者 25-49 星</option><option>王者 50 星以上</option><option>巅峰赛 1800+</option>
-                  </select>
-                </div>
-                <div class="field field-wide">
-                  <label for="applicantHeroes">常用英雄</label>
-                  <input id="applicantHeroes" name="heroes" maxlength="60" required placeholder="例如：澜、镜、裴擒虎">
-                  <span class="field-hint">填 3 位左右，便于安排试训阵容。</span>
-                </div>
-                <div class="field field-wide">
-                  <label for="applicantAvailability">可参与时段</label>
-                  <input id="applicantAvailability" name="availability" maxlength="60" required placeholder="例如：周二、四、六 20:00-23:00">
-                </div>
-                <div class="field field-wide">
-                  <label for="applicantNote">补充说明 <span class="field-hint">可选</span></label>
-                  <textarea id="applicantNote" name="note" maxlength="200" placeholder="例如：擅长开团辅助，也愿意补位"></textarea>
-                </div>
-              </div>
-              <div class="form-footer">
-                <p class="form-status" id="formStatus" role="status" aria-live="polite">提交即表示同意将本次信息用于战队试训联系。</p>
-                <button class="button button-primary" type="submit">提交试训申请</button>
-              </div>
-            </form>
-            <details class="team-desk">
-              <summary>队务面板 <span id="applicationCount"></span></summary>
-              <div class="application-list" id="applicationList" aria-live="polite"></div>
-            </details>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer><b>Free、恒谊</b> 战队 · 2026</footer>
-  </div>
+  <footer class="contact-section" id="contact">
+    <h2 class="contact-title">联系我们</h2>
+    <div class="title-rule" aria-hidden="true"></div>
+    <div class="contact-grid">
+      <a class="contact-item" href="team-admin.html"><b>战队后台</b><span>申请战队赛与编写计划</span></a>
+      <a class="contact-item" href="../free-games/"><b>游戏大厅</b><span>返回 Free 游戏集合</span></a>
+      <span class="contact-item"><b>战队位置</b><span>王者峡谷 · Free、恒谊</span></span>
+    </div>
+    <span class="footer-brand">FREE</span>
+    <p class="copyright">© 2026 FREE、恒谊战队 · 自由不羁，恒久并肩</p>
+  </footer>
 
   <dialog id="profileDialog" aria-labelledby="profileName">
-    <div class="profile-panel">
-      <div class="dialog-top">
-        <div><p class="dialog-kicker" id="profileRole"></p><h2 class="brush" id="profileName"></h2></div>
-        <button class="icon-button" id="closeProfile" type="button" aria-label="关闭成员档案">×</button>
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="dialog-kicker" id="profileRole"></p><h2 id="profileName"></h2></div>
+        <button class="icon-button" data-close="profileDialog" type="button" aria-label="关闭成员档案">×</button>
       </div>
       <p class="profile-summary" id="profileSummary"></p>
-      <blockquote class="profile-verse brush" id="profileVerse"></blockquote>
+      <blockquote class="profile-verse" id="profileVerse"></blockquote>
       <div class="profile-grid" id="profileStats"></div>
       <div class="hero-pool"><h3>常用英雄</h3><ul class="tag-list" id="profileHeroes"></ul></div>
     </div>
   </dialog>
 
+  <dialog id="applicationDialog" aria-labelledby="applicationTitle">
+    <form class="dialog-panel" id="applicationForm" novalidate>
+      <div class="dialog-head">
+        <div><p class="dialog-kicker">JOIN FREE</p><h2 id="applicationTitle">试训申请</h2></div>
+        <button class="icon-button" data-close="applicationDialog" type="button" aria-label="关闭申请表">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label for="applicantName">游戏昵称</label><input id="applicantName" name="name" maxlength="16" required placeholder="例如：云起"></div>
+        <div class="field"><label for="applicantContact">联系方式</label><input id="applicantContact" name="contact" maxlength="40" required placeholder="QQ 或微信号"></div>
+        <div class="field"><label for="applicantRole">意向分路</label><select id="applicantRole" name="role" required><option value="">请选择</option><option>对抗路</option><option>打野</option><option>中路</option><option>发育路</option><option>游走</option><option>全能补位</option></select></div>
+        <div class="field"><label for="applicantRank">当前最高段位</label><select id="applicantRank" name="rank" required><option value="">请选择</option><option>王者 10-24 星</option><option>王者 25-49 星</option><option>王者 50 星以上</option><option>巅峰赛 1800+</option></select></div>
+        <div class="field field-wide"><label for="applicantHeroes">常用英雄</label><input id="applicantHeroes" name="heroes" maxlength="60" required placeholder="例如：澜、镜、裴擒虎"></div>
+        <div class="field field-wide"><label for="applicantAvailability">可参与时段</label><input id="applicantAvailability" name="availability" maxlength="60" required placeholder="例如：周二、周四、周六 20:00-23:00"></div>
+        <div class="field field-wide"><label for="applicantNote">补充说明</label><textarea id="applicantNote" name="note" maxlength="200" placeholder="擅长打法、期望位置或其他说明"></textarea></div>
+      </div>
+      <div class="form-footer">
+        <p class="form-status" id="applicationStatus" role="status" aria-live="polite">提交后可由战队后台查看。</p>
+        <button class="primary-button" type="submit">提交申请</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="reportDialog" aria-labelledby="reportTitle">
+    <form class="dialog-panel" id="reportForm" novalidate>
+      <div class="dialog-head">
+        <div><p class="dialog-kicker">WEEKLY REPORT</p><h2 id="reportTitle">记录每周战报</h2></div>
+        <button class="icon-button" data-close="reportDialog" type="button" aria-label="关闭战报表">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label for="reportWeek">周次</label><input id="reportWeek" name="week" maxlength="20" required placeholder="例如：2026 第 31 周"></div>
+        <div class="field"><label for="reportRecord">对局结果</label><input id="reportRecord" name="record" maxlength="30" required placeholder="例如：训练赛 4 胜 2 负"></div>
+        <div class="field field-wide"><label for="reportFocus">本周重点</label><textarea id="reportFocus" name="focus" maxlength="240" required placeholder="记录复盘结论与下周调整方向"></textarea></div>
+      </div>
+      <div class="form-footer">
+        <p class="form-status" id="reportStatus" role="status" aria-live="polite">战报保存在当前浏览器。</p>
+        <button class="primary-button" type="submit">保存战报</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
     (() => {
       const members = [
-        { name: "久涵", glyph: "久", role: "打野 · 核心指挥", duty: "队长", verse: "久经沙场 涵养全局", summary: "负责前期节奏和团战决策，优先保证野区信息与资源转换。", stats: [["主分路", "打野"], ["战队职责", "核心指挥"], ["在线时段", "20:00-24:00"], ["沟通偏好", "语音报点"]], heroes: ["孙悟空", "韩信", "赵云"] },
-        { name: "祈夜", glyph: "祈", role: "中路 · 法师", duty: "中轴支援", verse: "夜尽天明 祈者必胜", summary: "擅长中线清兵后的边路支援，团战以控制链和后排输出为主。", stats: [["主分路", "中路"], ["战队职责", "中轴支援"], ["在线时段", "19:30-23:30"], ["沟通偏好", "技能计时"]], heroes: ["阿古朵", "白起", "梦奇"] },
-        { name: "长意", glyph: "长", role: "对抗路 · 战士", duty: "边线牵制", verse: "长锋所向 意至必达", summary: "擅长稳定对线和绕后切入，能在边线承接兵线压力。", stats: [["主分路", "对抗路"], ["战队职责", "边线牵制"], ["在线时段", "20:00-23:00"], ["沟通偏好", "兵线同步"]], heroes: ["夏洛特", "曹操", "关羽"] },
-        { name: "羽麟", glyph: "羽", role: "发育路 · 射手", duty: "后期输出", verse: "羽化登仙 麟跃九天", summary: "以稳定发育和团战站位见长，能够配合辅助快速完成推塔节奏。", stats: [["主分路", "发育路"], ["战队职责", "后期输出"], ["在线时段", "20:30-24:00"], ["沟通偏好", "目标优先级"]], heroes: ["公孙离", "孙尚香"] },
-        { name: "冬瓜神", glyph: "冬", role: "对抗路 · 先锋", duty: "开团承伤", verse: "憨厚表象 一锤定乾坤", summary: "偏好前排开团与视野压制，能按阵容灵活切换坦边。", stats: [["主分路", "对抗路"], ["战队职责", "开团承伤"], ["在线时段", "21:00-24:00"], ["沟通偏好", "进场倒计时"]], heroes: ["马可波罗"] },
-        { name: "星将", glyph: "星", role: "游走 · 辅助", duty: "视野运营", verse: "星辰列阵 将指皆胜局", summary: "负责关键草位和开团保护，优先为中野联动创造先手。", stats: [["主分路", "游走"], ["战队职责", "视野运营"], ["在线时段", "19:30-23:30"], ["沟通偏好", "地图信息"]], heroes: ["蒙恬", "韩信"] },
-        { name: "毕维斯", glyph: "毕", role: "全能 · 自由人", duty: "阵容补位", verse: "毕其功于一役 维斯不破", summary: "能根据阵容承担补位与临时换线，保证训练赛阵容完整。", stats: [["主分路", "全能补位"], ["战队职责", "阵容补位"], ["在线时段", "20:00-23:30"], ["沟通偏好", "临场调整"]], heroes: ["全英雄池"] }
+        { name: "久涵", role: "打野", duty: "队长 · 核心指挥", heroes: ["孙悟空", "韩信", "赵云"], verse: "久历千局识风云，涵养全局定乾坤。", summary: "掌控野区节奏与团战决策，善于从资源交换中为队伍建立优势。", stats: [["主分路", "打野"], ["战队职责", "核心指挥"], ["打法风格", "节奏进攻"], ["沟通习惯", "语音报点"]] },
+        { name: "祈夜", role: "游走", duty: "坦边 · 团战支点", heroes: ["阿古朵", "白起", "梦奇"], verse: "祈愿长夜终有尽，守得云开见月明。", summary: "擅长前排承伤、阵地控制与团队保护，用稳定开团为队友创造输出空间。", stats: [["主分路", "游走 / 坦边"], ["战队职责", "团战支点"], ["打法风格", "控制保护"], ["沟通习惯", "技能计时"]] },
+        { name: "羽麟", role: "发育路", duty: "后期输出", heroes: ["公孙离", "孙尚香"], verse: "羽化凌风穿云去，麟踏峡谷破阵来。", summary: "以灵活走位和稳定发育见长，承担队伍中后期的持续输出任务。", stats: [["主分路", "发育路"], ["战队职责", "后期输出"], ["打法风格", "灵动拉扯"], ["沟通习惯", "目标优先"]] },
+        { name: "长意", role: "对抗路", duty: "边线牵制", heroes: ["夏洛特", "曹操", "关羽"], verse: "长锋所向开山海，意气凌霄镇四方。", summary: "擅长稳定对线、带线牵制和绕后切入，为正面战场创造人数差。", stats: [["主分路", "对抗路"], ["战队职责", "边线牵制"], ["打法风格", "绕后切入"], ["沟通习惯", "兵线同步"]] },
+        { name: "冬瓜神", role: "发育路", duty: "持续火力", heroes: ["马可波罗", "射手英雄池"], verse: "寒冬藏锋待时起，一枪破阵定乾坤。", summary: "专注射手位发育与团战站位，在关键资源团中提供稳定持续火力。", stats: [["主分路", "发育路"], ["战队职责", "持续火力"], ["打法风格", "稳健发育"], ["沟通习惯", "进场倒计时"]] },
+        { name: "星将", role: "对抗 / 打野", duty: "战术补强", heroes: ["蒙恬", "韩信"], verse: "星辰列阵照长夜，将指山河定胜局。", summary: "能在对抗路与打野位间切换，根据阵容承担前排推进或野区突破。", stats: [["主分路", "对抗 / 打野"], ["战队职责", "战术补强"], ["打法风格", "攻守转换"], ["沟通习惯", "地图信息"]] },
+        { name: "比维斯", role: "全能", duty: "自由人 · 补位", heroes: ["全英雄池"], verse: "百般兵刃皆可信，维系全局不失衡。", summary: "英雄池覆盖全面，可根据训练与战队赛阵容承担临时换线和关键补位。", stats: [["主分路", "全能补位"], ["战队职责", "阵容补位"], ["打法风格", "临场适配"], ["沟通习惯", "阵容调整"]] }
       ];
+
       const sessions = [
-        { id: "tue", time: "周二 20:30", title: "五排训练赛", meta: "主练中野节奏 · 还差 1 名游走" },
-        { id: "thu", time: "周四 21:00", title: "固定约战", meta: "BO3 · 对手待定 · 需要全员确认" },
-        { id: "sat", time: "周六 20:00", title: "赛后复盘", meta: "回看约战录像 · 记录一条调整项" }
+        { id: "team", time: "周二 20:30", title: "固定五排训练", meta: "主练中野联动 · 全员确认" },
+        { id: "match", time: "周四 21:00", title: "战队赛 / 约战", meta: "BO3 · 对手待定 · 赛前十分钟集合" },
+        { id: "review", time: "周六 20:00", title: "录像复盘", meta: "回看关键团战 · 记录下周调整项" },
+        { id: "free", time: "周日 21:00", title: "自由组排", meta: "补练英雄池 · 新阵容磨合" }
       ];
-      const applicationKey = "free-hengyi-applications";
-      const attendanceKey = "free-hengyi-attendance";
-      const reportKey = "free-hengyi-weekly-reports";
-      const motionKey = "free-hengyi-motion-mode";
+
+      const defaultReports = [
+        { week: "2026 第 31 周", record: "阵容磨合", focus: "中野辅联动进入固定训练阶段，优先统一开团倒计时与资源交换口令。" },
+        { week: "2026 第 30 周", record: "训练计划", focus: "固定五排训练正式公布，周二练联动、周四约战、周六集中复盘。" },
+        { week: "2026 第 29 周", record: "大厅升级", focus: "战队总览、每周战报、试训申请与战队后台完成接入。" }
+      ];
+
+      const keys = { applications: "free-hengyi-applications", attendance: "free-hengyi-attendance", reports: "free-hengyi-weekly-reports", motion: "free-hengyi-motion-mode" };
       const memberGrid = document.querySelector("#memberGrid");
-      const dialog = document.querySelector("#profileDialog");
+      const profileDialog = document.querySelector("#profileDialog");
+      const applicationDialog = document.querySelector("#applicationDialog");
+      const reportDialog = document.querySelector("#reportDialog");
 
-      function escapeText(value) { const node = document.createElement("span"); node.textContent = value; return node.innerHTML; }
-      function loadJson(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } }
-      function saveJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+      const loadJson = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
+      const saveJson = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+      const escapeText = value => { const node = document.createElement("span"); node.textContent = value; return node.innerHTML; };
 
-      function renderOverview() {
-        const applications = loadJson(applicationKey, []);
-        const attendance = loadJson(attendanceKey, {});
-        const confirmed = Object.values(attendance).filter(Boolean).length;
-        const roleCounts = members.reduce((counts, member) => {
-          const role = member.role.split(" · ")[0];
-          counts[role] = (counts[role] || 0) + 1;
-          return counts;
-        }, {});
-        document.querySelector("#overviewStats").innerHTML = [
-          [members.length, "当前成员"],
-          [`${confirmed}/${sessions.length}`, "已确认作战"],
-          [applications.length, "待阅试训申请"]
-        ].map(([value, label]) => `<div class="overview-stat"><strong>${value}</strong><span>${label}</span></div>`).join("");
-        document.querySelector("#roleMap").innerHTML = Object.entries(roleCounts).map(([role, count]) => `<li><b>${role}</b> ${count} 人</li>`).join("");
+      function renderMembers() {
+        const positions = ["7%", "22%", "38%", "53%", "68%", "82%", "45%"];
+        memberGrid.innerHTML = members.map((member, index) => `
+          <button class="member-card" type="button" data-member="${index}" style="--index:${index};--portrait-position:${positions[index]}" aria-label="查看${member.name}的成员档案">
+            <span class="member-portrait"><span class="role-badge">${member.role}</span></span>
+            <span class="member-card-body">
+              <strong class="member-name">FREE · ${member.name}</strong>
+              <span class="member-duty">${member.duty}</span>
+              <span class="member-heroes">${member.heroes.join(" · ")}</span>
+              <span class="member-more">查看古风档案</span>
+            </span>
+          </button>`).join("");
+        document.querySelector("#memberCount").textContent = members.length;
       }
 
-      memberGrid.innerHTML = members.map((member, index) => `
-        <button class="member-card" type="button" data-member="${index}" aria-label="查看${member.name}的成员档案">
-          <span class="member-role">${member.role}</span>
-          <span class="member-glyph brush" aria-hidden="true">${member.glyph}</span>
-          <span><strong class="member-name brush">${member.name}</strong><span class="member-detail">${member.duty}</span><small>查看档案</small></span>
-        </button>`).join("");
-
       function openProfile(member) {
-        document.querySelector("#profileRole").textContent = member.role;
+        document.querySelector("#profileRole").textContent = `${member.role} · ${member.duty}`;
         document.querySelector("#profileName").textContent = member.name;
         document.querySelector("#profileSummary").textContent = member.summary;
         document.querySelector("#profileVerse").textContent = member.verse;
         document.querySelector("#profileStats").innerHTML = member.stats.map(([label, value]) => `<div class="profile-stat"><span>${label}</span><strong>${value}</strong></div>`).join("");
         document.querySelector("#profileHeroes").innerHTML = member.heroes.map(hero => `<li>${hero}</li>`).join("");
-        dialog.showModal();
+        profileDialog.showModal();
       }
-      memberGrid.addEventListener("click", event => { const card = event.target.closest("[data-member]"); if (card) openProfile(members[Number(card.dataset.member)]); });
-      document.querySelector("#heroRoster").addEventListener("click", event => { const card = event.target.closest("[data-member]"); if (card) openProfile(members[Number(card.dataset.member)]); });
-      document.querySelector("#closeProfile").addEventListener("click", () => dialog.close());
-      dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
 
       function renderSessions() {
-        const saved = loadJson(attendanceKey, {});
+        const saved = loadJson(keys.attendance, {});
         document.querySelector("#scheduleList").innerHTML = sessions.map(session => {
           const confirmed = Boolean(saved[session.id]);
-          return `<article class="schedule-item"><span class="session-time">${session.time}</span><div><h3 class="session-title">${session.title}</h3><p class="session-meta">${session.meta}</p></div><button class="button button-quiet session-action ${confirmed ? "is-confirmed" : ""}" type="button" data-session="${session.id}" aria-pressed="${confirmed}">${confirmed ? "已确认参加" : "确认参加"}</button></article>`;
+          return `<article class="schedule-item"><span class="session-time">${session.time}</span><div><h3 class="session-title">${session.title}</h3><p class="session-meta">${session.meta}</p></div><button class="confirm-button ${confirmed ? "is-confirmed" : ""}" type="button" data-session="${session.id}" aria-pressed="${confirmed}">${confirmed ? "已确认" : "确认参加"}</button></article>`;
         }).join("");
       }
+
+      function renderReports() {
+        const saved = loadJson(keys.reports, []);
+        const reports = saved.length ? saved.slice().reverse() : defaultReports;
+        document.querySelector("#reportList").innerHTML = reports.slice(0, 4).map((report, index) => `
+          <article class="news-item">
+            <div class="news-thumb" style="background-position:${20 + index * 18}% center" aria-hidden="true"></div>
+            <div><h3>FREE战队周报｜${escapeText(report.record)}</h3><p>${escapeText(report.focus)}</p></div>
+            <span class="news-date">${escapeText(report.week)}</span>
+          </article>`).join("");
+      }
+
+      renderMembers();
+      renderSessions();
+      renderReports();
+
+      memberGrid.addEventListener("click", event => {
+        const card = event.target.closest("[data-member]");
+        if (card) openProfile(members[Number(card.dataset.member)]);
+      });
+
       document.querySelector("#scheduleList").addEventListener("click", event => {
         const button = event.target.closest("[data-session]");
         if (!button) return;
-        const saved = loadJson(attendanceKey, {}); saved[button.dataset.session] = !saved[button.dataset.session]; saveJson(attendanceKey, saved); renderSessions(); renderOverview();
+        const saved = loadJson(keys.attendance, {});
+        saved[button.dataset.session] = !saved[button.dataset.session];
+        saveJson(keys.attendance, saved);
+        renderSessions();
       });
-      renderSessions();
 
-      function renderApplications() {
-        const applications = loadJson(applicationKey, []);
-        const count = document.querySelector("#applicationCount");
-        count.textContent = applications.length ? `· ${applications.length} 份申请` : "";
-        const list = document.querySelector("#applicationList");
-        if (!applications.length) { list.innerHTML = '<p class="empty-applications">暂无申请。提交试训表单后，记录会显示在这里。</p>'; renderOverview(); return; }
-        list.innerHTML = applications.slice().reverse().map(application => `<div class="application-row"><div><strong>${escapeText(application.name)} · ${escapeText(application.role)}</strong><span>${escapeText(application.rank)} · 常用：${escapeText(application.heroes)}</span></div><span>${escapeText(application.availability)}</span></div>`).join("");
-        renderOverview();
-      }
+      document.querySelector("#openApplication").addEventListener("click", () => applicationDialog.showModal());
+      document.querySelector("#openReport").addEventListener("click", () => reportDialog.showModal());
+      document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => document.querySelector(`#${button.dataset.close}`).close()));
+      [profileDialog, applicationDialog, reportDialog].forEach(dialog => dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); }));
+
       document.querySelector("#applicationForm").addEventListener("submit", event => {
         event.preventDefault();
         const form = event.currentTarget;
-        const status = document.querySelector("#formStatus");
-        if (!form.checkValidity()) { status.className = "form-status error"; status.textContent = "请补全昵称、联系方式、分路、段位、常用英雄和可参与时段。"; form.reportValidity(); return; }
-        const values = Object.fromEntries(new FormData(form).entries());
-        const applications = loadJson(applicationKey, []);
-        applications.push({ ...values, submittedAt: new Date().toISOString() });
-        saveJson(applicationKey, applications);
-        form.reset(); status.className = "form-status success"; status.textContent = "申请已记录。请留意队长通过你填写的联系方式安排试训。"; renderApplications();
+        const status = document.querySelector("#applicationStatus");
+        if (!form.checkValidity()) { status.className = "form-status error"; status.textContent = "请补全昵称、联系方式、分路、段位、英雄和时间。"; form.reportValidity(); return; }
+        const applications = loadJson(keys.applications, []);
+        applications.push({ ...Object.fromEntries(new FormData(form).entries()), submittedAt: new Date().toISOString() });
+        saveJson(keys.applications, applications);
+        form.reset();
+        status.className = "form-status success";
+        status.textContent = "申请已记录，队长会通过你填写的方式联系你。";
       });
-      renderApplications();
 
-      function renderReports() {
-        const reports = loadJson(reportKey, []);
-        const list = document.querySelector("#reportList");
-        if (!reports.length) { list.innerHTML = '<p class="report-empty">本周尚未录入战报。完成训练或约战后，记录结果和下一步调整即可形成战队复盘轨迹。</p>'; return; }
-        list.innerHTML = reports.slice().reverse().map(report => `<article class="report-item"><span class="report-week">${escapeText(report.week)}<br>${escapeText(report.record)}</span><div><h3>本周复盘</h3><p>${escapeText(report.focus)}</p></div></article>`).join("");
-      }
       document.querySelector("#reportForm").addEventListener("submit", event => {
         event.preventDefault();
         const form = event.currentTarget;
         const status = document.querySelector("#reportStatus");
         if (!form.checkValidity()) { status.className = "form-status error"; status.textContent = "请填写周次、对局结果和本周重点。"; form.reportValidity(); return; }
-        const reports = loadJson(reportKey, []);
+        const reports = loadJson(keys.reports, []);
         reports.push({ ...Object.fromEntries(new FormData(form).entries()), createdAt: new Date().toISOString() });
-        saveJson(reportKey, reports);
-        form.reset(); status.className = "form-status success"; status.textContent = "战报已保存，可在左侧列表查看。"; renderReports();
+        saveJson(keys.reports, reports);
+        form.reset();
+        status.className = "form-status success";
+        status.textContent = "战报已保存并更新到新闻资讯。";
+        renderReports();
       });
-      renderReports();
+
+      const menuToggle = document.querySelector("#menuToggle");
+      const siteNav = document.querySelector("#siteNav");
+      menuToggle.addEventListener("click", () => {
+        const open = siteNav.classList.toggle("is-open");
+        menuToggle.setAttribute("aria-expanded", String(open));
+        menuToggle.setAttribute("aria-label", open ? "关闭导航" : "打开导航");
+        menuToggle.textContent = open ? "×" : "☰";
+      });
+      siteNav.addEventListener("click", event => {
+        if (!event.target.matches("a")) return;
+        siteNav.classList.remove("is-open");
+        menuToggle.setAttribute("aria-expanded", "false");
+        menuToggle.setAttribute("aria-label", "打开导航");
+        menuToggle.textContent = "☰";
+      });
+
+      const siteHeader = document.querySelector("#siteHeader");
+      const hero = document.querySelector("#home");
+      new IntersectionObserver(([entry]) => siteHeader.classList.toggle("is-light", !entry.isIntersecting), { rootMargin: "-64px 0px 0px", threshold: .08 }).observe(hero);
 
       const motionToggle = document.querySelector("#motionToggle");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-      function syncMotionMode() {
-        const enabled = !reduceMotion.matches && localStorage.getItem(motionKey) === "on";
+      function syncMotion() {
+        const enabled = !reduceMotion.matches && localStorage.getItem(keys.motion) === "on";
         document.body.classList.toggle("motion-on", enabled);
         motionToggle.checked = enabled;
         motionToggle.disabled = reduceMotion.matches;
-        motionToggle.setAttribute("aria-label", reduceMotion.matches ? "系统已启用减少动态效果" : "开启动态效果模式");
       }
-      motionToggle.addEventListener("change", () => { localStorage.setItem(motionKey, motionToggle.checked ? "on" : "off"); syncMotionMode(); });
-      reduceMotion.addEventListener("change", syncMotionMode);
-      syncMotionMode();
+      motionToggle.addEventListener("change", () => { localStorage.setItem(keys.motion, motionToggle.checked ? "on" : "off"); syncMotion(); });
+      reduceMotion.addEventListener("change", syncMotion);
+      syncMotion();
 
-      const menuButton = document.querySelector(".menu-toggle");
-      const nav = document.querySelector("#site-nav");
-      menuButton.addEventListener("click", () => { const open = nav.classList.toggle("is-open"); menuButton.setAttribute("aria-expanded", String(open)); menuButton.setAttribute("aria-label", open ? "关闭导航" : "打开导航"); });
-      nav.addEventListener("click", event => { if (event.target.matches("a")) { nav.classList.remove("is-open"); menuButton.setAttribute("aria-expanded", "false"); menuButton.setAttribute("aria-label", "打开导航"); } });
+      if (location.hash) {
+        const target = document.querySelector(location.hash);
+        if (target) requestAnimationFrame(() => window.scrollTo({ top: target.offsetTop - 64, behavior: "instant" }));
+      }
     })();
   </script>
 </body>
