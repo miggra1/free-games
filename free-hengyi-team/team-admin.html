@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0a08">
+  <title>Free、恒谊 | 战队后台</title>
+  <link rel="stylesheet" href="team-admin.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <a class="brand brush" href="./">Free<span>、恒谊</span></a>
+      <div class="header-actions">
+        <span class="session-name" id="sessionName"></span>
+        <button class="text-button" id="signOutButton" type="button" hidden>退出登录</button>
+        <a class="text-button" href="./">返回大厅</a>
+      </div>
+    </header>
+
+    <section class="auth-view" id="authView" aria-labelledby="authTitle">
+      <p class="eyebrow">Free Team Operations</p>
+      <h1 class="brush" id="authTitle">战队后台</h1>
+      <p>登录后发起战队赛申请，维护训练与作战计划。</p>
+      <form class="auth-form" id="authForm">
+        <label>邮箱<input id="authEmail" name="email" type="email" autocomplete="email" required></label>
+        <label>密码<input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" required></label>
+        <div class="form-actions">
+          <button class="button primary" type="submit">登录后台</button>
+          <button class="button secondary" id="signUpButton" type="button">创建账号</button>
+        </div>
+        <p class="form-status" id="authStatus" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="setup-view" id="setupView" hidden aria-labelledby="setupTitle">
+      <p class="eyebrow">Initial Setup</p>
+      <h1 class="brush" id="setupTitle">初始化战队后台</h1>
+      <p>当前账号还没有战队后台权限。若这是首次部署，可将此账号设为战队管理员。</p>
+      <form class="setup-form" id="setupForm">
+        <label>后台显示名<input id="adminName" name="name" maxlength="24" placeholder="例如：久涵"></label>
+        <div class="form-actions"><button class="button primary" type="submit">设为首位管理员</button></div>
+        <p class="form-status" id="setupStatus" role="status" aria-live="polite"></p>
+      </form>
+      <p class="help-note">如果团队已有管理员，请让管理员在 Supabase 的 <code>free_team_admins</code> 表中添加你的用户 ID。</p>
+    </section>
+
+    <section class="workspace" id="workspace" hidden aria-label="战队运营后台">
+      <div class="workspace-head">
+        <div><p class="eyebrow">Operations Desk</p><h1 class="brush">战队运营</h1></div>
+        <button class="icon-button" id="refreshButton" type="button" title="刷新数据" aria-label="刷新数据">&#8635;</button>
+      </div>
+
+      <section class="metrics" aria-label="运营概览">
+        <article><span>待确认战队赛</span><strong id="pendingMatches">0</strong></article>
+        <article><span>本周计划</span><strong id="weeklyPlans">0</strong></article>
+        <article><span>已发起申请</span><strong id="totalMatches">0</strong></article>
+      </section>
+
+      <div class="operations-grid">
+        <section class="panel" aria-labelledby="matchTitle">
+          <div class="panel-head"><div><p class="eyebrow">Match Request</p><h2 id="matchTitle">发起战队赛</h2></div></div>
+          <form class="entry-form" id="matchForm">
+            <label>对手战队<input name="opponent_name" maxlength="48" required placeholder="例如：天枢电竞"></label>
+            <div class="two-columns">
+              <label>联系人<input name="contact_name" maxlength="32" required placeholder="对方领队或队长"></label>
+              <label>联系方式<input name="contact_method" maxlength="80" required placeholder="QQ / 微信"></label>
+            </div>
+            <div class="two-columns">
+              <label>拟定时间<input name="proposed_at" type="datetime-local" required></label>
+              <label>赛制<select name="format"><option>BO1</option><option selected>BO3</option><option>BO5</option><option>训练赛</option></select></label>
+            </div>
+            <label>参赛与阵容备注<input name="roster_note" maxlength="160" placeholder="例如：优先中野联动，缺游走"></label>
+            <label>申请说明<textarea name="message" maxlength="500" required placeholder="说明可约时段、地图或沟通要求"></textarea></label>
+            <div class="form-actions"><button class="button primary" type="submit">创建申请</button><p class="form-status" id="matchStatus" role="status" aria-live="polite"></p></div>
+          </form>
+        </section>
+
+        <section class="panel" aria-labelledby="planTitle">
+          <div class="panel-head"><div><p class="eyebrow">Team Plan</p><h2 id="planTitle">编写作战计划</h2></div></div>
+          <form class="entry-form" id="planForm">
+            <label>计划标题<input name="title" maxlength="80" required placeholder="例如：周四 BO3 约战准备"></label>
+            <div class="two-columns">
+              <label>计划日期<input name="scheduled_for" type="date" required></label>
+              <label>计划类型<select name="plan_type"><option>训练赛</option><option>约战</option><option>复盘</option><option>招募</option><option>赛事准备</option></select></label>
+            </div>
+            <label>计划内容<textarea name="content" maxlength="1200" required placeholder="目标、参训成员、分工、需要准备的英雄或录像"></textarea></label>
+            <div class="form-actions"><button class="button primary" type="submit">保存计划</button><p class="form-status" id="planStatus" role="status" aria-live="polite"></p></div>
+          </form>
+        </section>
+      </div>
+
+      <div class="records-grid">
+        <section class="panel record-panel" aria-labelledby="matchListTitle">
+          <div class="panel-head"><div><p class="eyebrow">Requests</p><h2 id="matchListTitle">战队赛申请</h2></div></div>
+          <div class="record-list" id="matchList" aria-live="polite"></div>
+        </section>
+        <section class="panel record-panel" aria-labelledby="planListTitle">
+          <div class="panel-head"><div><p class="eyebrow">Plans</p><h2 id="planListTitle">作战计划</h2></div></div>
+          <div class="record-list" id="planList" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="team-admin.js"></script>
+</body>
+</html>
