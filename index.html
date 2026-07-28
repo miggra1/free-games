@@ -2,12 +2,165 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=./free-hengyi-team/">
-  <title>Free、恒谊 · 战队大厅</title>
-  <script>window.location.replace("./free-hengyi-team/");</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>大鱼吃小鱼</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #06234b; }
+    body { font-family: "Microsoft YaHei", system-ui, sans-serif; user-select: none; -webkit-user-select: none; }
+    #gameShell { position: relative; width: 100%; height: 100%; padding: clamp(8px, 1.5vw, 20px); }
+    canvas { display: block; width: 100%; height: 100%; border-radius: 8px; cursor: crosshair; touch-action: none; box-shadow: 0 10px 35px #00132b88; }
+    #hud { position: absolute; inset: clamp(18px, 3vw, 38px); bottom: auto; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 2; }
+    .stats { display: flex; gap: 9px; }
+    .stat, .control { border: 1px solid #c9f6ff88; background: #063460b8; color: #f4fdff; box-shadow: 0 3px 12px #001b3770; backdrop-filter: blur(5px); }
+    .stat { min-width: 104px; padding: 8px 13px; border-radius: 7px; font-weight: 700; font-size: 15px; text-shadow: 0 1px #06325c; }
+    .stat small { display: block; margin-top: 2px; color: #b9eaff; font-size: 11px; font-weight: 500; }
+    .controls { display: flex; gap: 8px; pointer-events: auto; }
+    .control, .primary { border-radius: 7px; font: inherit; font-weight: 700; cursor: pointer; transition: transform .15s ease, background .15s ease; }
+    .control { min-width: 42px; min-height: 39px; padding: 7px 12px; font-size: 14px; }
+    .control:hover { background: #0a548a; transform: translateY(-1px); }
+    .control:focus-visible, .primary:focus-visible { outline: 3px solid #ffe873; outline-offset: 3px; }
+    #overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; padding: 20px; background: #001b3d55; }
+    #overlay[hidden] { display: none; }
+    .panel { width: min(380px, calc(100vw - 40px)); padding: 30px 28px 25px; text-align: center; border: 2px solid #b9f3ff99; border-radius: 8px; background: #073b69e8; box-shadow: 0 18px 45px #00112ed0; }
+    .panel h1 { margin: 0; color: #fff5ad; font-size: 36px; letter-spacing: 0; text-shadow: 0 3px #0a3159; }
+    .panel p { margin: 12px 0; color: #d4f6ff; line-height: 1.65; font-size: 16px; }
+    .hint { color: #a9def3 !important; font-size: 13px !important; }
+    .primary { margin-top: 8px; border: 2px solid #fff4ae; padding: 11px 28px; color: #1b4d54; background: #ffdf61; font-size: 17px; box-shadow: 0 3px #b07b18; }
+    .primary:hover { background: #ffec8f; transform: translateY(-2px); }
+    .primary:active { transform: translateY(1px); box-shadow: 0 1px #b07b18; }
+    @media (max-width: 520px) { #gameShell { padding: 6px; } #hud { inset: 15px; } .stats { gap: 5px; } .stat { min-width: 86px; padding: 6px 8px; font-size: 13px; } .control { min-width: 37px; padding: 6px 8px; font-size: 13px; } .panel { padding: 24px 18px 20px; } .panel h1 { font-size: 30px; } }
+    @media (prefers-reduced-motion: reduce) { .control, .primary { transition: none; } }
+  </style>
 </head>
 <body>
-  <p>正在进入 <a href="./free-hengyi-team/">Free、恒谊战队大厅</a>。</p>
+  <main id="gameShell">
+    <canvas id="gameCanvas" aria-label="大鱼吃小鱼游戏画面"></canvas>
+    <div id="hud">
+      <div class="stats"><div class="stat" id="scoreEl">分数：0<small>经验 0 / 100</small></div><div class="stat" id="levelEl">体型：1 级<small>小心大鱼</small></div></div>
+      <div class="controls"><button class="control" id="pauseBtn" type="button" aria-label="暂停游戏">暂停</button><button class="control" id="restartBtn" type="button" aria-label="重新开始">重开</button></div>
+    </div>
+    <section id="overlay" aria-live="polite"><div class="panel" id="panel"></div></section>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    // Canvas 初始化
+    const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('scoreEl'), levelEl = document.getElementById('levelEl');
+    const overlay = document.getElementById('overlay'), panel = document.getElementById('panel');
+    const pauseBtn = document.getElementById('pauseBtn'), restartBtn = document.getElementById('restartBtn');
+    let W = 0, H = 0, dpr = 1, last = 0, animationId = 0;
+    const keys = Object.create(null), pointer = { active: false, x: 0, y: 0 };
+    const colors = ['#ffd75a', '#ff9a52', '#66c7ef', '#f78cb4', '#62cf92', '#a98ae8'];
+    let state, player, fishes, bubbles, weeds, rocks, silhouettes, particles, texts;
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+    function resize() {
+      const r = canvas.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width; H = r.height; canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (player) { player.x = clamp(player.x, player.r, W - player.r); player.y = clamp(player.y, player.r + 28, H - player.r - 16); }
+      buildScenery();
+    }
+    function buildScenery() {
+      weeds = Array.from({length: Math.max(7, Math.floor(W / 95))}, (_, i) => ({ x: (i + .35) * W / Math.max(7, Math.floor(W / 95)) + rand(-18, 18), h: rand(48, 115), w: rand(7, 12), phase: rand(0, Math.PI * 2), color: Math.random() < .5 ? '#167d74' : '#1b9b75' }));
+      rocks = Array.from({length: Math.max(5, Math.floor(W / 155))}, () => ({ x: rand(0, W), y: H - rand(4, 18), r: rand(17, 42), c: Math.random() < .5 ? '#1d5370' : '#245b75' }));
+      silhouettes = Array.from({length: 8}, () => ({ x: rand(0, W), y: rand(H * .2, H * .62), r: rand(5, 13), v: rand(6, 17), d: Math.random() < .5 ? 1 : -1 }));
+    }
+    function makeBubbles(count) { return Array.from({length: count}, () => ({ x: rand(0, W), y: rand(0, H), r: rand(1.5, 5.2), v: rand(12, 30), drift: rand(-8, 8), a: rand(.25, .7) })); }
+    // 游戏状态与重开
+    function resetGame() {
+      state = { mode: 'start', score: 0, level: 1, xp: 0, elapsed: 0, spawn: 0, flash: 0, shake: 0 };
+      player = { x: W * .38, y: H * .52, vx: 0, vy: 0, r: 18, angle: 0, tail: 0, bump: 0 };
+      fishes = []; particles = []; texts = []; bubbles = makeBubbles(Math.max(24, Math.floor(W / 26))); updateHud(); showStart();
+    }
+    function updateHud() { scoreEl.innerHTML = '分数：' + state.score + '<small>经验 ' + state.xp + ' / ' + xpNeeded() + '</small>'; levelEl.innerHTML = '体型：' + state.level + ' 级<small>' + (state.level === 10 ? '已经是海中霸主' : '半径 ' + Math.round(player.r) + ' 像素') + '</small>'; }
+    function xpNeeded() { return state.level >= 10 ? 0 : 100 + (state.level - 1) * 55; }
+    // UI 面板控制
+    function showStart() { overlay.hidden = false; panel.innerHTML = '<h1>大鱼吃小鱼</h1><p>吃掉小鱼，避开大鱼</p><button class="primary" id="startBtn" type="button">开始游戏</button><p class="hint">电脑使用鼠标或方向键；手机手指拖动控制</p>'; document.getElementById('startBtn').onclick = startGame; }
+    function showEnd() { overlay.hidden = false; panel.innerHTML = '<h1>游戏结束</h1><p>最终分数：<b>' + state.score + '</b><br>最终体型：<b>' + state.level + ' 级</b></p><button class="primary" id="againBtn" type="button">再玩一次</button>'; document.getElementById('againBtn').onclick = () => { resetGame(); startGame(); }; }
+    function showPause() { overlay.hidden = false; panel.innerHTML = '<h1>游戏已暂停</h1><p>海里的时间暂时停住了。</p><button class="primary" id="continueBtn" type="button">继续游戏</button>'; document.getElementById('continueBtn').onclick = togglePause; }
+    function startGame() { state.mode = 'playing'; overlay.hidden = true; pauseBtn.textContent = '暂停'; last = performance.now(); }
+    function togglePause() { if (state.mode === 'playing') { state.mode = 'paused'; pauseBtn.textContent = '继续'; showPause(); } else if (state.mode === 'paused') { state.mode = 'playing'; pauseBtn.textContent = '暂停'; overlay.hidden = true; last = performance.now(); } }
+    // 普通鱼生成与更新
+    function spawnFish() {
+      const t = state.elapsed, difficulty = clamp((t - 8) / 75 + state.score / 2400, 0, 1); let r;
+      const roll = Math.random();
+      if (t < 10) r = rand(8, Math.min(22, player.r * .8));
+      else if (roll < .47 - difficulty * .16) r = rand(8, Math.max(12, player.r * .83));
+      else if (roll < .84 - difficulty * .12) r = rand(25, 50);
+      else r = rand(51, 76 + difficulty * 24);
+      if (Math.random() < .18) r = clamp(player.r * rand(.62, 1.38 + difficulty * .25), 8, 100);
+      const d = Math.random() < .5 ? 1 : -1; let y, attempts = 0;
+      do { y = rand(r + 34, H - r - 24); attempts++; } while (r > player.r * 1.15 && Math.hypot((d > 0 ? -r : W + r) - player.x, y - player.y) < 200 && attempts < 20);
+      fishes.push({ x: d > 0 ? -r * 2 : W + r * 2, y, r, d, speed: rand(25, 57) * (1 + difficulty * .45), color: colors[Math.floor(Math.random() * colors.length)], phase: rand(0, 6.28), bump: 0 });
+    }
+    function updateFish(dt) {
+      state.spawn -= dt; const interval = Math.max(.35, 1.22 - state.elapsed * .008 - state.score * .00005);
+      if (state.spawn <= 0) { spawnFish(); state.spawn = interval * rand(.65, 1.2); }
+      fishes.forEach(f => { f.x += f.d * f.speed * dt; f.phase += dt * 8; f.bump = Math.max(0, f.bump - dt); });
+      fishes = fishes.filter(f => f.x > -f.r * 3 && f.x < W + f.r * 3);
+    }
+    // 玩家移动：鼠标、键盘、触控共享同一个目标与惯性系统
+    function updatePlayer(dt) {
+      let ax = 0, ay = 0, usingKeys = false;
+      if (keys.ArrowLeft || keys.a || keys.A) { ax -= 1; usingKeys = true; } if (keys.ArrowRight || keys.d || keys.D) { ax += 1; usingKeys = true; }
+      if (keys.ArrowUp || keys.w || keys.W) { ay -= 1; usingKeys = true; } if (keys.ArrowDown || keys.s || keys.S) { ay += 1; usingKeys = true; }
+      if (usingKeys) { const n = Math.hypot(ax, ay) || 1; player.vx += ax / n * 760 * dt; player.vy += ay / n * 760 * dt; }
+      else if (pointer.active) { const dx = pointer.x - player.x, dy = pointer.y - player.y; player.vx += dx * 5.3 * dt; player.vy += dy * 5.3 * dt; }
+      const max = 250 + state.level * 8, v = Math.hypot(player.vx, player.vy); if (v > max) { player.vx *= max / v; player.vy *= max / v; }
+      player.vx *= Math.pow(.0009, dt); player.vy *= Math.pow(.0009, dt); player.x += player.vx * dt; player.y += player.vy * dt;
+      if (player.x < player.r) { player.x = player.r; player.vx *= -.25; } if (player.x > W - player.r) { player.x = W - player.r; player.vx *= -.25; }
+      if (player.y < player.r + 30) { player.y = player.r + 30; player.vy *= -.25; } if (player.y > H - player.r - 14) { player.y = H - player.r - 14; player.vy *= -.25; }
+      if (v > 6) player.angle = Math.atan2(player.vy, player.vx); player.tail += dt * (8 + v * .035); player.bump = Math.max(0, player.bump - dt);
+    }
+    // 碰撞、成长和计分
+    function collide() {
+      for (let i = fishes.length - 1; i >= 0; i--) { const f = fishes[i], reach = player.r * .72 + f.r * .64; if (dist(player, f) > reach) continue;
+        if (f.r <= player.r * .85) { const pts = f.r < 25 ? 10 : (f.r < player.r * .72 ? 30 : 50); state.score += pts; state.xp += pts; fishes.splice(i, 1); eatEffect(f, pts); grow(); }
+        else if (f.r >= player.r * 1.15) { endGame(); return; }
+        else { const dx = player.x - f.x, dy = player.y - f.y, n = Math.hypot(dx, dy) || 1; player.vx += dx / n * 120; player.vy += dy / n * 120; f.bump = .18; }
+      }
+    }
+    function eatEffect(f, pts) { texts.push({ x: f.x, y: f.y - f.r, text: '+' + pts, color: '#fff2a1', life: .8, max: .8, size: 16 }); for (let i = 0; i < 10; i++) particles.push({ x: f.x, y: f.y, vx: rand(-90, 90), vy: rand(-90, 90), r: rand(1.5, 3.5), color: f.color, life: .45, max: .45 }); }
+    function grow() { while (state.level < 10 && state.xp >= xpNeeded()) { state.xp -= xpNeeded(); state.level++; player.r += 4.8; state.flash = .32; texts.push({ x: player.x, y: player.y - player.r - 22, text: '升级！', color: '#fff58c', life: 1.3, max: 1.3, size: 25 }); for (let i = 0; i < 24; i++) particles.push({ x: player.x, y: player.y, vx: rand(-150, 150), vy: rand(-150, 150), r: rand(2, 5), color: '#d7f8ff', life: .8, max: .8 }); } updateHud(); }
+    function endGame() { state.mode = 'ended'; state.shake = .45; texts.push({ x: player.x, y: player.y - 35, text: '被大鱼吃掉了！', color: '#ffe293', life: 1, max: 1, size: 20 }); setTimeout(showEnd, 360); }
+    function updateEffects(dt) { particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 65 * dt; p.life -= dt; }); particles = particles.filter(p => p.life > 0); texts.forEach(t => { t.y -= 28 * dt; t.life -= dt; }); texts = texts.filter(t => t.life > 0); state.flash = Math.max(0, state.flash - dt); state.shake = Math.max(0, state.shake - dt); }
+    // 背景绘制
+    function drawBackground(time) {
+      const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#79d9ee'); g.addColorStop(.46, '#258dc1'); g.addColorStop(1, '#063c76'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const light = ctx.createRadialGradient(W * .48, -20, 10, W * .48, -20, H * .85); light.addColorStop(0, '#dfffff60'); light.addColorStop(1, '#dfffff00'); ctx.fillStyle = light; ctx.fillRect(0, 0, W, H);
+      silhouettes.forEach(s => { s.x += s.d * s.v * .016; if (s.x < -30) s.x = W + 30; if (s.x > W + 30) s.x = -30; drawFish(s.x, s.y, s.r, s.d > 0 ? 0 : Math.PI, '#0f5b8a55', time, true); });
+      bubbles.forEach(b => { b.y -= b.v * .016; b.x += Math.sin(time * .001 + b.y * .03) * .08 + b.drift * .002; if (b.y < -b.r) { b.y = H + b.r; b.x = rand(0, W); } ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.strokeStyle = '#dcffff' + Math.round(b.a * 255).toString(16).padStart(2, '0'); ctx.lineWidth = 1.2; ctx.stroke(); });
+      rocks.forEach(r => { ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r * .48, 0, Math.PI, Math.PI * 2); ctx.fillStyle = r.c; ctx.fill(); ctx.strokeStyle = '#75b4c055'; ctx.stroke(); });
+      weeds.forEach(w => { const sway = Math.sin(time * .0014 + w.phase) * 10; ctx.strokeStyle = w.color; ctx.lineWidth = w.w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(w.x, H + 10); ctx.bezierCurveTo(w.x - sway, H - w.h * .32, w.x + sway * 1.2, H - w.h * .68, w.x + sway, H - w.h); ctx.stroke(); });
+      if (state.flash) { ctx.fillStyle = '#dffeff'; ctx.globalAlpha = state.flash * .32; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    }
+    // 鱼由椭圆、三角尾与圆眼组成，旋转后天然保持朝向
+    function drawFish(x, y, r, angle, color, time, silhouette) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle); const tail = Math.sin(time * .008 + x * .03) * r * .16;
+      ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(-r * .7, 0); ctx.lineTo(-r * 1.25, -r * .58 + tail); ctx.lineTo(-r * 1.2, r * .58 + tail); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, 0, r, r * .62, 0, 0, Math.PI * 2); ctx.fill();
+      if (!silhouette) { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(r * .42, -r * .18, Math.max(2.5, r * .17), 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#14345b'; ctx.beginPath(); ctx.arc(r * .47, -r * .18, Math.max(1.2, r * .07), 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#563b4433'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(r * .12, r * .08, r * .36, .1, 1.25); ctx.stroke(); }
+      ctx.restore();
+    }
+    function drawGame(time) { ctx.save(); if (state.shake) ctx.translate(rand(-1, 1) * state.shake * 10, rand(-1, 1) * state.shake * 10); drawBackground(time); fishes.forEach(f => drawFish(f.x, f.y, f.r * (1 + f.bump * .12), f.d > 0 ? 0 : Math.PI, f.color, time)); drawFish(player.x, player.y, player.r, player.angle, '#ffe064', time); particles.forEach(p => { ctx.globalAlpha = p.life / p.max; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }); ctx.globalAlpha = 1; texts.forEach(t => { ctx.globalAlpha = Math.min(1, t.life * 2); ctx.fillStyle = t.color; ctx.font = '700 ' + t.size + 'px Microsoft YaHei, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(t.text, t.x, t.y); }); ctx.restore(); }
+    // 游戏主循环：暂停与结束状态不推进游戏时间
+    function frame(now) { const dt = Math.min(.035, (now - last) / 1000 || 0); last = now; if (state.mode === 'playing') { state.elapsed += dt; updatePlayer(dt); updateFish(dt); collide(); updateEffects(dt); } drawGame(now); animationId = requestAnimationFrame(frame); }
+    // 输入控制
+    function canvasPoint(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
+    canvas.addEventListener('pointermove', e => { const p = canvasPoint(e); pointer.x = p.x; pointer.y = p.y; pointer.active = true; });
+    canvas.addEventListener('pointerdown', e => { const p = canvasPoint(e); pointer.x = p.x; pointer.y = p.y; pointer.active = true; canvas.setPointerCapture?.(e.pointerId); });
+    canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') pointer.active = false; });
+    canvas.addEventListener('pointerup', () => { pointer.active = false; });
+    window.addEventListener('keydown', e => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) { keys[e.key] = true; e.preventDefault(); } if (e.key === ' ' || e.key === 'Escape') { e.preventDefault(); togglePause(); } });
+    window.addEventListener('keyup', e => { keys[e.key] = false; }); window.addEventListener('resize', resize);
+    pauseBtn.addEventListener('click', togglePause); restartBtn.addEventListener('click', () => { resetGame(); startGame(); });
+    resize(); resetGame(); cancelAnimationFrame(animationId); animationId = requestAnimationFrame(frame);
+  })();
+  </script>
 </body>
 </html>
