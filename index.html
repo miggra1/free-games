@@ -80,9 +80,9 @@
     function updateHud() { scoreEl.innerHTML = '分数：' + state.score + '<small>经验 ' + state.xp + ' / ' + xpNeeded() + '</small>'; levelEl.innerHTML = '体型：' + state.level + ' 级<small>' + (state.level === 10 ? '已经是海中霸主' : '半径 ' + Math.round(player.r) + ' 像素') + '</small>'; }
     function xpNeeded() { return state.level >= 10 ? 0 : 100 + (state.level - 1) * 55; }
     // UI 面板控制
-    function showStart() { overlay.hidden = false; panel.innerHTML = '<h1>大鱼吃小鱼</h1><p>吃掉小鱼，避开大鱼</p><button class="primary" id="startBtn" type="button">开始游戏</button><p class="hint">电脑使用鼠标或方向键；手机手指拖动控制</p>'; document.getElementById('startBtn').onclick = startGame; }
-    function showEnd() { overlay.hidden = false; panel.innerHTML = '<h1>游戏结束</h1><p>最终分数：<b>' + state.score + '</b><br>最终体型：<b>' + state.level + ' 级</b></p><button class="primary" id="againBtn" type="button">再玩一次</button>'; document.getElementById('againBtn').onclick = () => { resetGame(); startGame(); }; }
-    function showPause() { overlay.hidden = false; panel.innerHTML = '<h1>游戏已暂停</h1><p>海里的时间暂时停住了。</p><button class="primary" id="continueBtn" type="button">继续游戏</button>'; document.getElementById('continueBtn').onclick = togglePause; }
+    function showStart() { overlay.hidden = false; panel.innerHTML = '<h1>大鱼吃小鱼</h1><p>吃掉小鱼，避开大鱼</p><button class="primary" type="button" data-panel-action="start">开始游戏</button><p class="hint">电脑使用鼠标或方向键；手机手指拖动控制</p>'; }
+    function showEnd() { overlay.hidden = false; panel.innerHTML = '<h1>游戏结束</h1><p>最终分数：<b>' + state.score + '</b><br>最终体型：<b>' + state.level + ' 级</b></p><button class="primary" type="button" data-panel-action="restart">再玩一次</button>'; }
+    function showPause() { overlay.hidden = false; panel.innerHTML = '<h1>游戏已暂停</h1><p>海里的时间暂时停住了。</p><button class="primary" type="button" data-panel-action="resume">继续游戏</button>'; }
     function startGame() { state.mode = 'playing'; overlay.hidden = true; pauseBtn.textContent = '暂停'; last = performance.now(); }
     function togglePause() { if (state.mode === 'playing') { state.mode = 'paused'; pauseBtn.textContent = '继续'; showPause(); } else if (state.mode === 'paused') { state.mode = 'playing'; pauseBtn.textContent = '暂停'; overlay.hidden = true; last = performance.now(); } }
     // 普通鱼生成与更新
@@ -158,6 +158,13 @@
     canvas.addEventListener('pointerup', () => { pointer.active = false; });
     window.addEventListener('keydown', e => { if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) { keys[e.key] = true; e.preventDefault(); } if (e.key === ' ' || e.key === 'Escape') { e.preventDefault(); togglePause(); } });
     window.addEventListener('keyup', e => { keys[e.key] = false; }); window.addEventListener('resize', resize);
+    // 面板内容会被动态替换，使用事件委托保证开始、继续和重开按钮始终可用。
+    panel.addEventListener('click', event => {
+      const action = event.target.closest('[data-panel-action]')?.dataset.panelAction;
+      if (action === 'start') startGame();
+      if (action === 'resume') togglePause();
+      if (action === 'restart') { resetGame(); startGame(); }
+    });
     pauseBtn.addEventListener('click', togglePause); restartBtn.addEventListener('click', () => { resetGame(); startGame(); });
     resize(); resetGame(); cancelAnimationFrame(animationId); animationId = requestAnimationFrame(frame);
   })();
