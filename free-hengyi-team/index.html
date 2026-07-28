@@ -243,16 +243,63 @@
     .confirm-button { min-width: 58px; min-height: 32px; padding: 0 .6rem; border: 1px solid #65625b; border-radius: 999px; background: #65625b; color: #fff; font-size: .62rem; }
     .confirm-button.is-confirmed { border-color: var(--record-gold); background: var(--record-gold); color: #fff; }
 
-    .news-section { display: grid; align-items: center; min-height: 680px; background: #f8f7f3 url("assets/ink-valley-paper.png") right bottom / 50% auto no-repeat; }
-    .news-layout { width: min(820px, calc(100% - 48px)); margin: auto; padding: 6.5rem 0 4rem; }
-    .news-heading { text-align: center; }
-    .news-list { display: grid; gap: 12px; margin-top: 2.5rem; }
-    .news-item { display: grid; grid-template-columns: 180px 1fr auto; gap: 1.2rem; align-items: center; min-height: 96px; padding: .45rem; background: rgba(255,255,255,.55); }
-    .news-thumb { height: 86px; background: #222 url("assets/ink-hill-paper.png") center / cover no-repeat; filter: grayscale(1) contrast(1.15); }
-    .news-item h3 { margin: 0 0 .3rem; font-size: .92rem; }
-    .news-item p { margin: 0; color: var(--muted); font-size: .72rem; }
-    .news-date { color: #77766f; font-size: .68rem; white-space: nowrap; }
-    .news-actions { display: flex; justify-content: center; gap: .75rem; margin-top: 1.7rem; }
+    .news-section {
+      min-height: 860px;
+      background:
+        url("assets/news-reference-background.png") center top / 100% auto no-repeat,
+        #e8e7e2 url("assets/ink-valley-paper.png") center bottom / cover no-repeat;
+    }
+    .news-layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 34px;
+      width: min(1540px, calc(100% - 120px));
+      margin: auto;
+      padding: 20.1rem 0 3rem;
+      align-items: start;
+    }
+    .news-heading { display: none; }
+    .news-sidebar { padding: .2rem .4rem; }
+    .news-filter { display: grid; gap: .15rem; }
+    .news-filter button {
+      min-height: 52px;
+      padding: 0 1.55rem;
+      border: 0;
+      background: transparent;
+      color: #24231f;
+      font-family: var(--font-brush);
+      font-size: 1.15rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .news-filter button.is-active {
+      background: #171714;
+      color: #fff;
+      clip-path: polygon(0 17%, 83% 5%, 100% 28%, 91% 50%, 100% 74%, 78% 92%, 0 82%, 6% 52%);
+    }
+    .news-admin-actions { display: grid; gap: .45rem; margin-top: 1.5rem; padding: 1rem 1.5rem 0; border-top: 1px solid rgba(23,23,21,.14); }
+    .news-admin-actions button, .news-admin-actions a { min-height: 36px; padding: 0; border: 0; background: transparent; color: #5d5b54; font-size: .68rem; text-align: left; text-decoration: none; }
+    .news-list { display: grid; gap: 10px; }
+    .news-item {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr) 118px;
+      gap: 1.45rem;
+      align-items: center;
+      min-height: 116px;
+      padding: .3rem 1rem .3rem .3rem;
+      border: 1px solid rgba(36,35,31,.17);
+      border-radius: 2px;
+      background: rgba(250,249,245,.84);
+    }
+    .news-thumb { height: 108px; background-position: center; background-size: cover; background-repeat: no-repeat; filter: grayscale(.25) contrast(1.05); }
+    .news-copy { min-width: 0; }
+    .news-item h3 { margin: 0 0 .55rem; font-family: var(--font-brush); font-size: 1.15rem; letter-spacing: .03em; }
+    .news-item p { max-width: 64ch; margin: 0; color: #74716a; font-size: .72rem; }
+    .news-meta { align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; padding: .55rem 0; }
+    .news-date { color: #77746d; font-size: .68rem; white-space: nowrap; }
+    .news-detail { color: #292824; font-family: var(--font-brush); font-size: .78rem; white-space: nowrap; }
+    .news-detail::after { content: " →"; font-family: var(--font-body); }
+    .news-item[hidden] { display: none; }
 
     .join-section { position: relative; min-height: 500px; display: grid; place-items: center; overflow: hidden; padding: 6rem 24px; background: #f7f6f2 url("assets/ink-valley-paper.png") center bottom / cover no-repeat; text-align: center; }
     .join-section::after { content: ""; position: absolute; right: max(24px, calc((100vw - 1160px) / 2)); bottom: -10px; width: min(430px, 42vw); aspect-ratio: 520 / 147; background: url("assets/ink-warriors-transparent.png") center bottom / contain no-repeat; filter: contrast(1.25); pointer-events: none; }
@@ -377,10 +424,25 @@
       .schedule-item { grid-template-columns: 70px 58px minmax(0, 1fr); gap: .45rem; }
       .confirm-button { grid-column: 3; justify-self: start; }
 
-      .news-layout { width: calc(100% - 32px); padding: 4.5rem 0 3rem; }
-      .news-item { grid-template-columns: 112px 1fr; }
-      .news-thumb { height: 76px; }
-      .news-date { grid-column: 2; }
+      .news-section {
+        background:
+          url("assets/news-reference-background.png") 69% top / auto 210px no-repeat,
+          #e8e7e2 url("assets/ink-valley-paper.png") center bottom / cover no-repeat;
+      }
+      .news-layout { grid-template-columns: 1fr; gap: 12px; width: calc(100% - 32px); padding: 13.5rem 0 3rem; }
+      .news-heading { position: absolute; z-index: 2; top: 5.2rem; left: 20px; display: block; max-width: 190px; text-align: left; }
+      .news-heading .section-title { color: #11110f; font-size: 2.45rem; line-height: 1.05; text-shadow: 0 1px rgba(255,255,255,.55); }
+      .news-heading .section-en { color: var(--record-gold); font-size: .68rem; letter-spacing: .28em; }
+      .news-sidebar { padding: 0; overflow: hidden; }
+      .news-filter { grid-auto-flow: column; grid-auto-columns: max-content; gap: .35rem; overflow-x: auto; padding-bottom: .45rem; scrollbar-width: thin; }
+      .news-filter button { min-height: 40px; padding: 0 1rem; font-size: .9rem; }
+      .news-admin-actions { grid-template-columns: repeat(2, 1fr); margin-top: .5rem; padding: .6rem 0 0; }
+      .news-admin-actions button, .news-admin-actions a { min-height: 40px; text-align: center; }
+      .news-item { grid-template-columns: 112px minmax(0, 1fr); gap: .8rem; min-height: 118px; padding: .35rem; }
+      .news-thumb { height: 108px; }
+      .news-item h3 { margin-bottom: .3rem; font-size: .88rem; }
+      .news-item p { display: -webkit-box; overflow: hidden; font-size: .65rem; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+      .news-meta { grid-column: 2; flex-direction: row; padding: 0 0 .2rem; }
 
       .join-section { min-height: 460px; padding-block: 4.5rem 8rem; background-position: 60% bottom; }
       .join-section::after { right: -48px; width: 360px; }
@@ -514,11 +576,20 @@
           <h2 class="section-title" id="newsTitle">新闻资讯<span class="dot" aria-hidden="true"></span></h2>
           <p class="section-en">NEWS</p>
         </div>
+        <aside class="news-sidebar" aria-label="资讯分类">
+          <div class="news-filter" id="newsFilter">
+            <button class="is-active" type="button" data-news-filter="all" aria-pressed="true">全部资讯</button>
+            <button type="button" data-news-filter="公告" aria-pressed="false">战队公告</button>
+            <button type="button" data-news-filter="赛事" aria-pressed="false">赛事动态</button>
+            <button type="button" data-news-filter="媒体" aria-pressed="false">媒体报道</button>
+            <button type="button" data-news-filter="成员" aria-pressed="false">选手动态</button>
+          </div>
+          <div class="news-admin-actions">
+            <button id="openReport" type="button">记录战报</button>
+            <a href="team-admin.html">进入战队后台</a>
+          </div>
+        </aside>
         <div class="news-list" id="reportList" aria-live="polite"></div>
-        <div class="news-actions">
-          <button class="primary-button" id="openReport" type="button">记录战报</button>
-          <a class="secondary-button" href="team-admin.html">战队后台</a>
-        </div>
       </div>
     </section>
 
@@ -617,9 +688,10 @@
       ];
 
       const defaultReports = [
-        { week: "2026 第 31 周", record: "阵容磨合", focus: "中野辅联动进入固定训练阶段，优先统一开团倒计时与资源交换口令。" },
-        { week: "2026 第 30 周", record: "训练计划", focus: "固定五排训练正式公布，周二练联动、周四约战、周六集中复盘。" },
-        { week: "2026 第 29 周", record: "大厅升级", focus: "战队总览、每周战报、试训申请与战队后台完成接入。" }
+        { week: "2026 第 31 周", record: "阵容磨合", focus: "中野辅联动进入固定训练阶段，优先统一开团倒计时与资源交换口令。", category: "赛事" },
+        { week: "2026 第 30 周", record: "训练计划", focus: "固定五排训练正式公布，周二练联动、周四约战、周六集中复盘。", category: "公告" },
+        { week: "2026 第 29 周", record: "大厅升级", focus: "战队总览、每周战报、试训申请与战队后台完成接入。", category: "媒体" },
+        { week: "2026 第 28 周", record: "新成员档案", focus: "七位成员的英雄池、战术职责和古风题词已经完成整理。", category: "成员" }
       ];
 
       const keys = { applications: "free-hengyi-applications", attendance: "free-hengyi-attendance", reports: "free-hengyi-weekly-reports", motion: "free-hengyi-motion-mode" };
@@ -676,16 +748,30 @@
         const reports = saved.length ? saved.slice().reverse() : defaultReports;
         document.querySelector("#reportCount").innerHTML = `${reports.length}<small>篇</small>`;
         document.querySelector("#reportList").innerHTML = reports.slice(0, 4).map((report, index) => `
-          <article class="news-item">
-            <div class="news-thumb" style="background-position:${20 + index * 18}% center" aria-hidden="true"></div>
-            <div><h3>FREE战队周报｜${escapeText(report.record)}</h3><p>${escapeText(report.focus)}</p></div>
-            <span class="news-date">${escapeText(report.week)}</span>
+          <article class="news-item" data-news-category="${escapeText(report.category || "公告")}">
+            <div class="news-thumb" style="background-image:url('assets/news-reference-${index + 1}.png')" aria-hidden="true"></div>
+            <div class="news-copy"><h3>FREE战队周报｜${escapeText(report.record)}</h3><p>${escapeText(report.focus)}</p></div>
+            <div class="news-meta"><span class="news-date">${escapeText(report.week)}</span><span class="news-detail">查看详情</span></div>
           </article>`).join("");
       }
 
       renderMembers();
       renderSessions();
       renderReports();
+
+      document.querySelector("#newsFilter").addEventListener("click", event => {
+        const button = event.target.closest("[data-news-filter]");
+        if (!button) return;
+        const filter = button.dataset.newsFilter;
+        document.querySelectorAll("[data-news-filter]").forEach(item => {
+          const active = item === button;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+        document.querySelectorAll("#reportList [data-news-category]").forEach(item => {
+          item.hidden = filter !== "all" && item.dataset.newsCategory !== filter;
+        });
+      });
 
       memberGrid.addEventListener("click", event => {
         const card = event.target.closest("[data-member]");
@@ -725,7 +811,7 @@
         const status = document.querySelector("#reportStatus");
         if (!form.checkValidity()) { status.className = "form-status error"; status.textContent = "请填写周次、对局结果和本周重点。"; form.reportValidity(); return; }
         const reports = loadJson(keys.reports, []);
-        reports.push({ ...Object.fromEntries(new FormData(form).entries()), createdAt: new Date().toISOString() });
+        reports.push({ ...Object.fromEntries(new FormData(form).entries()), category: "公告", createdAt: new Date().toISOString() });
         saveJson(keys.reports, reports);
         form.reset();
         status.className = "form-status success";
