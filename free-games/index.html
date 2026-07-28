@@ -1,578 +1,136 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23191816'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-size='39' font-family='serif' fill='%23c6a35a'%3E游%3C/text%3E%3C/svg%3E" />
-<title>free小游戏 · 国风水墨大厅</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%2305060c'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-size='34' font-family='Arial' font-weight='900' fill='%23ff2f93'%3EFG%3C/text%3E%3C/svg%3E">
+<title>FREE GAMES · 免费游戏门户</title>
 <style>
-  /* ==================== 配色变量（同战队页国风水墨金） ==================== */
-  :root{
-    --bg:      #0c0a08;
-    --bg2:     #14110c;
-    --gold:    #d9a441;
-    --gold-lt: #f2ce84;
-    --gold-dp: #8a6220;
-    --ink:     #ece4d3;
-    --dim:     #9a8f7a;
-    --card-bg: #16130e;
-    --line:    rgba(217,164,65,.2);
-  }
-
-  *{margin:0;padding:0;box-sizing:border-box}
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-  html{scroll-behavior:smooth}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
-    overflow-x:hidden;line-height:1.7;
-  }
-  .brush{font-family:"STXingkai","STKaiti","KaiTi","STFangsong",serif}
-
-  /* ==================== 背景层 ==================== */
-  .ink-bg{position:fixed;inset:0;z-index:0;pointer-events:none}
-  .ink-bg svg{width:100%;height:100%}
-  .mist{position:fixed;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:1}
-  .mist-a{width:640px;height:380px;left:-160px;bottom:-80px;background:rgba(220,220,225,.10)}
-  .mist-b{width:520px;height:320px;right:-140px;bottom:8%;background:rgba(220,220,225,.07)}
-  .mist-c{width:480px;height:300px;left:30%;bottom:-120px;background:rgba(220,220,225,.06)}
-  .watermark{
-    position:fixed;left:50%;bottom:2%;transform:translateX(-50%);
-    font-size:clamp(48px,8vw,100px);font-weight:400;letter-spacing:6px;
-    color:rgba(236,228,211,.04);white-space:nowrap;z-index:1;pointer-events:none;
-  }
-
-  .wrap{position:relative;z-index:2;width:min(1320px,100%);margin:0 auto;padding:0 20px}
-
-  /* ==================== 顶部导航 ==================== */
-  .top-nav{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:22px 0;border-bottom:1px solid rgba(217,164,65,.12);
-    margin-bottom:10px;
-  }
-  .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
-  .logo .seal{
-    width:34px;height:34px;border:2px solid var(--gold);border-radius:6px;
-    display:flex;align-items:center;justify-content:center;
-    color:var(--gold);font-size:14px;font-weight:700;
-    box-shadow:0 0 14px rgba(217,164,65,.25);
-  }
-  .logo .name{font-size:20px;color:var(--ink);letter-spacing:2px}
-  .logo .name b{color:var(--gold);font-weight:400}
-  .nav-links{display:flex;gap:24px;align-items:center}
-  .nav-links a{
-    color:var(--dim);text-decoration:none;font-size:14px;letter-spacing:3px;
-    transition:color .3s;position:relative;
-  }
-  .nav-links a:hover{color:var(--gold-lt)}
-  .nav-links a::after{
-    content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;
-    background:linear-gradient(90deg,var(--gold),transparent);transition:width .35s;
-  }
-  .nav-links a:hover::after{width:100%}
-  .nav-cta{
-    padding:8px 20px;border:1px solid var(--gold);border-radius:4px;
-    color:var(--gold) !important;font-size:13px;letter-spacing:3px;
-    transition:background .3s,color .3s;
-  }
-  .nav-cta:hover{background:var(--gold);color:#171208 !important}
-  .nav-cta::after{display:none}
-
-  /* ==================== Hero 标题区 ==================== */
-  .game-hero{text-align:center;padding:36px 0 20px}
-  .game-hero .en-tag{color:var(--dim);font-size:12px;letter-spacing:8px;text-transform:uppercase;margin-bottom:10px}
-  .game-hero h1{
-    font-size:clamp(48px,8vw,96px);font-weight:400;line-height:1.15;letter-spacing:6px;
-  }
-  .game-hero h1 .g{
-    background:linear-gradient(160deg,var(--gold-lt) 20%,var(--gold) 60%,var(--gold-dp));
-    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-    text-shadow:0 0 40px rgba(217,164,65,.2);
-  }
-  .game-hero .sub{color:var(--dim);margin-top:12px;font-size:14px;letter-spacing:5px}
-
-  /* ==================== 搜索 + 分类 ==================== */
-  .toolbar{
-    display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
-    margin:28px 0 24px;
-  }
-  .search-box{
-    position:relative;display:flex;align-items:center;
-    border:1px solid rgba(217,164,65,.3);border-radius:4px;overflow:hidden;
-    background:rgba(22,19,14,.8);
-  }
-  .search-box span{
-    color:var(--dim);font-size:12px;padding:0 14px;letter-spacing:2px;white-space:nowrap;
-  }
-  .search-box input{
-    min-width:200px;min-height:40px;border:none;padding:0 14px 0 0;
-    background:transparent;color:var(--ink);font:inherit;font-size:14px;outline:none;
-    letter-spacing:1px;
-  }
-  .search-box input::placeholder{color:rgba(154,143,122,.45)}
-
-  .category-tabs{display:flex;flex-wrap:wrap;gap:8px}
-  .category-tabs button{
-    min-height:36px;padding:0 18px;border:1px solid rgba(217,164,65,.25);border-radius:4px;
-    background:rgba(22,19,14,.7);color:var(--dim);font:inherit;font-size:13px;
-    letter-spacing:2px;cursor:pointer;transition:all .25s;
-  }
-  .category-tabs button:hover{color:var(--gold-lt);border-color:var(--gold)}
-  .category-tabs button.active, .category-tabs button:focus-visible{
-    background:rgba(217,164,65,.14);border-color:var(--gold);color:var(--gold);outline:none;
-  }
-
-  /* ==================== 主推封面区 ==================== */
-  .cover-hero{
-    display:grid;grid-template-columns:minmax(0,1.75fr) minmax(260px,0.72fr);
-    grid-template-rows:repeat(2,minmax(190px,1fr));gap:14px;margin-bottom:28px;
-  }
-  .cover-hero a{
-    position:relative;overflow:hidden;border-radius:6px;text-decoration:none;
-    border:1px solid rgba(217,164,65,.4);
-    box-shadow:0 14px 40px rgba(0,0,0,.5);
-    transition:transform .3s ease-out,border-color .3s,box-shadow .3s;
-  }
-  .cover-hero a:hover{border-color:var(--gold-lt);box-shadow:0 22px 54px rgba(0,0,0,.55),0 0 28px rgba(217,164,65,.18)}
-  .cover-hero img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .3s ease-out}
-  .cover-hero a:hover img{transform:scale(1.04)}
-  .cover-main{grid-row:1/span 2;min-height:470px}
-  /* 封面文字叠加层 */
-  .cover-main::after, .cover-side::after{
-    content:"";position:absolute;inset:0;
-    background:linear-gradient(180deg,rgba(12,10,8,.1) 20%,rgba(12,10,8,.94));
-  }
-  .cover-main div, .cover-side div{position:absolute;z-index:2;inset:auto 0 0;padding:24px}
-  .cover-main i, .cover-side i, .game-card .tag{
-    display:inline-block;min-height:26px;padding:0 10px;border-radius:3px;
-    font-style:normal;font-size:12px;font-weight:700;letter-spacing:2px;
-    background:rgba(217,164,65,.2);color:var(--gold-lt);border:1px solid rgba(217,164,65,.3);
-  }
-  .cover-main h1{margin:10px 0 6px;font-size:clamp(38px,5vw,56px);line-height:1;letter-spacing:4px}
-  .cover-main p{max-width:640px;color:var(--dim);font-size:15px;letter-spacing:1px}
-  .cover-side b{display:block;margin-top:9px;font-size:22px;letter-spacing:2px}
-  .cover-hero a.hidden{display:none}
-
-  /* ==================== 分区标题 ==================== */
-  .sec-bar{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
-    margin-bottom:22px;
-  }
-  .sec-bar h2{font-size:34px;font-weight:400;letter-spacing:8px;color:var(--ink)}
-  .sec-bar .ink-line{
-    flex:1;height:2px;min-width:60px;align-self:center;
-    background:linear-gradient(90deg,var(--line),var(--gold),transparent);
-    border-radius:1px;margin-left:16px;
-  }
-  .sec-bar .count{color:var(--dim);font-size:13px;letter-spacing:3px}
-
-  /* ==================== 游戏卡片网格 ==================== */
-  .game-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-  .game-card{
-    display:grid;grid-template-rows:142px auto auto auto;align-content:start;gap:8px;
-    padding:12px;border:1px solid rgba(217,164,65,.28);border-radius:6px;
-    background:var(--card-bg);color:var(--ink);text-decoration:none;
-    box-shadow:0 10px 28px rgba(0,0,0,.4);
-    transition:transform .3s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .3s;
-    overflow:hidden;position:relative;
-  }
-  .game-card:hover{
-    transform:translateY(-5px);border-color:var(--gold-lt);
-    box-shadow:0 18px 42px rgba(0,0,0,.5),0 0 24px rgba(217,164,65,.16);
-  }
-  /* 卡片内水墨晕染（悬停时微显） */
-  .game-card::before{
-    content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
-    background:
-      radial-gradient(ellipse 70% 40% at 20% 20%, rgba(217,164,65,.04) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 36% at 80% 70%, rgba(217,164,65,.03) 0%, transparent 70%);
-    opacity:0;transition:opacity .35s;
-  }
-  .game-card:hover::before{opacity:1}
-
-  .game-card img{
-    width:100%;height:100%;min-height:0;display:block;object-fit:cover;
-    border-radius:4px;border:1px solid rgba(255,255,255,.08);background:#111317;
-    transition:transform .25s ease-out;
-  }
-  .game-card:hover img{transform:scale(1.03)}
-
-  .game-card .tag{font-size:11px;min-height:22px;padding:0 8px;background:rgba(217,164,65,.14);border:1px solid rgba(217,164,65,.22);color:var(--gold-lt)}
-  .game-card b{font-size:18px;color:var(--ink);letter-spacing:2px;font-weight:600;line-height:1.2}
-  .game-card span{color:var(--dim);font-size:13px;line-height:1.5;letter-spacing:1px}
-
-  .game-card.featured{grid-column:span 2;grid-template-rows:240px auto auto auto}
-  .game-card.hidden{display:none}
-
-  /* ==================== 页脚 ==================== */
-  footer{
-    text-align:center;padding:36px 20px;margin-top:48px;
-    border-top:1px solid rgba(217,164,65,.12);
-    color:var(--dim);font-size:13px;letter-spacing:3px;
-  }
-  footer b{color:var(--gold);font-weight:400}
-
-  /* ==================== 滚动入场 ==================== */
-  .reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1)}
-  .reveal.visible{opacity:1;transform:none}
-
-  /* ==================== 响应式 ==================== */
-  @media (max-width:960px){
-    .top-nav{flex-wrap:wrap;gap:12px}
-    .nav-links{gap:14px}
-    .nav-links a{font-size:12px;letter-spacing:1px}
-    .cover-hero{grid-template-columns:1fr;grid-template-rows:auto}
-    .cover-main{grid-row:auto;min-height:340px}
-    .cover-side{min-height:200px}
-    .game-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .game-card.featured{grid-column:auto}
-  }
-  @media (max-width:560px){
-    .wrap{padding:0 12px}
-    .nav-links{flex-wrap:wrap;justify-content:center}
-    .toolbar{flex-direction:column}
-    .search-box input{min-width:160px}
-    .game-grid{grid-template-columns:1fr}
-    .cover-hero a{min-height:180px}
-  }
-
-  /* Reference-matched Free game lobby. */
-  body{background:#efede7;color:#191816}
-  .ink-bg,.mist,.watermark{display:none}
-  .lobby-screen{
-    position:relative;z-index:10;width:100%;height:100svh;min-height:100svh;
-    overflow:hidden;background:#efede7 url("lobby-reference-4k.webp") center/cover no-repeat;
-  }
-  .lobby-hit-canvas{
-    position:absolute;top:50%;left:50%;width:max(100vw,calc(100svh * 1.7647058824));
-    height:max(100svh,calc(100vw * .5666666667));pointer-events:none;
-    transform:translate(-50%,-50%);
-  }
-  .lobby-hit{
-    position:absolute;display:block;padding:0;border:0;border-radius:2px;
-    background:transparent;color:transparent;text-decoration:none;cursor:pointer;pointer-events:auto;
-  }
-  .lobby-hit:hover{background:rgba(137,105,49,.055)}
-  .lobby-hit:focus-visible{outline:2px solid #80652f;outline-offset:2px;background:rgba(255,255,255,.15)}
-  .lobby-home{top:18.8%;left:18.6%;width:8.2%;height:7%}
-  .lobby-games{top:18.8%;left:28.3%;width:8.2%;height:7%}
-  .lobby-events{top:18.8%;left:38.4%;width:8.2%;height:7%}
-  .lobby-team{top:18.8%;left:49.1%;width:8.2%;height:7%}
-  .lobby-ranking{top:18.8%;left:60.2%;width:8.2%;height:7%}
-  .lobby-store{top:18.8%;left:71.2%;width:8.2%;height:7%}
-  .lobby-scroll{top:85.8%;left:46.5%;width:7%;height:12%}
-  .lobby-side-left{top:8%;left:8.8%;width:6.6%;height:32%}
-  .lobby-side-right{top:8%;left:85.4%;width:6.6%;height:32%}
-  .wrap{
-    width:100%;max-width:none;padding:0 5vw 4rem;background:
-      linear-gradient(rgba(245,243,237,.9),rgba(245,243,237,.94)),
-      url("../free-hengyi-team/assets/ink-bamboo-paper.png") center/cover fixed;
-  }
-  .top-nav,.game-hero{display:none}
-  .toolbar{margin:0 -5vw 2rem;padding:1.1rem 5vw;border-bottom:1px solid rgba(37,35,30,.16);background:rgba(247,246,241,.88)}
-  .search-box{border-color:rgba(33,31,27,.28);background:rgba(255,255,255,.72)}
-  .search-box span,.search-box input{color:#24221e}
-  .search-box input::placeholder{color:#716d64}
-  .category-tabs button{border-color:rgba(37,35,30,.22);background:rgba(255,255,255,.62);color:#555149}
-  .category-tabs button:hover,.category-tabs button.active,.category-tabs button:focus-visible{border-color:#9a7a39;background:#171714;color:#d7b76d}
-  .cover-hero a,.game-card{border-color:rgba(38,36,31,.22);background:rgba(248,247,243,.9);box-shadow:0 10px 28px rgba(35,32,27,.13)}
-  .cover-hero a:hover,.game-card:hover{border-color:#9d7f42;box-shadow:0 18px 38px rgba(35,32,27,.2)}
-  .cover-main i,.cover-side i,.game-card .tag{background:rgba(28,27,23,.84);border-color:#9d7f42;color:#d6b76e}
-  .game-card b,.sec-bar h2{color:#1b1a17}
-  .game-card span,.cover-main p,.sec-bar .count{color:#625e56}
-  .sec-bar{padding-top:1.25rem}
-  .sec-bar .ink-line{background:linear-gradient(90deg,rgba(25,24,21,.2),#9d7f42,transparent)}
-  footer{border-top-color:rgba(37,35,30,.15);color:#625e56}
-  footer b{color:#876a31}
-  @media(max-width:760px){
-    .lobby-screen{background-position:center;background-size:auto 100%}
-    .wrap{padding-inline:16px}
-    .toolbar{margin-inline:-16px;padding-inline:16px}
-  }
+:root{
+  --bg:#05060c;--panel:#0d1020;--panel-2:#111529;--line:#252b4a;
+  --text:#f7f8ff;--muted:#a9afca;--pink:#ff2f93;--cyan:#17e6ef;
+  --violet:#8c5cff;--amber:#ffb13b;--content:1200px;
+  --font:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.5;overflow-x:hidden}
+button,input{font:inherit}a{color:inherit}img{display:block;max-width:100%}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+  linear-gradient(rgba(7,9,18,.95),rgba(5,6,12,.98)),
+  radial-gradient(circle at 52% 12%,rgba(20,79,139,.32),transparent 37%),
+  repeating-linear-gradient(90deg,transparent 0 79px,rgba(44,52,91,.09) 80px),
+  repeating-linear-gradient(0deg,transparent 0 79px,rgba(44,52,91,.07) 80px)}
+.topbar{height:52px;display:flex;align-items:center;border-bottom:1px solid #1d2340;background:rgba(4,5,11,.97);box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.topbar-inner{width:min(var(--content),calc(100% - 32px));margin:auto;display:flex;align-items:center;gap:28px}
+.brand{color:#ff47a2;text-decoration:none;font-size:18px;font-weight:950;font-style:italic;letter-spacing:0}.brand span{color:#8394ff}.primary-nav{display:flex;align-items:center;gap:28px;flex:1}.primary-nav a{position:relative;color:#b8bdd5;text-decoration:none;font-size:12px;white-space:nowrap}.primary-nav a.is-active,.primary-nav a:hover{color:#ff59a9}.primary-nav a.is-active::after{content:"";position:absolute;right:0;bottom:-17px;left:0;height:2px;background:var(--pink);box-shadow:0 0 9px var(--pink)}
+.account-tools{display:flex;align-items:center;gap:12px}.search{position:relative}.search input{width:190px;height:30px;padding:0 34px 0 12px;border:1px solid #6b1950;border-radius:4px;background:#090b16;color:#fff;font-size:11px}.search input::placeholder{color:#aaa5bd}.search::after{content:"⌕";position:absolute;right:10px;top:3px;color:var(--pink);font-size:18px}.account-btn{height:30px;min-width:62px;padding:0 15px;border:1px solid #474d69;border-radius:4px;background:#080a12;color:#eee;font-size:11px;font-weight:700;cursor:pointer}.account-btn.hot{border-color:#ff3b99;background:var(--pink);box-shadow:0 0 14px rgba(255,47,147,.42)}
+.shell{width:min(var(--content),calc(100% - 28px));margin:12px auto;display:grid;grid-template-columns:142px minmax(0,1fr) 202px;gap:12px}
+.panel{border:1px solid #1c2442;border-radius:6px;background:rgba(10,12,24,.96);box-shadow:0 8px 24px rgba(0,0,0,.24)}
+.left-rail{min-width:0;padding:12px 8px;align-self:start}.rail-title{margin:0 0 8px;padding:0 8px;color:#e7e9f5;font-size:10px}.rail-title::after{content:"";display:inline-block;width:18px;height:1px;margin-left:8px;background:var(--pink);vertical-align:middle}.filter-list{display:grid;gap:3px}.filter-list button{height:38px;display:flex;align-items:center;gap:10px;padding:0 10px;border:0;border-radius:3px;background:transparent;color:#aeb4cc;font-size:11px;text-align:left;cursor:pointer}.filter-list button::before{content:attr(data-icon);width:18px;color:#8291c9;font-size:16px;text-align:center}.filter-list button:hover,.filter-list button.active{background:linear-gradient(90deg,rgba(255,47,147,.24),rgba(255,47,147,.06));color:#fff}.filter-list button.active::before{color:#ff58aa}
+.free-badge{margin:16px 2px;padding:18px 8px;border:1px solid #653388;clip-path:polygon(7% 0,93% 0,100% 10%,100% 90%,93% 100%,7% 100%,0 90%,0 10%);background:linear-gradient(145deg,#171030,#080b17);text-align:center;box-shadow:inset 0 0 24px rgba(115,55,255,.13)}.free-badge strong{display:block;color:#f45fb6;font-size:15px}.free-badge b{color:#6fe7ff}.free-badge span{display:block;margin:4px 0 12px;color:#c46eff;font-size:9px}.free-badge a{display:inline-grid;place-items:center;min-width:86px;height:28px;border:1px solid var(--pink);border-radius:3px;color:#fff;text-decoration:none;font-size:10px;box-shadow:0 0 12px rgba(255,47,147,.22)}
+.newsletter{margin:10px 2px 0;padding:12px 8px}.newsletter h3{margin:0;color:#ff58aa;font-size:10px}.newsletter p{margin:6px 0 10px;color:#7f87a4;font-size:8px}.newsletter input{width:100%;height:28px;padding:0 8px;border:1px solid #232a48;border-radius:3px;background:#070912;color:#fff;font-size:9px}.newsletter button{width:100%;height:30px;margin-top:8px;border:0;border-radius:3px;background:var(--pink);color:#fff;font-size:10px;cursor:pointer}
+.main-column{min-width:0}.hero{position:relative;height:278px;overflow:hidden;border:1px solid #202846;border-radius:6px;background:#081022}.hero-media{position:absolute;inset:0}.hero-media img{width:100%;height:100%;object-fit:cover;object-position:center 56%;filter:saturate(1.08) contrast(1.04)}.hero-media::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,6,14,.9) 0%,rgba(4,6,14,.55) 42%,rgba(4,6,14,.04) 72%),linear-gradient(0deg,rgba(4,5,12,.72),transparent 44%)}
+.hero-copy{position:relative;z-index:2;width:52%;padding:55px 0 0 56px}.hero-label{display:inline-block;padding:5px 12px;border-radius:2px;background:var(--pink);font-size:9px}.hero h1{margin:8px 0 4px;font-size:43px;line-height:1.05;letter-spacing:0;text-shadow:2px 2px 0 #00ddeb,-2px -1px 0 #ff2f93}.hero p{margin:0 0 13px;color:#d0d5e6;font-size:12px}.hero-tags{display:flex;gap:6px;margin-bottom:17px}.hero-tags span{padding:4px 7px;border:1px solid #333a5d;border-radius:2px;background:rgba(15,18,36,.78);color:#b2b8d0;font-size:8px}.hero-actions{display:flex;align-items:center;gap:14px}.play-now{min-width:98px;height:37px;display:grid;place-items:center;border:0;border-radius:3px;background:var(--pink);color:#fff;text-decoration:none;font-size:11px;font-weight:800;box-shadow:0 0 18px rgba(255,47,147,.32)}.learn-more{color:#eee;text-decoration:none;font-size:10px}.hero-dots{position:absolute;z-index:3;right:30px;bottom:16px;display:flex;gap:10px}.hero-dots span{width:18px;height:3px;background:#dfe2f2}.hero-dots span:first-child{background:var(--pink)}
+.section-panel{margin-top:10px;padding:10px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.section-head h2{margin:0;font-size:13px}.section-head h2::after{content:"//";margin-left:5px;color:var(--pink);font-size:9px}.section-head a{color:#8d95b1;text-decoration:none;font-size:9px}
+.featured-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.featured-card{min-width:0;overflow:hidden;border:1px solid #242b49;border-radius:4px;background:#111427;color:#fff;text-decoration:none}.featured-card img{width:100%;height:105px;object-fit:cover}.featured-info{padding:8px}.featured-info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.micro-tags{display:flex;align-items:center;gap:5px;margin-top:7px}.micro-tags span{padding:2px 5px;border:1px solid #333a5d;border-radius:2px;color:#9ca4c4;font-size:7px}.micro-tags em{margin-left:auto;color:var(--cyan);font-size:8px;font-style:italic;font-weight:900}
+.category-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}.category-tile{height:76px;display:grid;place-items:center;align-content:center;gap:4px;border:1px solid #242b49;border-radius:4px;background:#101326;color:#fff;cursor:pointer}.category-tile i{font-size:25px;font-style:normal}.category-tile b{font-size:10px}.category-tile small{color:#8991af;font-size:7px}.category-tile.pink i{color:#ff4ca1}.category-tile.cyan i{color:#22d7ff}.category-tile.violet i{color:#9a5cff}.category-tile.amber i{color:#ffb240}.category-tile.blue i{color:#5f78ff}
+.catalog{margin-top:10px}.game-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.game-card{min-width:0;display:grid;grid-template-rows:110px auto;overflow:hidden;border:1px solid #242b49;border-radius:4px;background:#101326;color:#fff;text-decoration:none}.game-card.hidden{display:none}.game-card img{width:100%;height:100%;object-fit:cover}.game-copy{padding:8px}.game-copy b{display:block;font-size:11px}.game-copy span{display:block;margin-top:3px;color:#8e96b5;font-size:8px}.empty-state{display:none;padding:30px;text-align:center;color:#a7aec6;font-size:12px}.empty-state.visible{display:block}
+.right-rail{min-width:0;display:grid;gap:10px;align-content:start}.right-panel{padding:10px}.right-panel .section-head{margin-bottom:10px}.daily-card{display:block;overflow:hidden;border:1px solid #262c48;border-radius:3px;background:#111426;color:#fff;text-decoration:none}.daily-card img{width:100%;height:92px;object-fit:cover}.daily-copy{padding:7px}.daily-copy b{font-size:10px}.daily-meta{display:flex;gap:4px;align-items:center;margin-top:5px}.daily-meta span{padding:2px 5px;background:#20243a;color:#afb5ca;font-size:7px}.daily-meta em{margin-left:auto;color:var(--cyan);font-size:8px;font-style:italic;font-weight:900}.countdown{margin-top:7px;color:#ff51a6;font-size:8px}
+.rank-list{display:grid;gap:7px}.rank-item{display:grid;grid-template-columns:18px 38px minmax(0,1fr) auto;gap:6px;align-items:center;color:#d9dcec;text-decoration:none;font-size:8px}.rank-item strong{color:#7d849e;font-size:11px}.rank-item:nth-child(1) strong{color:#ff4ca1}.rank-item:nth-child(3) strong{color:#ffb240}.rank-item img{width:38px;height:25px;object-fit:cover;border-radius:2px}.rank-item b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px}.rank-item em{color:var(--cyan);font-size:7px;font-style:italic;font-weight:900}
+.community-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:10px 4px;background:#111426}.community-stats div{text-align:center}.community-stats b{display:block;color:var(--cyan);font-size:13px}.community-stats span{color:#828aa8;font-size:7px}.discussion{width:100%;height:28px;margin-top:10px;border:1px solid var(--pink);border-radius:3px;background:transparent;color:#ff65af;font-size:9px;cursor:pointer}
+.mobile-menu{display:none}.toast{position:fixed;right:18px;bottom:18px;z-index:20;padding:10px 14px;border:1px solid var(--pink);border-radius:4px;background:#111426;color:#fff;font-size:11px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s}.toast.visible{opacity:1;transform:none}
+@media(max-width:980px){.topbar-inner{gap:16px}.primary-nav{gap:14px}.account-tools .account-btn{display:none}.shell{grid-template-columns:130px minmax(0,1fr)}.right-rail{grid-column:1/-1;grid-template-columns:repeat(3,1fr)}.featured-row{grid-template-columns:repeat(3,1fr)}.featured-card:nth-child(n+4){display:none}.game-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:720px){.topbar{height:auto;min-height:54px}.topbar-inner{padding:10px 0;flex-wrap:wrap}.mobile-menu{display:block;margin-left:auto;border:0;background:transparent;color:#ff55aa;font-size:23px}.primary-nav{order:3;width:100%;display:none;flex-wrap:wrap;padding:8px 0}.primary-nav.open{display:flex}.primary-nav a.is-active::after{bottom:-4px}.account-tools{display:none}.shell{width:calc(100% - 20px);grid-template-columns:1fr}.left-rail{display:none}.hero{height:360px}.hero-media::after{background:linear-gradient(0deg,rgba(4,6,14,.95),rgba(4,6,14,.14) 75%)}.hero-copy{position:absolute;right:0;bottom:0;left:0;width:auto;padding:24px}.hero h1{font-size:34px}.featured-row{grid-template-columns:repeat(2,1fr)}.featured-card:nth-child(3){display:none}.category-strip{grid-template-columns:repeat(4,1fr)}.game-grid{grid-template-columns:repeat(2,1fr)}.right-rail{grid-template-columns:1fr}.right-panel:nth-child(2),.right-panel:nth-child(3){display:none}}
+@media(max-width:440px){.featured-row{grid-template-columns:1fr 1fr}.featured-card img{height:88px}.category-strip{grid-template-columns:repeat(3,1fr)}.game-grid{grid-template-columns:1fr}.game-card{grid-template-rows:155px auto}.hero h1{font-size:30px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:.001ms!important}}
 </style>
 </head>
 <body>
-
-<section class="lobby-screen" aria-label="Free 小游戏大厅">
-  <nav class="lobby-hit-canvas" aria-label="大厅导航">
-    <a class="lobby-hit lobby-home" href="#arcadeContent" aria-label="大厅" title="大厅"><span class="sr-only">大厅</span></a>
-    <a class="lobby-hit lobby-games" href="#grid" aria-label="游戏" title="游戏"><span class="sr-only">游戏</span></a>
-    <a class="lobby-hit lobby-events" href="#featuredGames" aria-label="活动" title="活动"><span class="sr-only">活动</span></a>
-    <a class="lobby-hit lobby-team" href="../free-hengyi-team/" aria-label="战队" title="战队"><span class="sr-only">战队</span></a>
-    <a class="lobby-hit lobby-ranking" href="#grid" aria-label="排行" title="排行"><span class="sr-only">排行</span></a>
-    <a class="lobby-hit lobby-store" href="../admin/" aria-label="商城" title="商城"><span class="sr-only">商城</span></a>
-    <a class="lobby-hit lobby-scroll" href="#arcadeContent" aria-label="进入游戏大厅" title="进入大厅"><span class="sr-only">进入游戏大厅</span></a>
-    <a class="lobby-hit lobby-side-left" href="../free-hengyi-team/" aria-label="Free 战队"><span class="sr-only">Free 战队</span></a>
-    <a class="lobby-hit lobby-side-right" href="#grid" aria-label="Free 队伍排行"><span class="sr-only">Free 队伍排行</span></a>
-  </nav>
-</section>
-
-<!-- ========== 背景：金色水墨笔触（SVG湍流，同战队页） ========== -->
-<div class="ink-bg">
-  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <linearGradient id="gStroke" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f2ce84" stop-opacity=".9"/>
-        <stop offset=".5" stop-color="#d9a441" stop-opacity=".8"/>
-        <stop offset="1" stop-color="#8a6220" stop-opacity=".65"/>
-      </linearGradient>
-      <filter id="inkEdge">
-        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="4" seed="12" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="42"/>
-      </filter>
-      <filter id="inkEdge2">
-        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" seed="24" result="n"/>
-        <feDisplacementMap in="SourceGraphic" in2="n" scale="28"/>
-      </filter>
-      <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
-    </defs>
-    <g filter="url(#inkEdge)" opacity=".85">
-      <path d="M1500 120 C1150 180 980 300 760 430 C560 548 380 640 60 720 L-40 760 C300 700 620 640 860 520 C1080 410 1290 260 1520 190 Z" fill="url(#gStroke)"/>
-      <path d="M1480 230 C1200 300 1020 400 830 510 C660 608 480 680 200 740 L140 770 C460 720 720 660 920 560 C1120 460 1320 330 1500 290 Z" fill="url(#gStroke)" opacity=".65"/>
-    </g>
-    <g filter="url(#inkEdge2)" stroke="url(#gStroke)" fill="none" stroke-linecap="round">
-      <path d="M1420 90 C1100 200 900 330 700 470 C520 596 340 690 120 760" stroke-width="7" opacity=".5"/>
-      <path d="M1460 170 C1180 260 980 380 790 500 C620 610 450 690 240 745" stroke-width="4" opacity=".35"/>
-    </g>
-    <g filter="url(#inkEdge)" opacity=".7">
-      <path d="M-60 830 C180 780 340 800 520 850 C640 885 760 900 900 890 L900 940 L-60 940 Z" fill="url(#gStroke)"/>
-    </g>
-    <g fill="#d9a441" filter="url(#soft)">
-      <circle cx="1180" cy="180" r="4" opacity=".7"/>
-      <circle cx="1240" cy="140" r="2.6" opacity=".5"/>
-      <circle cx="980" cy="330" r="3" opacity=".45"/>
-      <circle cx="620" cy="560" r="2.4" opacity=".45"/>
-      <circle cx="300" cy="700" r="3.4" opacity=".55"/>
-      <circle cx="180" cy="760" r="2" opacity=".45"/>
-    </g>
-  </svg>
-</div>
-<div class="mist mist-a"></div>
-<div class="mist mist-b"></div>
-<div class="mist mist-c"></div>
-<div class="watermark brush">free小游戏</div>
-
-<!-- ========== 内容层 ========== -->
-<div class="wrap" id="arcadeContent">
-  <!-- 导航 -->
-  <nav class="top-nav">
-    <a class="logo" href="./">
-      <span class="seal brush">游</span>
-      <span class="name brush">free<b>小游戏</b></span>
-    </a>
-    <div class="nav-links">
-      <a href="../">战队首页</a>
-      <a href="#grid">游戏大厅</a>
-      <a href="../admin/">创作后台</a>
-      <a class="nav-cta" href="../">Free、恒谊</a>
-    </div>
-  </nav>
-
-  <!-- Hero 标题 -->
-  <div class="game-hero">
-    <p class="en-tag">Browser Arcade · Play Instantly</p>
-    <h1 class="brush">free<span class="g">小游戏</span></h1>
-    <p class="sub">打开就玩 · 无需下载 · 双人同屏 · 像素街机</p>
-  </div>
-
-  <!-- 搜索 + 分类 -->
-  <div class="toolbar">
-    <label class="search-box">
-      <span>搜索</span>
-      <input id="gameSearch" type="search" placeholder="合金弹头、黄金矿工、赛车..." autocomplete="off" />
-    </label>
-    <nav class="category-tabs">
-      <button class="active" type="button" data-filter="all">全部</button>
-      <button type="button" data-filter="duo">双人</button>
-      <button type="button" data-filter="action">动作</button>
-      <button type="button" data-filter="strategy">策略</button>
-      <button type="button" data-filter="puzzle">益智</button>
-      <button type="button" data-filter="racing">赛车</button>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="./">FREE <span>GAMES</span></a>
+    <button class="mobile-menu" id="mobileMenu" type="button" aria-label="打开导航" aria-expanded="false">☰</button>
+    <nav class="primary-nav" id="primaryNav" aria-label="主导航">
+      <a class="is-active" href="./">首页</a><a href="#catalog">免费游戏</a><a href="#featured">热门游戏</a><a href="#featured">即将上线</a><a href="#categories">游戏分类</a><a href="../free-hengyi-team/">社区</a>
     </nav>
+    <div class="account-tools">
+      <label class="search"><span class="sr-only">搜索游戏</span><input id="gameSearch" type="search" placeholder="搜索游戏..." autocomplete="off"></label>
+      <button class="account-btn" type="button" data-toast="登录功能即将开放">登录</button><button class="account-btn hot" type="button" data-toast="注册功能即将开放">注册</button>
+    </div>
   </div>
-
-  <!-- 主推封面区 -->
-  <section class="cover-hero" id="featuredGames" aria-label="主推游戏">
-    <a class="cover-main" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
-      <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
-      <div>
-        <i>主推竞速</i>
-        <h1>速度与激情</h1>
-        <p>高速公路狂飙，氮气加速穿过车流和障碍，挑战更高速度和更长距离。</p>
-      </div>
-    </a>
-    <a class="cover-side" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
-      <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
-      <div><i>双人合作</i><b>双人黄金矿工</b></div>
-    </a>
-    <a class="cover-side" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
-      <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
-      <div><i>策略塔防</i><b>皇城突袭塔防</b></div>
-    </a>
-  </section>
-
-  <!-- 游戏大厅 -->
-  <section id="grid">
-    <div class="sec-bar">
-      <h2 class="brush">游戏大厅</h2>
-      <div class="ink-line"></div>
-      <span class="count" id="resultCount">16 款游戏</span>
+</header>
+<main class="shell">
+  <aside class="left-rail panel">
+    <h2 class="rail-title">探索</h2>
+    <div class="filter-list" id="filterList">
+      <button class="active" type="button" data-filter="all" data-icon="★">精选推荐</button>
+      <button type="button" data-filter="action" data-icon="⚒">动作游戏</button>
+      <button type="button" data-filter="puzzle" data-icon="◇">冒险游戏</button>
+      <button type="button" data-filter="racing" data-icon="♙">角色扮演</button>
+      <button type="button" data-filter="shoot" data-icon="⚑">射击游戏</button>
+      <button type="button" data-filter="strategy" data-icon="♜">策略游戏</button>
+      <button type="button" data-filter="duo" data-icon="♙">多人联机</button>
     </div>
-
-    <div class="game-grid">
-      <a class="game-card featured" href="../metal-slug/" data-game-card data-tags="action" data-title="合金弹头 射击 街机 像素 横版闯关 手雷">
-        <img src="covers/metal-slug.svg" alt="合金弹头像素射击游戏封面" />
-        <span class="tag">街机射击</span>
-        <b>合金弹头</b>
-        <span>横版闯关、步枪手雷、像素坦克大战，支持手柄</span>
-      </a>
-      <a class="game-card featured" href="../pixel-fighter-97/" data-game-card data-tags="duo action" data-title="格斗皇 97 拳皇 街机 像素 格斗 双人 人机">
-        <img src="covers/pixel-fighter-97.svg" alt="格斗皇97像素街机格斗游戏封面" />
-        <span class="tag">街机格斗</span>
-        <b>格斗皇 97</b>
-        <span>三人组队、选人、必杀超杀、连招取消、AI街机挑战和本地双人对战</span>
-      </a>
-      <a class="game-card featured" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工">
-        <img src="covers/gold-miner-duo.png" alt="双人黄金矿工游戏截图" />
-        <span class="tag">双人</span>
-        <b>双人黄金矿工</b>
-        <span>两名矿工同时放钩，抓金块钻石，合作冲关</span>
-      </a>
-      <a class="game-card featured" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防">
-        <img src="covers/tower-defense.png" alt="皇城突袭塔防游戏截图" />
-        <span class="tag">塔防</span>
-        <b>皇城突袭塔防</b>
-        <span>每关重新布防，防御工事可升级，守住皇城</span>
-      </a>
-      <a class="game-card featured" href="../zhaoyun-adou/" data-game-card data-tags="strategy" data-title="赵云与阿斗 三国 文字 合成">
-        <img src="covers/zhaoyun-adou.png" alt="赵云与阿斗游戏截图" />
-        <span class="tag">三国</span>
-        <b>赵云与阿斗</b>
-        <span>文字合成、武将召唤、策略布阵保护阿斗</span>
-      </a>
-      <a class="game-card featured" href="../alien-brawler/" data-game-card data-tags="action" data-title="狂扁外星人 3D 动作 连击 射击">
-        <img src="covers/alien-brawler.svg" alt="狂扁外星人3D游戏封面" />
-        <span class="tag">3D动作</span>
-        <b>狂扁外星人 3D</b>
-        <span>街区场景、连击、能量炮、手雷和 Boss 波</span>
-      </a>
-      <a class="game-card featured" href="../fire-basketball/" data-game-card data-tags="action sports" data-title="烈火篮球 篮球 投篮 火焰 连击">
-        <img src="covers/fire-basketball.svg" alt="烈火篮球游戏封面" />
-        <span class="tag">体育动作</span>
-        <b>烈火篮球</b>
-        <span>拖拽投篮、左右篮筐、烈火轨迹和完美连击</span>
-      </a>
-      <a class="game-card featured" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 单人赛车">
-        <img src="covers/speed-fury.png" alt="速度与激情游戏截图" />
-        <span class="tag">单人赛车</span>
-        <b>速度与激情</b>
-        <span>高速公路狂飙，氮气加速，躲车流冲高分</span>
-      </a>
-      <a class="game-card" href="../angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟 弹弓">
-        <img src="covers/angry-birds.png" alt="愤怒的小鸟游戏截图" />
-        <span class="tag">弹弓</span>
-        <b>愤怒的小鸟</b>
-        <span>弹弓蓄力、物理碰撞、打倒小猪和木塔</span>
-      </a>
-      <a class="game-card" href="../racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车">
-        <img src="covers/racing-game.png" alt="双人分屏赛车游戏截图" />
-        <span class="tag">竞速</span>
-        <b>双人分屏赛车</b>
-        <span>换挡、氮气、撞车、障碍和结算页</span>
-      </a>
-      <a class="game-card" href="../two-player-battle/" data-game-card data-tags="duo action" data-title="双人竞技场">
-        <img src="covers/two-player-battle.png" alt="双人竞技场游戏截图" />
-        <span class="tag">双人</span>
-        <b>双人竞技场</b>
-        <span>半场限制，子弹反弹一次</span>
-      </a>
-      <a class="game-card" href="../frontline-shooter/" data-game-card data-tags="action" data-title="前线守卫战 射击">
-        <img src="covers/frontline-shooter.png" alt="前线守卫战游戏截图" />
-        <span class="tag">射击</span>
-        <b>前线守卫战</b>
-        <span>第一人称射击，武器逐关升级</span>
-      </a>
-      <a class="game-card" href="../armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗">
-        <img src="covers/armored-duel.png" alt="铠甲动漫格斗游戏截图" />
-        <span class="tag">格斗</span>
-        <b>铠甲动漫格斗</b>
-        <span>四角色选择，技能连招对战</span>
-      </a>
-      <a class="game-card" href="../maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫">
-        <img src="covers/maze-game.png" alt="趣味迷宫游戏截图" />
-        <span class="tag">闯关</span>
-        <b>趣味迷宫</b>
-        <span>寻找路线，挑战迷宫</span>
-      </a>
-      <a class="game-card" href="../link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看">
-        <img src="covers/link-link-game.png" alt="水果连连看游戏截图" />
-        <span class="tag">益智</span>
-        <b>水果连连看</b>
-        <span>相同水果连线消除，最多两次转弯</span>
-      </a>
-      <a class="game-card" href="../match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐">
-        <img src="covers/match-3-game.png" alt="宝石消消乐游戏截图" />
-        <span class="tag">消除</span>
-        <b>宝石消消乐</b>
-        <span>关卡目标、掉落动画、四连五连生成道具</span>
-      </a>
-      <a class="game-card" href="../gomoku/" data-game-card data-tags="strategy puzzle duo" data-title="五子棋 Gomoku 双人">
-        <img src="covers/gomoku.svg" alt="五子棋游戏封面" />
-        <span class="tag">策略</span>
-        <b>五子棋</b>
-        <span>15×15 标准棋盘，禁手与 RIF 规则，四档 AI，支持人机与双人对弈</span>
-      </a>
-      <a class="game-card" href="../raiden-2/" data-game-card data-tags="shoot action" data-title="雷电2 经典街机 STG">
-        <img src="covers/raiden-2.svg" alt="雷电2游戏封面" />
-        <span class="tag">射击</span>
-        <b>雷电 II</b>
-        <span>经典街机纵向射击：武器升级、僚机导弹、Boss 多阶段战</span>
-      </a>
-    </div>
-  </section>
-
-  <footer>
-    <b>free小游戏</b> · 打开就玩的像素街机大厅 · <b>Free、恒谊</b> 战队出品
-  </footer>
-</div>
-
+    <div class="free-badge"><strong>100% <b>FREE</b></strong><span>完全免费 · 畅玩到底</span><a href="#catalog">了解更多 ›</a></div>
+    <form class="newsletter panel" id="newsletter"><h3>订阅最新资讯</h3><p>获取最新免费游戏和独家资讯。</p><input type="email" required placeholder="输入你的邮箱"><button type="submit">订阅</button></form>
+  </aside>
+  <div class="main-column">
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-media"><img src="covers/cyber-hero-2x.webp" alt="未来城市中的机车与赛博骑手"></div>
+      <div class="hero-copy"><span class="hero-label">新游推荐</span><h1 id="heroTitle">速度之城 2077</h1><p>在霓虹闪烁的未来赛道中，书写你的极速传奇</p><div class="hero-tags"><span>开放世界</span><span>竞速</span><span>单人游戏</span></div><div class="hero-actions"><a class="play-now" href="../speed-fury/">立即游玩</a><a class="learn-more" href="#catalog">◉ 了解更多</a></div></div>
+      <div class="hero-dots" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    </section>
+    <section class="section-panel panel" id="featured"><div class="section-head"><h2>精选免费游戏</h2><a href="#catalog">更多 ›</a></div><div class="featured-row">
+      <a class="featured-card" href="../speed-fury/"><img src="covers/speed-fury.png" alt="速度之城2077"><div class="featured-info"><b>速度之城2077</b><div class="micro-tags"><span>竞速</span><span>动作</span><em>FREE</em></div></div></a>
+      <a class="featured-card" href="../metal-slug/"><img src="covers/metal-slug.svg" alt="合金弹头"><div class="featured-info"><b>合金弹头</b><div class="micro-tags"><span>射击</span><span>街机</span><em>FREE</em></div></div></a>
+      <a class="featured-card" href="../raiden-2/"><img src="covers/raiden-2.svg" alt="雷电II"><div class="featured-info"><b>雷电 II</b><div class="micro-tags"><span>射击</span><span>太空</span><em>FREE</em></div></div></a>
+      <a class="featured-card" href="../alien-brawler/"><img src="covers/alien-brawler.svg" alt="狂扁外星人"><div class="featured-info"><b>狂扁外星人 3D</b><div class="micro-tags"><span>动作</span><span>3D</span><em>FREE</em></div></div></a>
+      <a class="featured-card" href="../tower-defense/"><img src="covers/tower-defense.png" alt="皇城突袭塔防"><div class="featured-info"><b>皇城突袭塔防</b><div class="micro-tags"><span>策略</span><span>塔防</span><em>FREE</em></div></div></a>
+    </div></section>
+    <section class="section-panel panel" id="categories"><div class="section-head"><h2>游戏分类</h2><a href="#catalog">更多 ›</a></div><div class="category-strip">
+      <button class="category-tile pink" type="button" data-filter="action"><i>⊕</i><b>动作游戏</b><small>12款游戏</small></button><button class="category-tile cyan" type="button" data-filter="puzzle"><i>△</i><b>冒险游戏</b><small>9款游戏</small></button><button class="category-tile violet" type="button" data-filter="racing"><i>♟</i><b>角色扮演</b><small>8款游戏</small></button><button class="category-tile amber" type="button" data-filter="shoot"><i>◒</i><b>射击游戏</b><small>11款游戏</small></button><button class="category-tile blue" type="button" data-filter="strategy"><i>♜</i><b>策略游戏</b><small>7款游戏</small></button><button class="category-tile pink" type="button" data-filter="duo"><i>▥</i><b>多人游戏</b><small>6款游戏</small></button><button class="category-tile blue" type="button" data-filter="all"><i>▦</i><b>查看全部</b><small>18款游戏</small></button>
+    </div></section>
+    <section class="section-panel panel catalog" id="catalog"><div class="section-head"><h2>全部免费游戏</h2><a id="resultCount">18 款游戏</a></div><div class="game-grid">
+      <a class="game-card" href="../metal-slug/" data-game-card data-tags="action shoot" data-title="合金弹头 射击 街机"><img src="covers/metal-slug.svg" alt="合金弹头"><div class="game-copy"><b>合金弹头</b><span>横版街机射击</span></div></a>
+      <a class="game-card" href="../pixel-fighter-97/" data-game-card data-tags="duo action" data-title="格斗皇97 双人格斗"><img src="covers/pixel-fighter-97.svg" alt="格斗皇97"><div class="game-copy"><b>格斗皇 97</b><span>街机格斗 · 本地双人</span></div></a>
+      <a class="game-card" href="../gold-miner-duo/" data-game-card data-tags="duo action" data-title="双人黄金矿工"><img src="covers/gold-miner-duo.png" alt="双人黄金矿工"><div class="game-copy"><b>双人黄金矿工</b><span>双人合作闯关</span></div></a>
+      <a class="game-card" href="../tower-defense/" data-game-card data-tags="strategy" data-title="皇城突袭塔防"><img src="covers/tower-defense.png" alt="皇城突袭塔防"><div class="game-copy"><b>皇城突袭塔防</b><span>策略布防守城</span></div></a>
+      <a class="game-card" href="../zhaoyun-adou/" data-game-card data-tags="strategy puzzle" data-title="赵云与阿斗 三国"><img src="covers/zhaoyun-adou.png" alt="赵云与阿斗"><div class="game-copy"><b>赵云与阿斗</b><span>三国文字合成</span></div></a>
+      <a class="game-card" href="../alien-brawler/" data-game-card data-tags="action shoot" data-title="狂扁外星人 3D"><img src="covers/alien-brawler.svg" alt="狂扁外星人"><div class="game-copy"><b>狂扁外星人 3D</b><span>连击 · 能量炮 · Boss</span></div></a>
+      <a class="game-card" href="../fire-basketball/" data-game-card data-tags="action" data-title="烈火篮球"><img src="covers/fire-basketball.svg" alt="烈火篮球"><div class="game-copy"><b>烈火篮球</b><span>拖拽投篮连击</span></div></a>
+      <a class="game-card" href="../speed-fury/" data-game-card data-tags="racing action" data-title="速度与激情 赛车"><img src="covers/speed-fury.png" alt="速度与激情"><div class="game-copy"><b>速度与激情</b><span>霓虹公路狂飙</span></div></a>
+      <a class="game-card" href="../angry-birds/" data-game-card data-tags="puzzle action" data-title="愤怒的小鸟"><img src="covers/angry-birds.png" alt="愤怒的小鸟"><div class="game-copy"><b>愤怒的小鸟</b><span>弹弓物理闯关</span></div></a>
+      <a class="game-card" href="../racing-game/" data-game-card data-tags="duo racing" data-title="双人分屏赛车"><img src="covers/racing-game.png" alt="双人分屏赛车"><div class="game-copy"><b>双人分屏赛车</b><span>同屏双人竞速</span></div></a>
+      <a class="game-card" href="../two-player-battle/" data-game-card data-tags="duo action shoot" data-title="双人竞技场"><img src="covers/two-player-battle.png" alt="双人竞技场"><div class="game-copy"><b>双人竞技场</b><span>本地双人射击</span></div></a>
+      <a class="game-card" href="../frontline-shooter/" data-game-card data-tags="action shoot" data-title="前线守卫战"><img src="covers/frontline-shooter.png" alt="前线守卫战"><div class="game-copy"><b>前线守卫战</b><span>第一人称射击</span></div></a>
+      <a class="game-card" href="../armored-duel/" data-game-card data-tags="duo action" data-title="铠甲动漫格斗"><img src="covers/armored-duel.png" alt="铠甲动漫格斗"><div class="game-copy"><b>铠甲动漫格斗</b><span>技能连招对战</span></div></a>
+      <a class="game-card" href="../maze-game/" data-game-card data-tags="puzzle" data-title="趣味迷宫"><img src="covers/maze-game.png" alt="趣味迷宫"><div class="game-copy"><b>趣味迷宫</b><span>寻找路线闯关</span></div></a>
+      <a class="game-card" href="../link-link-game/" data-game-card data-tags="puzzle" data-title="水果连连看"><img src="covers/link-link-game.png" alt="水果连连看"><div class="game-copy"><b>水果连连看</b><span>轻松连线消除</span></div></a>
+      <a class="game-card" href="../match-3-game/" data-game-card data-tags="puzzle" data-title="宝石消消乐"><img src="covers/match-3-game.png" alt="宝石消消乐"><div class="game-copy"><b>宝石消消乐</b><span>关卡目标消除</span></div></a>
+      <a class="game-card" href="../gomoku/" data-game-card data-tags="strategy puzzle duo" data-title="五子棋 双人 AI"><img src="covers/gomoku.svg" alt="五子棋"><div class="game-copy"><b>五子棋</b><span>标准棋盘与 AI</span></div></a>
+      <a class="game-card" href="../raiden-2/" data-game-card data-tags="action shoot" data-title="雷电II 射击"><img src="covers/raiden-2.svg" alt="雷电II"><div class="game-copy"><b>雷电 II</b><span>纵向街机射击</span></div></a>
+    </div><div class="empty-state" id="emptyState">没有找到匹配的游戏</div></section>
+  </div>
+  <aside class="right-rail">
+    <section class="right-panel panel"><div class="section-head"><h2>每日推荐</h2><a href="#featured">更多 ›</a></div><a class="daily-card" href="../speed-fury/"><img src="covers/speed-fury.png" alt="速度与激情"><div class="daily-copy"><b>速度之城：霓虹</b><div class="daily-meta"><span>动作</span><span>竞速</span><span>单人</span><em>FREE</em></div><div class="countdown">◷ 23 : 59 : 59 后刷新</div></div></a></section>
+    <section class="right-panel panel"><div class="section-head"><h2>热门排行</h2><a href="#catalog">更多 ›</a></div><div class="rank-list">
+      <a class="rank-item" href="../speed-fury/"><strong>01</strong><img src="covers/speed-fury.png" alt=""><b>速度之城2077</b><em>FREE</em></a><a class="rank-item" href="../metal-slug/"><strong>02</strong><img src="covers/metal-slug.svg" alt=""><b>合金弹头</b><em>FREE</em></a><a class="rank-item" href="../raiden-2/"><strong>03</strong><img src="covers/raiden-2.svg" alt=""><b>雷电 II</b><em>FREE</em></a><a class="rank-item" href="../alien-brawler/"><strong>04</strong><img src="covers/alien-brawler.svg" alt=""><b>狂扁外星人</b><em>FREE</em></a><a class="rank-item" href="../tower-defense/"><strong>05</strong><img src="covers/tower-defense.png" alt=""><b>皇城突袭</b><em>FREE</em></a>
+    </div></section>
+    <section class="right-panel panel"><div class="section-head"><h2>玩家社区</h2></div><div class="community-stats"><div><b>2.5M+</b><span>注册玩家</span></div><div><b>15K+</b><span>在线玩家</span></div><div><b>8K+</b><span>今日新增</span></div></div><button class="discussion" type="button" onclick="location.href='../free-hengyi-team/'">加入讨论</button></section>
+  </aside>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
-(function(){
-  const searchInput = document.getElementById("gameSearch");
-  const filterButtons = document.querySelectorAll("[data-filter]");
-  const cards = Array.from(document.querySelectorAll("[data-game-card]"));
-  const gridCards = Array.from(document.querySelectorAll(".game-grid [data-game-card]"));
-  const resultCount = document.getElementById("resultCount");
-  let activeFilter = "all";
-
-  function normalize(v){ return String(v||"").trim().toLowerCase(); }
-
-  function updateCards(){
-    const query = normalize(searchInput && searchInput.value);
-    let visible = 0;
-    for(const card of cards){
-      const tags = normalize(card.dataset.tags);
-      const title = normalize(card.dataset.title);
-      const matchesFilter = activeFilter === "all" || tags.includes(activeFilter);
-      const matchesSearch = !query || title.includes(query) || tags.includes(query);
-      const show = matchesFilter && matchesSearch;
-      card.classList.toggle("hidden", !show);
-      if(show && gridCards.includes(card)) visible++;
-    }
-    if(resultCount) resultCount.textContent = visible + " 款游戏";
-  }
-
-  for(const btn of filterButtons){
-    btn.addEventListener("click", function(){
-      activeFilter = this.dataset.filter;
-      filterButtons.forEach(b => b.classList.toggle("active", b === this));
-      updateCards();
-    });
-  }
-
-  if(searchInput) searchInput.addEventListener("input", updateCards);
-  updateCards();
+(()=>{
+  const search=document.querySelector('#gameSearch');const cards=[...document.querySelectorAll('[data-game-card]')];const count=document.querySelector('#resultCount');const empty=document.querySelector('#emptyState');let filter='all';
+  function update(){const q=(search.value||'').trim().toLowerCase();let visible=0;cards.forEach(card=>{const matchFilter=filter==='all'||card.dataset.tags.includes(filter);const matchSearch=!q||card.dataset.title.toLowerCase().includes(q)||card.dataset.tags.includes(q);const show=matchFilter&&matchSearch;card.classList.toggle('hidden',!show);if(show)visible++});count.textContent=visible+' 款游戏';empty.classList.toggle('visible',visible===0)}
+  function setFilter(value){filter=value;document.querySelectorAll('[data-filter]').forEach(button=>button.classList.toggle('active',button.dataset.filter===value));update();document.querySelector('#catalog').scrollIntoView({behavior:'smooth'})}
+  document.querySelectorAll('[data-filter]').forEach(button=>button.addEventListener('click',()=>setFilter(button.dataset.filter)));search.addEventListener('input',update);
+  const menu=document.querySelector('#mobileMenu'),nav=document.querySelector('#primaryNav');menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open));menu.textContent=open?'×':'☰'});
+  nav.addEventListener('click',()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false');menu.textContent='☰'});
+  const toast=document.querySelector('#toast');let toastTimer;document.querySelectorAll('[data-toast]').forEach(button=>button.addEventListener('click',()=>{toast.textContent=button.dataset.toast;toast.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('visible'),2200)}));
+  document.querySelector('#newsletter').addEventListener('submit',event=>{event.preventDefault();event.currentTarget.reset();toast.textContent='订阅成功';toast.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('visible'),2200)});update();
 })();
 </script>
 </body>
