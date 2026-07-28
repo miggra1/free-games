@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#11110f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%2311110f'/%3E%3Ctext x='32' y='45' text-anchor='middle' font-size='40' font-family='serif' fill='%23c6a35a'%3EF%3C/text%3E%3C/svg%3E">
   <title>Free、恒谊 | 王者荣耀战队</title>
   <style>
     :root {
@@ -461,6 +462,307 @@
       html { scroll-behavior: auto; }
       *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
     }
+
+    /* Reference-matched home screen. The 4K source keeps the ink texture crisp on HiDPI displays. */
+    .site-header {
+      height: 72px;
+      padding-inline: 2.5%;
+      border: 0;
+      background: transparent;
+      color: #151511;
+      box-shadow: none;
+    }
+    .site-header.is-light {
+      height: 64px;
+    }
+    .site-header:not(.is-light) .brand,
+    .site-header:not(.is-light) .site-nav,
+    .site-header:not(.is-light) .menu-toggle { opacity: 0; }
+    .site-header:not(.is-light) { pointer-events: none; }
+    .site-header .brand,
+    .site-header .site-nav,
+    .site-header .menu-toggle { transition: opacity 180ms var(--ease); }
+    .brand {
+      width: 118px;
+      height: 56px;
+      overflow: hidden;
+      color: transparent;
+    }
+    .brand::before {
+      content: "FREE";
+      color: #11110f;
+      font-family: Impact, "Arial Black", sans-serif;
+      font-size: 2.75rem;
+      font-style: italic;
+      font-weight: 900;
+      line-height: .84;
+      letter-spacing: 0;
+      transform: skewX(-8deg);
+    }
+    .brand::after {
+      content: "FREE ESPORTS";
+      position: absolute;
+      top: 49px;
+      left: 31px;
+      color: #151511;
+      font-size: .34rem;
+      letter-spacing: .22em;
+    }
+    .brand-mark,
+    .brand-word,
+    .motion-switch { display: none; }
+    .site-nav { gap: clamp(1.7rem, 3.25vw, 3.6rem); margin-left: auto; }
+    .site-nav a { font-size: .91rem; font-weight: 700; }
+    .site-nav a:first-child::after { right: 18%; left: 18%; background: #b49149; }
+    .site-nav a::after { bottom: -.72rem; background: #b49149; }
+    .header-join-button {
+      min-width: 76px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      margin-left: .4rem;
+      border: 1px solid #9b7b34;
+      background: #0e0e0b;
+      color: #d5b35e;
+      font-size: .65rem;
+      box-shadow: inset 0 0 0 2px rgba(180,145,73,.12), 0 0 0 1px rgba(14,14,11,.42);
+      cursor: pointer;
+    }
+    .header-join-button:hover { border-color: #c8a95e; color: #f0d487; }
+    .hero {
+      min-height: 100svh;
+      padding-top: 0;
+      background-color: #f4f3ef;
+      background-image: url("assets/home-reference-4k.webp");
+      background-position: center;
+      background-size: cover;
+    }
+    .hero::after,
+    .hero-title-block,
+    .hero-warriors,
+    .hero-intro { display: none; }
+    .hero-hit-canvas {
+      position: absolute;
+      z-index: 30;
+      top: 50%;
+      left: 50%;
+      width: max(100vw, calc(100svh * 1.7647058824));
+      height: max(100svh, calc(100vw * .5666666667));
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    .hero-hit {
+      position: absolute;
+      display: block;
+      padding: 0;
+      border: 0;
+      border-radius: 2px;
+      background: transparent;
+      color: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      text-decoration: none;
+    }
+    .hero-hit:hover { background: rgba(180, 145, 73, .06); }
+    .hero-hit:focus-visible {
+      outline: 2px solid #a47f32;
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, .16);
+    }
+    .hero-hit-logo { top: 1.2%; left: 2.1%; width: 10.4%; height: 8.5%; }
+    .hero-hit-home { top: 2.6%; left: 28.7%; width: 3.2%; height: 5.8%; }
+    .hero-hit-team { top: 2.6%; left: 34.9%; width: 3.2%; height: 5.8%; }
+    .hero-hit-events { top: 2.6%; left: 40.8%; width: 3.2%; height: 5.8%; }
+    .hero-hit-members { top: 2.6%; left: 46.6%; width: 3.2%; height: 5.8%; }
+    .hero-hit-news { top: 2.6%; left: 52.2%; width: 3.2%; height: 5.8%; }
+    .hero-hit-partner { top: 2.6%; left: 58%; width: 3.5%; height: 5.8%; }
+    .hero-hit-about { top: 2.6%; left: 63.8%; width: 5.3%; height: 5.8%; }
+    .hero-hit-weibo { top: 2.5%; left: 80.2%; width: 2.7%; height: 5.8%; }
+    .hero-hit-bilibili { top: 2.5%; left: 83.4%; width: 3.5%; height: 5.8%; }
+    .hero-hit-douyin { top: 2.5%; left: 87.2%; width: 2.7%; height: 5.8%; }
+    .hero-hit-join { top: 2.8%; left: 90.8%; width: 6.7%; height: 5%; }
+    .hero-hit-event-detail { top: 90.3%; left: 86.7%; width: 7.3%; height: 3.6%; }
+    .hero-hit-left-scroll { top: 79.8%; left: 1.7%; width: 3.7%; height: 13.6%; }
+    .hero-hit-center-scroll { top: 92.4%; left: 49.1%; width: 2%; height: 5.8%; }
+
+    /* Reference-matched member introduction screen. */
+    .members-section {
+      min-height: 100svh;
+      height: 100svh;
+      padding: 0;
+      background-color: #efede7;
+      background-image: url("assets/members-reference-4k.webp");
+      background-position: center;
+      background-size: cover;
+      scroll-margin-top: 0;
+    }
+    .members-section::after,
+    .members-section .section-heading-center { display: none; }
+    body.members-view .site-header { opacity: 0; pointer-events: none; }
+    .members-hit-canvas {
+      position: absolute;
+      z-index: 7;
+      top: 50%;
+      left: 50%;
+      width: max(100vw, calc(100svh * 1.7647058824));
+      height: max(100svh, calc(100vw * .5666666667));
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    .members-hit {
+      position: absolute;
+      display: block;
+      height: 7%;
+      border-radius: 2px;
+      background: transparent;
+      color: transparent;
+      pointer-events: auto;
+      text-decoration: none;
+    }
+    .members-hit:hover { background: rgba(180, 145, 73, .05); }
+    .members-hit:focus-visible { outline: 2px solid #9f7e3e; outline-offset: 2px; }
+    .members-hit-logo { top: .6%; left: 1%; width: 9.2%; }
+    .members-hit-home { top: 1%; left: 27.5%; width: 3.6%; }
+    .members-hit-team { top: 1%; left: 35.7%; width: 3.6%; }
+    .members-hit-match { top: 1%; left: 44.1%; width: 3.6%; }
+    .members-hit-news { top: 1%; left: 52%; width: 3.6%; }
+    .members-hit-partner { top: 1%; left: 60.2%; width: 4.4%; }
+    .members-hit-merch { top: 1%; left: 68.3%; width: 4.2%; }
+    .member-mobile-select { display: none; }
+    .member-rail {
+      position: absolute;
+      z-index: 5;
+      top: 50%;
+      left: 50%;
+      width: max(100vw, calc(100svh * 1.7647058824));
+      height: max(100svh, calc(100vw * .5666666667));
+      display: block;
+      margin: 0;
+      padding: 0;
+      overflow: visible;
+      transform: translate(-50%, -50%);
+    }
+    .member-card {
+      position: absolute;
+      top: 32.3%;
+      width: 10.6%;
+      height: 56.8%;
+      min-height: 0;
+      display: block;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: transparent;
+      cursor: pointer;
+    }
+    .member-card:nth-child(1) { left: 12%; }
+    .member-card:nth-child(2) { left: 23.8%; }
+    .member-card:nth-child(3) { left: 35.6%; }
+    .member-card:nth-child(4) { left: 47.3%; }
+    .member-card:nth-child(5) { left: 59.2%; }
+    .member-card:nth-child(6) { left: 71%; }
+    .member-card:nth-child(7) { left: 82.8%; }
+    .member-card:hover {
+      transform: translateY(-3px);
+      background: rgba(180, 145, 73, .045);
+      box-shadow: inset 0 0 0 1px rgba(139, 108, 47, .35), 0 8px 22px rgba(29, 27, 22, .12);
+    }
+    .member-card:focus-visible {
+      outline: 2px solid #9f7e3e;
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, .12);
+    }
+    .member-card > * { display: none; }
+    .member-card .member-visible-name {
+      position: absolute;
+      top: 53.5%;
+      right: 3%;
+      left: 3%;
+      height: 14.5%;
+      display: grid;
+      place-items: center;
+      background: rgba(241, 239, 233, .96);
+      color: #11110f;
+      font-family: var(--font-brush);
+      font-size: 3.65cqh;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+      text-shadow: 0 1px rgba(255, 255, 255, .7);
+    }
+    .members-section.is-active ~ * { --members-active: 1; }
+    .hero-scroll {
+      position: absolute;
+      z-index: 3;
+      bottom: 1.9rem;
+      left: 50%;
+      width: 22px;
+      height: 34px;
+      border: 0;
+      border-radius: 999px;
+      color: transparent;
+      text-decoration: none;
+      transform: translateX(-50%);
+    }
+    .hero-scroll::after { content: ""; }
+
+    @media (max-width: 960px) {
+      .site-nav { gap: 1.25rem; }
+      .site-nav a { font-size: .78rem; }
+      .site-nav a:nth-child(6),
+      .site-nav a:nth-child(7) { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      .site-header { height: 58px; padding-inline: 14px; }
+      .brand { width: 92px; height: 46px; }
+      .brand::before { font-size: 2.15rem; }
+      .brand::after { top: 38px; left: 17px; font-size: .28rem; }
+      .site-nav {
+        top: 58px;
+        background: rgba(247,246,242,.98);
+        color: #161613;
+      }
+      .site-nav a:nth-child(6),
+      .site-nav a:nth-child(7) { display: flex; }
+      .header-join-button { width: 100%; min-height: 44px; margin: .5rem 0 0; }
+      .menu-toggle { color: #171714; }
+      .site-header:not(.is-light) { pointer-events: auto; }
+      .site-header:not(.is-light) .menu-toggle { opacity: 1; }
+      .site-header:not(.is-light) .site-nav.is-open { opacity: 1; }
+      .hero {
+        min-height: 100svh;
+        background-position: 50% center;
+        background-size: auto 100%;
+      }
+      .hero-scroll { bottom: 1.15rem; }
+      .members-section {
+        height: 100svh;
+        min-height: 100svh;
+        background-position: center;
+        background-size: auto 100%;
+      }
+      .member-mobile-select {
+        position: absolute;
+        z-index: 12;
+        right: 16px;
+        bottom: 14px;
+        left: 16px;
+        width: calc(100% - 32px);
+        min-height: 44px;
+        display: block;
+        padding: 0 2.5rem 0 1rem;
+        border: 1px solid rgba(126, 98, 48, .58);
+        border-radius: 2px;
+        background: rgba(244, 242, 235, .94);
+        color: #1d1b17;
+        font-family: var(--font-brush);
+        font-size: .9rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -482,6 +784,7 @@
         <input id="motionToggle" type="checkbox" role="switch" aria-label="动态效果">
         <span class="motion-track" aria-hidden="true"></span>
       </label>
+      <button class="header-join-button" id="headerJoinButton" type="button">加入我们</button>
     </nav>
   </header>
 
@@ -507,6 +810,24 @@
           <li><span class="value-icon">破</span><strong>突破</strong><span>不惧超越<br>追求极限</span></li>
         </ul>
       </div>
+      <a class="hero-scroll" href="#about" aria-label="继续浏览战队介绍"></a>
+      <div class="hero-hit-canvas" aria-label="首页快捷入口">
+        <a class="hero-hit hero-hit-logo" href="#home" aria-label="返回首页" title="首页"><span class="sr-only">首页</span></a>
+        <a class="hero-hit hero-hit-home" href="#home" aria-label="首页" title="首页"><span class="sr-only">首页</span></a>
+        <a class="hero-hit hero-hit-team" href="#about" aria-label="战队" title="战队"><span class="sr-only">战队</span></a>
+        <a class="hero-hit hero-hit-events" href="#achievements" aria-label="赛事" title="赛事"><span class="sr-only">赛事</span></a>
+        <a class="hero-hit hero-hit-members" href="#members" aria-label="队员" title="队员"><span class="sr-only">队员</span></a>
+        <a class="hero-hit hero-hit-news" href="#news" aria-label="资讯" title="资讯"><span class="sr-only">资讯</span></a>
+        <a class="hero-hit hero-hit-partner" href="#contact" aria-label="合作" title="合作"><span class="sr-only">合作</span></a>
+        <a class="hero-hit hero-hit-about" href="#about" aria-label="关于我们" title="关于我们"><span class="sr-only">关于我们</span></a>
+        <a class="hero-hit hero-hit-weibo" href="https://weibo.com/" target="_blank" rel="noopener noreferrer" aria-label="访问微博" title="微博"><span class="sr-only">微博</span></a>
+        <a class="hero-hit hero-hit-bilibili" href="https://www.bilibili.com/" target="_blank" rel="noopener noreferrer" aria-label="访问哔哩哔哩" title="哔哩哔哩"><span class="sr-only">哔哩哔哩</span></a>
+        <a class="hero-hit hero-hit-douyin" href="https://www.douyin.com/" target="_blank" rel="noopener noreferrer" aria-label="访问抖音" title="抖音"><span class="sr-only">抖音</span></a>
+        <button class="hero-hit hero-hit-join" id="heroJoinButton" type="button" aria-label="加入我们" title="加入我们"><span class="sr-only">加入我们</span></button>
+        <a class="hero-hit hero-hit-event-detail" href="#achievements" aria-label="查看近期赛事详情" title="查看详情"><span class="sr-only">查看详情</span></a>
+        <a class="hero-hit hero-hit-left-scroll" href="#about" aria-label="继续浏览" title="继续浏览"><span class="sr-only">继续浏览</span></a>
+        <a class="hero-hit hero-hit-center-scroll" href="#about" aria-label="向下浏览" title="向下浏览"><span class="sr-only">向下浏览</span></a>
+      </div>
     </section>
 
     <section class="page-section about-section" id="about" aria-labelledby="aboutTitle">
@@ -530,7 +851,19 @@
         <h2 class="section-title" id="membersTitle">队员阵容<span class="dot" aria-hidden="true"></span></h2>
         <p class="section-en">OUR PLAYERS</p>
       </div>
+      <nav class="members-hit-canvas" aria-label="成员页导航">
+        <a class="members-hit members-hit-logo" href="#home" aria-label="返回首页"><span class="sr-only">返回首页</span></a>
+        <a class="members-hit members-hit-home" href="#home" aria-label="首页"><span class="sr-only">首页</span></a>
+        <a class="members-hit members-hit-team" href="#about" aria-label="战队"><span class="sr-only">战队</span></a>
+        <a class="members-hit members-hit-match" href="#achievements" aria-label="赛事"><span class="sr-only">赛事</span></a>
+        <a class="members-hit members-hit-news" href="#news" aria-label="新闻"><span class="sr-only">新闻</span></a>
+        <a class="members-hit members-hit-partner" href="#contact" aria-label="合作"><span class="sr-only">合作</span></a>
+        <a class="members-hit members-hit-merch" href="#join" aria-label="周边"><span class="sr-only">周边</span></a>
+      </nav>
       <div class="member-rail" id="memberGrid" aria-label="战队成员"></div>
+      <select class="member-mobile-select" id="memberMobileSelect" aria-label="选择成员查看档案">
+        <option value="">选择成员查看档案</option>
+      </select>
     </section>
 
     <section class="page-section achievements-section" id="achievements" aria-labelledby="achievementTitle">
@@ -705,18 +1038,13 @@
       const escapeText = value => { const node = document.createElement("span"); node.textContent = value; return node.innerHTML; };
 
       function renderMembers() {
-        const positions = ["7%", "22%", "38%", "53%", "68%", "82%", "45%"];
         memberGrid.innerHTML = members.map((member, index) => `
-          <button class="member-card" type="button" data-member="${index}" style="--index:${index};--portrait-position:${positions[index]}" aria-label="查看${member.name}的成员档案">
-            <span class="member-portrait"><span class="role-badge">${member.role}</span></span>
-            <span class="member-card-body">
-              <strong class="member-name">FREE · ${member.name}</strong>
-              <span class="member-duty">${member.duty}</span>
-              <span class="member-heroes">${member.heroes.join(" · ")}</span>
-              <span class="member-more">查看古风档案</span>
-            </span>
+          <button class="member-card" type="button" data-member="${index}" style="--index:${index}" aria-label="查看${member.name}的成员档案" title="${member.name} · ${member.role}">
+            <span class="member-visible-name" aria-hidden="true">${member.name}</span>
+            <span class="sr-only">查看${member.name}的成员档案</span>
           </button>`).join("");
         document.querySelector("#memberCount").textContent = members.length;
+        document.querySelector("#memberMobileSelect").insertAdjacentHTML("beforeend", members.map((member, index) => `<option value="${index}">${member.name} · ${member.role}</option>`).join(""));
       }
 
       function openProfile(member) {
@@ -777,6 +1105,11 @@
         const card = event.target.closest("[data-member]");
         if (card) openProfile(members[Number(card.dataset.member)]);
       });
+      document.querySelector("#memberMobileSelect").addEventListener("change", event => {
+        const index = Number(event.currentTarget.value);
+        if (Number.isInteger(index) && members[index]) openProfile(members[index]);
+        event.currentTarget.value = "";
+      });
 
       document.querySelector("#scheduleList").addEventListener("click", event => {
         const button = event.target.closest("[data-session]");
@@ -788,6 +1121,8 @@
       });
 
       document.querySelector("#openApplication").addEventListener("click", () => applicationDialog.showModal());
+      document.querySelector("#heroJoinButton").addEventListener("click", () => applicationDialog.showModal());
+      document.querySelector("#headerJoinButton").addEventListener("click", () => applicationDialog.showModal());
       document.querySelector("#openReport").addEventListener("click", () => reportDialog.showModal());
       document.querySelectorAll("[data-close]").forEach(button => button.addEventListener("click", () => document.querySelector(`#${button.dataset.close}`).close()));
       [profileDialog, applicationDialog, reportDialog].forEach(dialog => dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); }));
@@ -838,6 +1173,8 @@
       const siteHeader = document.querySelector("#siteHeader");
       const hero = document.querySelector("#home");
       new IntersectionObserver(([entry]) => siteHeader.classList.toggle("is-light", !entry.isIntersecting), { rootMargin: "-64px 0px 0px", threshold: .08 }).observe(hero);
+      const membersSection = document.querySelector("#members");
+      new IntersectionObserver(([entry]) => document.body.classList.toggle("members-view", entry.isIntersecting), { threshold: .55 }).observe(membersSection);
 
       const motionToggle = document.querySelector("#motionToggle");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
