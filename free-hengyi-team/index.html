@@ -535,7 +535,9 @@
       background-color: #f4f3ef;
       background-image: url("assets/home-reference-4k.webp");
       background-position: center;
-      background-size: cover;
+      /* Keep the full reference composition visible instead of cropping its header. */
+      background-size: contain;
+      background-repeat: no-repeat;
     }
     .hero::after,
     .hero-title-block,
@@ -546,8 +548,9 @@
       z-index: 30;
       top: 50%;
       left: 50%;
-      width: max(100vw, calc(100svh * 1.7647058824));
-      height: max(100svh, calc(100vw * .5666666667));
+      /* Match the visible 16:9 reference image, not the wider browser viewport. */
+      width: min(100vw, calc(100svh * 1.7647058824));
+      height: min(100svh, calc(100vw * .5666666667));
       pointer-events: none;
       transform: translate(-50%, -50%);
     }
