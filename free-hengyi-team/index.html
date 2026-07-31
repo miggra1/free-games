@@ -534,9 +534,9 @@
       padding-top: 0;
       background-color: #f4f3ef;
       background-image: url("assets/home-reference-4k.webp");
-      background-position: center;
-      /* Keep the full reference composition visible instead of cropping its header. */
-      background-size: contain;
+      /* Fill the viewport without side gutters; keep the reference header anchored. */
+      background-position: center top;
+      background-size: cover;
       background-repeat: no-repeat;
     }
     .hero::after,
@@ -546,13 +546,13 @@
     .hero-hit-canvas {
       position: absolute;
       z-index: 30;
-      top: 50%;
+      top: 0;
       left: 50%;
-      /* Match the visible 16:9 reference image, not the wider browser viewport. */
-      width: min(100vw, calc(100svh * 1.7647058824));
-      height: min(100svh, calc(100vw * .5666666667));
+      /* Match the top-anchored cover image so every hotspot stays aligned. */
+      width: max(100vw, calc(100svh * 1.7647058824));
+      height: max(100svh, calc(100vw * .5666666667));
       pointer-events: none;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
     }
     .hero-hit {
       position: absolute;
