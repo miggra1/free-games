@@ -15,6 +15,7 @@
       --white: #fff;
       --red: #b5251d;
       --green: #2f6c4e;
+      --gold: #b49149;
       --line: rgba(23, 23, 21, .16);
       --shadow: 0 12px 32px rgba(23, 23, 21, .13);
       --content: min(1160px, calc(100vw - 48px));
@@ -513,7 +514,7 @@
     .motion-switch { display: none; }
     .site-nav { gap: clamp(1.7rem, 3.25vw, 3.6rem); margin-left: auto; }
     .site-nav a { font-size: .91rem; font-weight: 700; }
-    .site-nav a:first-child::after { right: 18%; left: 18%; background: #b49149; }
+    .site-nav a[aria-current="page"]::after { right: 18%; left: 18%; background: var(--gold); }
     .site-nav a::after { bottom: -.72rem; background: #b49149; }
     .header-join-button {
       min-width: 76px;
@@ -711,6 +712,45 @@
       transform: translateX(-50%);
     }
     .hero-scroll::after { content: ""; }
+
+    /* Shared finishing pass for the live UI layered around the reference artwork. */
+    .header-join-button { min-height: 32px; }
+    .about-copy p:not(.section-en) { color: #41413c; line-height: 1.78; }
+    .join-section,
+    .contact-section { scroll-margin-top: 64px; }
+    .primary-button,
+    .secondary-button {
+      min-height: 44px;
+      border-radius: 2px;
+      transition: transform 180ms var(--ease), border-color 180ms var(--ease), background-color 180ms var(--ease), color 180ms var(--ease);
+    }
+    .primary-button:hover { border-color: var(--gold); background: #24221d; color: #f2d48e; transform: translateY(-2px); }
+    .secondary-button:hover { border-color: var(--gold); color: #755a20; transform: translateY(-2px); }
+    .primary-button:active,
+    .secondary-button:active { transform: translateY(0); }
+    .confirm-button {
+      min-height: 34px;
+      border-radius: 2px;
+      transition: border-color 180ms var(--ease), background-color 180ms var(--ease), transform 180ms var(--ease);
+    }
+    .confirm-button:hover { border-color: var(--record-gold); background: #4f4d47; transform: translateY(-1px); }
+    .confirm-button:active { transform: translateY(0); }
+    .news-item { transition: border-color 180ms var(--ease), background-color 180ms var(--ease), transform 180ms var(--ease), box-shadow 180ms var(--ease); }
+    .news-item:hover,
+    .news-item:focus-within { border-color: rgba(180,145,73,.62); background: rgba(255,255,252,.94); box-shadow: 0 8px 24px rgba(34,31,25,.09); transform: translateY(-1px); }
+    .contact-item b,
+    .contact-item span { transition: color 180ms var(--ease); }
+    .contact-item:hover b,
+    .contact-item:focus-visible b { color: #efd28b; }
+    .contact-item:hover span,
+    .contact-item:focus-visible span { color: rgba(255,255,255,.78); }
+    .icon-button {
+      width: 44px;
+      height: 44px;
+      border-radius: 2px;
+      transition: border-color 180ms var(--ease), background-color 180ms var(--ease);
+    }
+    .icon-button:hover { border-color: var(--gold); background: rgba(180,145,73,.08); }
 
     @media (max-width: 960px) {
       .site-nav { gap: 1.25rem; }
@@ -1175,6 +1215,27 @@
 
       const siteHeader = document.querySelector("#siteHeader");
       const hero = document.querySelector("#home");
+      const navTargets = [...siteNav.querySelectorAll('a[href^="#"]')]
+        .map(link => ({ link, section: document.querySelector(link.getAttribute("href")) }))
+        .filter(item => item.section)
+        .sort((a, b) => a.section.offsetTop - b.section.offsetTop);
+      let navFrame = 0;
+      function updateCurrentNav() {
+        navFrame = 0;
+        const marker = window.scrollY + window.innerHeight * .35;
+        let current = navTargets[0];
+        navTargets.forEach(item => { if (item.section.offsetTop <= marker) current = item; });
+        navTargets.forEach(item => {
+          if (item === current) item.link.setAttribute("aria-current", "page");
+          else item.link.removeAttribute("aria-current");
+        });
+      }
+      function queueCurrentNav() {
+        if (!navFrame) navFrame = requestAnimationFrame(updateCurrentNav);
+      }
+      window.addEventListener("scroll", queueCurrentNav, { passive: true });
+      window.addEventListener("resize", queueCurrentNav);
+      updateCurrentNav();
       new IntersectionObserver(([entry]) => siteHeader.classList.toggle("is-light", !entry.isIntersecting), { rootMargin: "-64px 0px 0px", threshold: .08 }).observe(hero);
       const membersSection = document.querySelector("#members");
       new IntersectionObserver(([entry]) => document.body.classList.toggle("members-view", entry.isIntersecting), { threshold: .55 }).observe(membersSection);
