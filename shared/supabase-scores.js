@@ -63,14 +63,19 @@
     }
   }
 
-  async function getBestScore(gameKey) {
+  async function getBestScore(gameKey, options = {}) {
     if (!gameKey) return null;
     try {
       const client = await getClient();
-      const { data, error } = await client
+      let query = client
         .from(TABLE)
         .select("*")
-        .eq("game_key", String(gameKey))
+        .eq("game_key", String(gameKey));
+
+      // Games sharing one approved database key can keep independent leaderboards.
+      if (options.detail) query = query.contains("detail", options.detail);
+
+      const { data, error } = await query
         .order("score", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(1)

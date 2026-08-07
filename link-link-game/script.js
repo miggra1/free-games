@@ -43,12 +43,14 @@ const modes = {
   speed: {
     label: "极速记录",
     bestLabel: "最快记录",
-    remoteKey: "link-link-game-speed",
+    remoteKey: "link-link-game",
+    remoteMode: "speed",
   },
   adventure: {
     label: "闯关模式",
     bestLabel: "闯关记录",
-    remoteKey: "link-link-game-adventure",
+    remoteKey: "link-link-game",
+    remoteMode: "adventure",
   },
 };
 
@@ -583,7 +585,10 @@ function renderBestRecord() {
 async function loadRemoteBestRecord() {
   if (!window.FreeGamesScores) return;
   const requestedMode = currentMode;
-  const record = await window.FreeGamesScores.getBestScore(modes[requestedMode].remoteKey);
+  const modeConfig = modes[requestedMode];
+  const record = await window.FreeGamesScores.getBestScore(modeConfig.remoteKey, {
+    detail: { mode: modeConfig.remoteMode },
+  });
   if (!record || requestedMode !== currentMode || (game && requestedMode !== game.mode)) return;
   remoteBestRecord = normalizeRecord(record, requestedMode);
   renderBestRecord();
