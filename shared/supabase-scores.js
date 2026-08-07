@@ -74,9 +74,20 @@
 
       // Games sharing one approved database key can keep independent leaderboards.
       if (options.detail) query = query.contains("detail", options.detail);
+      if (options.won != null) query = query.eq("won", Boolean(options.won));
+      if (options.or) query = query.or(String(options.or));
+
+      const orderBy = Array.isArray(options.orderBy) && options.orderBy.length
+        ? options.orderBy
+        : [{ column: "score", ascending: false }];
+      orderBy.forEach(({ column, ascending = false, nullsFirst }) => {
+        query = query.order(column, {
+          ascending,
+          ...(nullsFirst == null ? {} : { nullsFirst }),
+        });
+      });
 
       const { data, error } = await query
-        .order("score", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

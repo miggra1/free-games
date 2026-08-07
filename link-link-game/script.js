@@ -586,9 +586,18 @@ async function loadRemoteBestRecord() {
   if (!window.FreeGamesScores) return;
   const requestedMode = currentMode;
   const modeConfig = modes[requestedMode];
-  const record = await window.FreeGamesScores.getBestScore(modeConfig.remoteKey, {
-    detail: { mode: modeConfig.remoteMode },
-  });
+  const queryOptions = requestedMode === "speed"
+    ? {
+        won: true,
+        // Keep the fastest records created before modes were split into separate boards.
+        or: "detail->>mode.eq.speed,detail->>mode.is.null",
+        orderBy: [
+          { column: "time_used", ascending: true, nullsFirst: false },
+          { column: "best_combo", ascending: false },
+        ],
+      }
+    : { detail: { mode: modeConfig.remoteMode } };
+  const record = await window.FreeGamesScores.getBestScore(modeConfig.remoteKey, queryOptions);
   if (!record || requestedMode !== currentMode || (game && requestedMode !== game.mode)) return;
   remoteBestRecord = normalizeRecord(record, requestedMode);
   renderBestRecord();
