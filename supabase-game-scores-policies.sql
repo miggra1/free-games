@@ -18,7 +18,8 @@ with check (
     'link-link-game',
     'speed-fury',
     'fire-basketball',
-    'fire-basketball-v2'
+    'fire-basketball-v2',
+    'digital-huarongdao'
   )
   and score >= 0
   and score <= 1000000

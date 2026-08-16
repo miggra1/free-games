@@ -4,6 +4,7 @@ const boardElement = document.querySelector('#board');
 const timeElement = document.querySelector('#time');
 const movesElement = document.querySelector('#moves');
 const difficultyValue = document.querySelector('#difficulty-value');
+const bestTimeElement = document.querySelector('#best-time');
 const statusElement = document.querySelector('#status');
 const startButton = document.querySelector('#start-button');
 const restartButton = document.querySelector('#restart-button');
@@ -14,6 +15,10 @@ const winSummary = document.querySelector('#win-summary');
 const playAgainButton = document.querySelector('#play-again-button');
 let tileElements = new Map();
 let emptyCellElement = null;
+let remoteBestSeconds = null;
+
+const REMOTE_GAME_KEY = 'digital-huarongdao';
+const LOCAL_RECORD_PREFIX = 'free-digital-huarongdao-best';
 
 const state = {
   size: 3,
@@ -86,10 +91,67 @@ function formatTime(totalSeconds) {
   return `${minutes}:${seconds}`;
 }
 
+function bestRecordKey(size = state.size) {
+  return `${LOCAL_RECORD_PREFIX}-${size}x${size}`;
+}
+
+function readLocalBest(size = state.size) {
+  try {
+    const value = Number.parseInt(localStorage.getItem(bestRecordKey(size)), 10);
+    return Number.isInteger(value) && value >= 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalBest(seconds) {
+  try {
+    localStorage.setItem(bestRecordKey(), String(seconds));
+  } catch {
+    // 本地存储不可用时仍继续使用云端记录。
+  }
+}
+
+function renderBestRecord() {
+  const candidates = [readLocalBest(), remoteBestSeconds].filter(Number.isInteger);
+  bestTimeElement.textContent = candidates.length ? formatTime(Math.min(...candidates)) : '--:--';
+}
+
+/** 读取当前难度的云端最快完赛记录；网络异常时保留本地记录作为兜底。 */
+async function loadRemoteBestRecord() {
+  if (!window.FreeGamesScores) return;
+  const requestedSize = state.size;
+  const record = await window.FreeGamesScores.getBestScore(REMOTE_GAME_KEY, {
+    won: true,
+    detail: { difficulty: requestedSize },
+    orderBy: [{ column: 'time_used', ascending: true, nullsFirst: false }],
+  });
+  if (requestedSize !== state.size) return;
+  remoteBestSeconds = Number.isInteger(record?.time_used) ? record.time_used : null;
+  renderBestRecord();
+}
+
+/** 刷新个人最快纪录时，将结果同步到云端排行榜。 */
+async function saveRemoteBestRecord(seconds, moves) {
+  if (!window.FreeGamesScores) return;
+  const saved = await window.FreeGamesScores.saveScore({
+    game_key: REMOTE_GAME_KEY,
+    score: Math.max(1, 100000 - seconds),
+    level: state.size,
+    won: true,
+    time_used: seconds,
+    remaining: 0,
+    best_combo: 0,
+    detail: { difficulty: state.size, moves },
+  });
+  if (saved) loadRemoteBestRecord();
+}
+
 function updateInfo() {
   timeElement.textContent = formatTime(state.seconds);
   movesElement.textContent = state.moves;
   difficultyValue.textContent = `${state.size} × ${state.size}`;
+  renderBestRecord();
 }
 
 /** 始终只保留一个计时器，防止重复点击按钮后计时速度叠加。 */
@@ -219,8 +281,15 @@ function finishGame() {
   clearTimer();
   updateControls();
   positionTiles();
+  const previousBest = readLocalBest();
+  const isNewBest = previousBest === null || state.seconds < previousBest;
+  if (isNewBest) {
+    writeLocalBest(state.seconds);
+    saveRemoteBestRecord(state.seconds, state.moves);
+  }
+  renderBestRecord();
   statusElement.textContent = '本局已完成，点击“再来一局”继续挑战。';
-  winSummary.textContent = `本局用时 ${formatTime(state.seconds)}，共移动 ${state.moves} 步。`;
+  winSummary.textContent = `本局用时 ${formatTime(state.seconds)}，共移动 ${state.moves} 步。${isNewBest ? ' 已刷新个人最快记录！' : ''}`;
   winDialog.hidden = false;
   playAgainButton.focus();
 }
@@ -239,6 +308,7 @@ function startNewGame() {
   updateControls();
   createTileElements();
   positionTiles(true);
+  loadRemoteBestRecord();
   startTimer();
 }
 
@@ -258,6 +328,7 @@ function togglePause() {
 
 function changeDifficulty(event) {
   state.size = Number(event.currentTarget.dataset.size);
+  remoteBestSeconds = null;
   difficultyButtons.forEach((button) => {
     const selected = button === event.currentTarget;
     button.classList.toggle('is-active', selected);
@@ -279,6 +350,7 @@ updateInfo();
 updateControls();
 createTileElements();
 positionTiles(true);
+loadRemoteBestRecord();
 
 // 屏幕旋转或窗口缩放时重新计算像素坐标，但不播放无意义的移动动画。
 new ResizeObserver(() => positionTiles(true)).observe(boardElement);

@@ -101,10 +101,11 @@ h2 { font-size: 1.5rem; letter-spacing: -0.025em; }
 .board.is-positioning .tile,
 .board.is-positioning .empty-cell { transition: none; }
 
-.game-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin: 1.25rem 0; }
+.game-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin: 1.25rem 0; }
 .stat { min-width: 0; padding: 0.75rem 0.45rem; border-radius: var(--radius-md); text-align: center; background: var(--surface-soft); }
 .stat dt { margin-bottom: 0.28rem; color: var(--muted); font-size: 0.72rem; }
 .stat dd { margin: 0; font-size: clamp(0.9rem, 3.8vw, 1.08rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat-best { background: oklch(0.92 0.045 112); }
 
 .actions { flex-wrap: wrap; }
 .button { flex: 1 1 8rem; padding: 0.65rem 0.85rem; }
@@ -130,6 +131,7 @@ h2 { font-size: 1.5rem; letter-spacing: -0.025em; }
   .board { --gap: 0.42rem; }
   .game-stats { gap: 0.35rem; }
   .stat { padding-inline: 0.25rem; }
+  .stat dt { font-size: 0.68rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
