@@ -84,6 +84,7 @@ function isSolved(board = state.board) {
 
 /** 点击空白格同一行或同一列的任意数字，可将中间整段数字连带滑向空白格。 */
 function isAlignedWithBlank(tileIndex, blankIndex) {
+  if (tileIndex === blankIndex || tileIndex < 0 || blankIndex < 0) return false;
   return Math.floor(tileIndex / state.size) === Math.floor(blankIndex / state.size)
     || tileIndex % state.size === blankIndex % state.size;
 }
@@ -201,11 +202,6 @@ function createTileElements() {
     tile.textContent = value;
     tile.dataset.value = value;
     tile.setAttribute('aria-label', `数字 ${value}`);
-    // pointerdown 比 click 更早触发，连续触控/鼠标操作不会等待点击判定。
-    tile.addEventListener('pointerdown', (event) => {
-      event.preventDefault();
-      moveTile(value);
-    });
     tileElements.set(value, tile);
     boardElement.append(tile);
   }
@@ -289,6 +285,16 @@ function moveTile(value) {
   }
 }
 
+/**
+ * 由棋盘统一接收点击，保证整行/整列的任何数字都可触发连带移动。
+ * 事件委托也避免了方块在动画中变更状态时丢失自己的事件处理器。
+ */
+function handleBoardClick(event) {
+  const tile = event.target.closest('.tile');
+  if (!tile || !boardElement.contains(tile)) return;
+  moveTile(Number(tile.dataset.value));
+}
+
 /** 胜利时停止计时，并锁定棋盘，直至玩家重新开始。 */
 function finishGame() {
   if (state.won) return;
@@ -363,6 +369,7 @@ restartButton.addEventListener('click', startNewGame);
 pauseButton.addEventListener('click', togglePause);
 playAgainButton.addEventListener('click', startNewGame);
 difficultyButtons.forEach((button) => button.addEventListener('click', changeDifficulty));
+boardElement.addEventListener('click', handleBoardClick);
 
 /* 初始棋盘仅用于展示；尚未开始，因此不能点击，也不会启动计时。 */
 state.board = [1, 2, 3, 4, 5, 6, 7, 0, 8];
