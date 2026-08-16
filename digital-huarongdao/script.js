@@ -19,6 +19,7 @@ let remoteBestSeconds = null;
 
 const REMOTE_GAME_KEY = 'digital-huarongdao';
 const LOCAL_RECORD_PREFIX = 'free-digital-huarongdao-best';
+const MOVE_DURATION = 110;
 
 const state = {
   size: 3,
@@ -29,6 +30,9 @@ const state = {
   started: false,
   paused: false,
   won: false,
+  isMoving: false,
+  queuedMove: null,
+  moveTimerId: null,
 };
 
 /** Fisher-Yates 洗牌：每次随机选择尚未处理区域中的一个元素来交换。 */
@@ -210,7 +214,8 @@ function updateTileInteractivity() {
   tileElements.forEach((tile, value) => {
     const tileIndex = state.board.indexOf(value);
     const movable = state.started && !state.paused && !state.won && isAlignedWithBlank(tileIndex, blankIndex);
-    tile.disabled = !movable;
+    // 不因动画中的瞬时逻辑位置禁用方块，避免连点时视觉方块“失灵”。
+    tile.disabled = !state.started || state.paused || state.won;
     tile.classList.toggle('is-movable', movable);
   });
 }
@@ -251,6 +256,12 @@ function moveTile(value) {
   const blankIndex = state.board.indexOf(0);
   if (!isAlignedWithBlank(tileIndex, blankIndex)) return;
 
+  // 动画尚未结束时保留最近一次有效点击，结束后立即衔接下一步。
+  if (state.isMoving) {
+    state.queuedMove = value;
+    return;
+  }
+
   /*
    * 同行/同列时，把点击块和空白格之间的数字逐格向空位平移。
    * 一次点击可以带动多块，空白格最终出现在被点击数字的原位置。
@@ -267,17 +278,34 @@ function moveTile(value) {
   }
   state.board[tileIndex] = 0;
   state.moves += 1;
+  state.isMoving = true;
   updateInfo();
   positionTiles();
   updateTileInteractivity();
 
-  if (isSolved()) window.setTimeout(finishGame, 190);
+  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
+  state.moveTimerId = window.setTimeout(() => {
+    state.isMoving = false;
+    state.moveTimerId = null;
+    const queuedMove = state.queuedMove;
+    state.queuedMove = null;
+    if (queuedMove !== null) moveTile(queuedMove);
+  }, MOVE_DURATION);
+
+  if (isSolved()) {
+    state.queuedMove = null;
+    window.setTimeout(finishGame, MOVE_DURATION);
+  }
 }
 
 /** 胜利时停止计时，并锁定棋盘，直至玩家重新开始。 */
 function finishGame() {
   if (state.won) return;
   state.won = true;
+  state.queuedMove = null;
+  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
+  state.moveTimerId = null;
+  state.isMoving = false;
   clearTimer();
   updateControls();
   positionTiles();
@@ -296,6 +324,10 @@ function finishGame() {
 
 function startNewGame() {
   clearTimer();
+  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
+  state.moveTimerId = null;
+  state.isMoving = false;
+  state.queuedMove = null;
   state.board = createSolvableBoard(state.size);
   state.moves = 0;
   state.seconds = 0;
