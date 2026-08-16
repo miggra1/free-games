@@ -19,7 +19,7 @@ let remoteBestSeconds = null;
 
 const REMOTE_GAME_KEY = 'digital-huarongdao';
 const LOCAL_RECORD_PREFIX = 'free-digital-huarongdao-best';
-const MOVE_DURATION = 110;
+const MOVE_DURATION = 85;
 
 const state = {
   size: 3,
@@ -30,9 +30,8 @@ const state = {
   started: false,
   paused: false,
   won: false,
-  isMoving: false,
-  queuedMove: null,
-  moveTimerId: null,
+  finishing: false,
+  finishTimerId: null,
 };
 
 /** Fisher-Yates 洗牌：每次随机选择尚未处理区域中的一个元素来交换。 */
@@ -202,7 +201,11 @@ function createTileElements() {
     tile.textContent = value;
     tile.dataset.value = value;
     tile.setAttribute('aria-label', `数字 ${value}`);
-    tile.addEventListener('click', () => moveTile(value));
+    // pointerdown 比 click 更早触发，连续触控/鼠标操作不会等待点击判定。
+    tile.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      moveTile(value);
+    });
     tileElements.set(value, tile);
     boardElement.append(tile);
   }
@@ -213,9 +216,10 @@ function updateTileInteractivity() {
   const blankIndex = state.board.indexOf(0);
   tileElements.forEach((tile, value) => {
     const tileIndex = state.board.indexOf(value);
-    const movable = state.started && !state.paused && !state.won && isAlignedWithBlank(tileIndex, blankIndex);
+    const movable = state.started && !state.paused && !state.won && !state.finishing
+      && isAlignedWithBlank(tileIndex, blankIndex);
     // 不因动画中的瞬时逻辑位置禁用方块，避免连点时视觉方块“失灵”。
-    tile.disabled = !state.started || state.paused || state.won;
+    tile.disabled = !state.started || state.paused || state.won || state.finishing;
     tile.classList.toggle('is-movable', movable);
   });
 }
@@ -251,16 +255,10 @@ function positionTiles(withoutAnimation = false) {
 }
 
 function moveTile(value) {
-  if (!state.started || state.paused || state.won) return;
+  if (!state.started || state.paused || state.won || state.finishing) return;
   const tileIndex = state.board.indexOf(value);
   const blankIndex = state.board.indexOf(0);
   if (!isAlignedWithBlank(tileIndex, blankIndex)) return;
-
-  // 动画尚未结束时保留最近一次有效点击，结束后立即衔接下一步。
-  if (state.isMoving) {
-    state.queuedMove = value;
-    return;
-  }
 
   /*
    * 同行/同列时，把点击块和空白格之间的数字逐格向空位平移。
@@ -278,23 +276,16 @@ function moveTile(value) {
   }
   state.board[tileIndex] = 0;
   state.moves += 1;
-  state.isMoving = true;
   updateInfo();
   positionTiles();
   updateTileInteractivity();
 
-  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
-  state.moveTimerId = window.setTimeout(() => {
-    state.isMoving = false;
-    state.moveTimerId = null;
-    const queuedMove = state.queuedMove;
-    state.queuedMove = null;
-    if (queuedMove !== null) moveTile(queuedMove);
-  }, MOVE_DURATION);
-
   if (isSolved()) {
-    state.queuedMove = null;
-    window.setTimeout(finishGame, MOVE_DURATION);
+    // 逻辑上已完成时立即锁盘，等待最后一帧滑动结束再展示弹窗。
+    state.finishing = true;
+    updateTileInteractivity();
+    if (state.finishTimerId !== null) window.clearTimeout(state.finishTimerId);
+    state.finishTimerId = window.setTimeout(finishGame, MOVE_DURATION);
   }
 }
 
@@ -302,10 +293,8 @@ function moveTile(value) {
 function finishGame() {
   if (state.won) return;
   state.won = true;
-  state.queuedMove = null;
-  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
-  state.moveTimerId = null;
-  state.isMoving = false;
+  state.finishing = false;
+  state.finishTimerId = null;
   clearTimer();
   updateControls();
   positionTiles();
@@ -324,10 +313,9 @@ function finishGame() {
 
 function startNewGame() {
   clearTimer();
-  if (state.moveTimerId !== null) window.clearTimeout(state.moveTimerId);
-  state.moveTimerId = null;
-  state.isMoving = false;
-  state.queuedMove = null;
+  if (state.finishTimerId !== null) window.clearTimeout(state.finishTimerId);
+  state.finishTimerId = null;
+  state.finishing = false;
   state.board = createSolvableBoard(state.size);
   state.moves = 0;
   state.seconds = 0;
