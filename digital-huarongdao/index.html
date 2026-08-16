@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="一个无需后端、可直接在浏览器运行的数字华容道小游戏。">
+  <title>数字华容道</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <header class="hero">
+      <p class="eyebrow">NUMBER PUZZLE</p>
+      <h1>数字华容道</h1>
+      <p class="intro">点击空白格同一行或同一列的数字，连带滑动并还原棋盘。</p>
+    </header>
+
+    <section class="game-panel" aria-label="数字华容道游戏">
+      <div class="difficulty" role="group" aria-label="选择难度">
+        <button class="difficulty-button is-active" type="button" data-size="3" aria-pressed="true">3 × 3</button>
+        <button class="difficulty-button" type="button" data-size="4" aria-pressed="false">4 × 4</button>
+      </div>
+
+      <div id="board" class="board" data-size="3" aria-label="数字棋盘" aria-live="polite"></div>
+
+      <dl class="game-stats" aria-label="本局信息">
+        <div class="stat">
+          <dt>当前用时</dt>
+          <dd id="time">00:00</dd>
+        </div>
+        <div class="stat">
+          <dt>当前步数</dt>
+          <dd id="moves">0</dd>
+        </div>
+        <div class="stat">
+          <dt>当前难度</dt>
+          <dd id="difficulty-value">3 × 3</dd>
+        </div>
+      </dl>
+
+      <div class="actions" aria-label="游戏操作">
+        <button id="start-button" class="button button-primary" type="button">开始游戏</button>
+        <button id="restart-button" class="button button-secondary" type="button">重新开始</button>
+        <button id="pause-button" class="button button-secondary" type="button" disabled>暂停游戏</button>
+      </div>
+      <p id="status" class="status" role="status">点击“开始游戏”开始挑战</p>
+    </section>
+  </main>
+
+  <div id="win-dialog" class="dialog-backdrop" hidden>
+    <section class="win-dialog" role="dialog" aria-modal="true" aria-labelledby="win-title">
+      <span class="win-mark" aria-hidden="true">✓</span>
+      <p class="eyebrow">CHALLENGE COMPLETE</p>
+      <h2 id="win-title">恭喜完成！</h2>
+      <p id="win-summary">你成功还原了棋盘。</p>
+      <button id="play-again-button" class="button button-primary" type="button">再来一局</button>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
