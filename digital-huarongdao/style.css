@@ -77,6 +77,14 @@ h2 { font-size: 1.5rem; letter-spacing: -0.025em; }
 .board[data-size="3"] { --size: 3; }
 .board[data-size="4"] { --size: 4; }
 
+/* 棋盘是直接操作区域：禁止文本选中、拖拽和移动端长按菜单。 */
+.board, .tile, .empty-cell {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.tile { touch-action: manipulation; }
+
 .tile, .empty-cell {
   position: absolute;
   min-width: 0;
